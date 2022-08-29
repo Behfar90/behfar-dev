@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/behfar-dev/static/css/main.0ed517d8.css",
-    "main.js": "/behfar-dev/static/js/main.cfd81a24.js",
+    "main.js": "/behfar-dev/static/js/main.ad726270.js",
     "static/js/787.be604100.chunk.js": "/behfar-dev/static/js/787.be604100.chunk.js",
     "index.html": "/behfar-dev/index.html",
     "main.0ed517d8.css.map": "/behfar-dev/static/css/main.0ed517d8.css.map",
-    "main.cfd81a24.js.map": "/behfar-dev/static/js/main.cfd81a24.js.map",
+    "main.ad726270.js.map": "/behfar-dev/static/js/main.ad726270.js.map",
     "787.be604100.chunk.js.map": "/behfar-dev/static/js/787.be604100.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.0ed517d8.css",
-    "static/js/main.cfd81a24.js"
+    "static/js/main.ad726270.js"
   ]
 }
