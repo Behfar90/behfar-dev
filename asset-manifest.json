@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/behfar-dev/static/css/main.0ed517d8.css",
-    "main.js": "/behfar-dev/static/js/main.ad726270.js",
-    "static/js/787.be604100.chunk.js": "/behfar-dev/static/js/787.be604100.chunk.js",
-    "index.html": "/behfar-dev/index.html",
-    "main.0ed517d8.css.map": "/behfar-dev/static/css/main.0ed517d8.css.map",
-    "main.ad726270.js.map": "/behfar-dev/static/js/main.ad726270.js.map",
-    "787.be604100.chunk.js.map": "/behfar-dev/static/js/787.be604100.chunk.js.map"
+    "main.css": "/static/css/main.0ed517d8.css",
+    "main.js": "/static/js/main.9136cdd6.js",
+    "static/js/787.be604100.chunk.js": "/static/js/787.be604100.chunk.js",
+    "index.html": "/index.html",
+    "main.0ed517d8.css.map": "/static/css/main.0ed517d8.css.map",
+    "main.9136cdd6.js.map": "/static/js/main.9136cdd6.js.map",
+    "787.be604100.chunk.js.map": "/static/js/787.be604100.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.0ed517d8.css",
-    "static/js/main.ad726270.js"
+    "static/js/main.9136cdd6.js"
   ]
 }
