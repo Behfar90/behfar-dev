@@ -17,7 +17,7 @@ function App() {
      * Fonts
      */
     const fontLoader = new FontLoader();
-    fontLoader.load("/fonts/helvetiker_regular.typeface.json", (font) => {
+    fontLoader.load("fonts/helvetiker_regular.typeface.json", (font) => {
       const textGeometry1 = new TextGeometry("COMING", {
         font,
         size: 0.5,
@@ -69,7 +69,7 @@ function App() {
      */
     var sphereTab = [];
     var lumiereS;
-    for (var i = 0; i < 1000; i++) {
+    for (var counter = 0; counter < 1000; counter++) {
       // randRadius = Math.random()*30+10;
       lumiereS = new THREE.MeshStandardMaterial({
         emissive: "#fff",
@@ -86,13 +86,13 @@ function App() {
       );
     }
 
-    for (var i = 0; i < sphereTab.length; i++) {
-      sphereTab[i].position.set(
+    for (var sphereIdx = 0; sphereIdx < sphereTab.length; sphereIdx++) {
+      sphereTab[sphereIdx].position.set(
         Math.random() * 600 - 300,
         Math.random() * 600 - 300,
         Math.random() * 600 - 300
       );
-      scene.add(sphereTab[i]);
+      scene.add(sphereTab[sphereIdx]);
     }
 
     /**
@@ -270,11 +270,15 @@ function App() {
       const elapsedTime = clock.getElapsedTime();
 
       var timer = 0.00001 * Date.now();
-      for (var i = 0, il = sphereTab.length; i < il; i++) {
-        var sfere = sphereTab[i];
-        sfere.position.x = 400 * Math.sin(timer + i);
+      for (
+        var positionIdx = 0, il = sphereTab.length;
+        positionIdx < il;
+        positionIdx++
+      ) {
+        var sfere = sphereTab[positionIdx];
+        sfere.position.x = 400 * Math.sin(timer + positionIdx);
         // sfere.position.z= 500 * Math.sin( timer + i * 1.1 );
-        sfere.position.z = 400 * Math.sin(timer + i * 1.1);
+        sfere.position.z = 400 * Math.sin(timer + positionIdx * 1.1);
       }
 
       // Update controls
