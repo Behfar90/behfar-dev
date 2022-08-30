@@ -1,6 +1,7 @@
 import "./App.css";
 import { useEffect } from "react";
 import * as THREE from "three";
+import gsap from "gsap";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry";
@@ -34,7 +35,7 @@ function App() {
       const textMaterial1 = new THREE.MeshMatcapMaterial();
       textMaterial1.wireframe = true;
       const text = new THREE.Mesh(textGeometry1, textMaterial1);
-      text.lookAt(4, 4, 2);
+      // text.lookAt(4, 4, 2);
       scene.add(text);
     });
     fontLoader.load("fonts/helvetiker_regular.typeface.json", (font) => {
@@ -60,7 +61,7 @@ function App() {
       const textMaterial2 = new THREE.MeshMatcapMaterial();
       textMaterial2.wireframe = true;
       const text2 = new THREE.Mesh(textGeometry2, textMaterial2);
-      text2.lookAt(4, 4, 2);
+      // text2.lookAt(4, 4, 2);
       scene.add(text2);
     });
 
@@ -243,9 +244,9 @@ function App() {
       0.1,
       10000
     );
-    camera.position.x = 4;
-    camera.position.y = 4;
-    camera.position.z = 2;
+    camera.position.x = 0;
+    camera.position.y = 0;
+    camera.position.z = 4;
     scene.add(camera);
 
     // Controls
@@ -261,13 +262,45 @@ function App() {
     renderer.setSize(sizes.width, sizes.height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+    const button = document.querySelector(".button");
+    const tl = gsap.timeline();
+
+    button.addEventListener("click", function () {
+      tl.to(camera.position, {
+        duration: 5,
+        ease: "sine.inOut",
+        x: -1.75,
+        y: -0.75,
+        z: -2,
+      });
+      tl.to(camera.position, {
+        duration: 3.5,
+        ease: "sine",
+        x: 1.75,
+        y: 0.75,
+        z: -2,
+      });
+      tl.to(camera.position, {
+        duration: 5,
+        ease: "sine",
+        x: 0,
+        y: 0,
+        z: 4,
+      });
+    });
+
     /**
      * Animate
      */
+
     const clock = new THREE.Clock();
 
     const tick = () => {
       const elapsedTime = clock.getElapsedTime();
+      // camera.position.x = Math.sin(elapsedTime) * 1.75;
+      // camera.position.y = Math.sin(elapsedTime) * 0.75;
+      // camera.position.z = Math.cos(elapsedTime) * 3;
+      // camera.lookAt(0, 0, 0);
 
       var timer = 0.00001 * Date.now();
       for (
@@ -281,13 +314,10 @@ function App() {
         sfere.position.z = 400 * Math.sin(timer + positionIdx * 1.1);
       }
 
-      // Update controls
       controls.update();
 
-      // Render
       renderer.render(scene, camera);
 
-      // Call tick again on the next frame
       window.requestAnimationFrame(tick);
     };
 
@@ -297,6 +327,7 @@ function App() {
   return (
     <div>
       <canvas className="webgl"></canvas>
+      <button className="button">Bounce</button>
     </div>
   );
 }

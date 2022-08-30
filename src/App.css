@@ -14,3 +14,15 @@ body {
   left: 0;
   outline: none;
 }
+
+.button {
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  margin-left: -50px;
+  width: 100px;
+  border-radius: 25px;
+  text-align: center;
+  z-index: 2;
+  display: block;
+}
