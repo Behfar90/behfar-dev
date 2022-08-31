@@ -243,12 +243,25 @@ function App() {
     const icon = document.querySelector(".instruction__icon");
     const iconText = document.querySelector(".instruction__text");
 
+    // MOUSEDOWN | POINTERDOWN
     window.addEventListener("mousedown", function () {
       icon.classList.add("hold__icon");
       iconText.classList.add("hold__text");
       iconText.innerHTML = "Explore";
     });
+    window.addEventListener("pointerdown", function () {
+      icon.classList.add("hold__icon");
+      iconText.classList.add("hold__text");
+      iconText.innerHTML = "Explore";
+    });
+
+    // MOUSEUP | POINTERUP
     window.addEventListener("mouseup", function () {
+      icon.classList.remove("hold__icon");
+      iconText.classList.remove("hold__text");
+      iconText.innerHTML = "Click & Hold";
+    });
+    window.addEventListener("pointerup", function () {
       icon.classList.remove("hold__icon");
       iconText.classList.remove("hold__text");
       iconText.innerHTML = "Click & Hold";
