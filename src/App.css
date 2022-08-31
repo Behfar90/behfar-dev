@@ -94,3 +94,10 @@ body {
     opacity: 0.3;
   }
 }
+
+@media only screen and (max-width: 768px) {
+  .instruction {
+    transform: scale(0.7);
+    bottom: 5%;
+  }
+}
