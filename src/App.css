@@ -14,3 +14,77 @@ body {
   left: 0;
   outline: none;
 }
+
+.instruction {
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  margin-left: -100px;
+  width: 200px;
+  text-align: center;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #fff;
+}
+
+.instruction__icon {
+  opacity: 0.3;
+  animation: cursor 3s infinite 0.5s ease-in-out;
+}
+
+.instruction__text {
+  opacity: 0.3;
+  margin: 1rem 0 0 0.4rem;
+  animation: cursor-text 3s infinite 0.5s ease-in-out;
+}
+
+.hold__icon {
+  opacity: 0.9;
+  animation: cursor-hold 3s infinite 0.5s ease-in-out;
+}
+
+.hold__text {
+  opacity: 0.9;
+  animation: none;
+}
+
+@keyframes cursor {
+  0% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes cursor-hold {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-30px, 0);
+  }
+  50% {
+    transform: translate(0, 0);
+  }
+  75% {
+    transform: translate(30px, 0);
+  }
+}
+
+@keyframes cursor-text {
+  0% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}

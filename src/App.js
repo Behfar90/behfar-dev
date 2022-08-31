@@ -4,6 +4,9 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry";
+/* Icons */
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
 
 function App() {
   useEffect(() => {
@@ -234,6 +237,24 @@ function App() {
     });
 
     /**
+     * Click Handler
+     */
+
+    const icon = document.querySelector(".instruction__icon");
+    const iconText = document.querySelector(".instruction__text");
+
+    window.addEventListener("mousedown", function () {
+      icon.classList.add("hold__icon");
+      iconText.classList.add("hold__text");
+      iconText.innerHTML = "Explore";
+    });
+    window.addEventListener("mouseup", function () {
+      icon.classList.remove("hold__icon");
+      iconText.classList.remove("hold__text");
+      iconText.innerHTML = "Click & Hold";
+    });
+
+    /**
      * Camera
      */
     // Base camera
@@ -297,6 +318,14 @@ function App() {
   return (
     <div>
       <canvas className="webgl"></canvas>
+      <span className="instruction">
+        <FontAwesomeIcon
+          className="instruction__icon"
+          icon={faHandPointer}
+          size={"4x"}
+        />
+        <span className="instruction__text">Click & Hold</span>
+      </span>
     </div>
   );
 }
