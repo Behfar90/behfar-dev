@@ -6,6 +6,14 @@
 html,
 body {
   overflow: hidden;
+  background: #000;
+  color: #fff;
+}
+
+.app {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
 }
 
 .webgl {
@@ -13,6 +21,12 @@ body {
   top: 0;
   left: 0;
   outline: none;
+  transition: filter 0.8s ease, opacity 0.8s ease;
+}
+
+.webgl--blurred {
+  filter: blur(20px);
+  opacity: 0;
 }
 
 .instruction {
@@ -45,6 +59,17 @@ body {
   opacity: 0.3;
   margin: 1rem 0 0 0.4rem;
   animation: cursor-text 3s infinite 0.5s ease-in-out;
+}
+
+.loading-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: #ff6030;
+  z-index: 200;
+  transition: width 0.3s ease;
+  pointer-events: none;
 }
 
 .hold__icon {

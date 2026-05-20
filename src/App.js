@@ -1,5 +1,5 @@
 import "./App.css";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader";
@@ -9,6 +9,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
 
 function App() {
+  const [displayProgress, setDisplayProgress] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasMinDurationPassed, setHasMinDurationPassed] = useState(false);
+
   useEffect(() => {
     // Canvas
     const canvas = document.querySelector("canvas.webgl");
@@ -19,7 +23,16 @@ function App() {
     /**
      * Fonts
      */
-    const fontLoader = new FontLoader();
+    const manager = new THREE.LoadingManager();
+    manager.onProgress = (url, itemsLoaded, itemsTotal) => {
+      setDisplayProgress((itemsLoaded / itemsTotal) * 100);
+    };
+    manager.onLoad = () => {
+      setIsLoaded(true);
+      tick();
+    };
+
+    const fontLoader = new FontLoader(manager);
     fontLoader.load("fonts/helvetiker_regular.typeface.json", (font) => {
       const textGeometry1 = new TextGeometry("COMING", {
         font,
@@ -81,12 +94,18 @@ function App() {
       lumiereS.metalness = 0.5;
       lumiereS.roughness = 0;
 
-      sphereTab.push(
-        new THREE.Mesh(
-          new THREE.SphereGeometry(Math.random() * 1, 20, 20),
-          lumiereS
-        )
+      const sphere = new THREE.Mesh(
+        new THREE.SphereGeometry(Math.random() * 1, 20, 20),
+        lumiereS
       );
+
+      const isStatic = Math.random() < 0.66; // ~66% stay still
+      const isShining = isStatic && Math.random() < 0.4; // 40% of static ones shimmer
+
+      sphere.userData.isStatic = isStatic;
+      sphere.userData.isShining = isShining;
+
+      sphereTab.push(sphere);
     }
 
     for (var sphereIdx = 0; sphereIdx < sphereTab.length; sphereIdx++) {
@@ -102,20 +121,16 @@ function App() {
      * Galaxies
      */
 
-    const randomIntInterval = (min, max) => {
-      return Math.floor(Math.random() * (max - min + 1) + min);
-    };
-
     let galaxyGeometry = null;
     let galaxyMaterial = null;
     let galaxyPoints = null;
 
     const generateGalaxy = ({ galaxyX, galaxyY, galaxyZ }) => {
       const parameters = {
-        count: randomIntInterval(5000, 20000),
+        count: 10000,
         size: 0.01,
         radius: 5,
-        branches: randomIntInterval(2, 9),
+        branches: 5,
         spin: 1,
         randomness: 0.2,
         randomnessPower: 3,
@@ -189,30 +204,24 @@ function App() {
       scene.add(galaxyPoints);
     };
 
-    const galaxyParams = {
-      number: 50,
-    };
+    const galaxyCenters = [
+      // three galaxies close to the camera focus (around the origin)
+      { galaxyX: 0, galaxyY: 0, galaxyZ: 0 },
+      { galaxyX: 8, galaxyY: 2, galaxyZ: -5 },
+      { galaxyX: -6, galaxyY: -3, galaxyZ: 4 },
+      // remaining galaxies a bit farther out for depth
+      { galaxyX: 18, galaxyY: 10, galaxyZ: 20 },
+      { galaxyX: -18, galaxyY: -8, galaxyZ: -22 },
+      { galaxyX: -30, galaxyY: 15, galaxyZ: -18 },
+      { galaxyX: 28, galaxyY: -15, galaxyZ: 16 },
+      { galaxyX: -10, galaxyY: -20, galaxyZ: 28 },
+      { galaxyX: 6, galaxyY: 22, galaxyZ: 30 },
+      { galaxyX: 20, galaxyY: 8, galaxyZ: -12 },
+    ];
 
-    const generateAllGalaxies = () => {
-      for (let index = 0; index < galaxyParams.number; index++) {
-        let galaxyIndex;
-        if (index < 5) {
-          galaxyIndex = index + 5;
-        } else if (index < 15) {
-          galaxyIndex = index + 10;
-        } else {
-          galaxyIndex = index + 15;
-        }
-        const positions = {
-          galaxyX: randomIntInterval(galaxyIndex * -2, galaxyIndex * 2),
-          galaxyY: randomIntInterval(galaxyIndex * -3, galaxyIndex * 3),
-          galaxyZ: randomIntInterval(galaxyIndex * -4, galaxyIndex * 4),
-        };
-        generateGalaxy(positions);
-      }
-    };
-
-    generateAllGalaxies();
+    galaxyCenters.forEach((center) => {
+      generateGalaxy(center);
+    });
 
     /**
      * Sizes
@@ -310,9 +319,24 @@ function App() {
         positionIdx++
       ) {
         var sfere = sphereTab[positionIdx];
-        sfere.position.x = 400 * Math.sin(timer + positionIdx);
-        // sfere.position.z= 500 * Math.sin( timer + i * 1.1 );
-        sfere.position.z = 400 * Math.sin(timer + positionIdx * 1.1);
+
+        if (!sfere.userData.isStatic) {
+          sfere.position.x = 400 * Math.sin(timer + positionIdx);
+          // sfere.position.z= 500 * Math.sin( timer + i * 1.1 );
+          sfere.position.z = 400 * Math.sin(timer + positionIdx * 1.1);
+        }
+
+        if (sfere.userData.isShining) {
+          const material = sfere.material;
+          const base = 0.5;
+          const amplitude = 0.4;
+          const speed = 0.6;
+          material.emissiveIntensity =
+            base +
+            amplitude *
+              (0.5 +
+                0.5 * Math.sin(elapsedTime * speed + positionIdx * 0.3));
+        }
       }
 
       // Update controls
@@ -324,13 +348,23 @@ function App() {
       // Call tick again on the next frame
       window.requestAnimationFrame(tick);
     };
+  }, []);
 
-    tick();
-  });
+  useEffect(() => {
+    const timer = setTimeout(() => setHasMinDurationPassed(true), 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const showLoader = !isLoaded || !hasMinDurationPassed;
 
   return (
-    <div>
-      <canvas className="webgl"></canvas>
+    <div className="app">
+      {showLoader && (
+        <div className="loading-bar" style={{ width: `${displayProgress}%` }} />
+      )}
+      <canvas
+        className={`webgl ${showLoader ? "webgl--blurred" : ""}`}
+      ></canvas>
       <span className="instruction">
         <FontAwesomeIcon
           className="instruction__icon"
