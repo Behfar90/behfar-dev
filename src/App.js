@@ -70,7 +70,7 @@ function App() {
       textGeometry2.translate(
         -textGeometry2.boundingBox?.max.x * 0.5,
         -textGeometry2.boundingBox?.max.y * 2,
-        -textGeometry2.boundingBox?.max.z * 0.5
+        -textGeometry2.boundingBox?.max.z * 0.5,
       );
 
       const textMaterial2 = new THREE.MeshMatcapMaterial();
@@ -96,7 +96,7 @@ function App() {
 
       const sphere = new THREE.Mesh(
         new THREE.SphereGeometry(Math.random() * 1, 20, 20),
-        lumiereS
+        lumiereS,
       );
 
       const isStatic = Math.random() < 0.66; // ~66% stay still
@@ -112,7 +112,7 @@ function App() {
       sphereTab[sphereIdx].position.set(
         Math.random() * 600 - 300,
         Math.random() * 600 - 300,
-        Math.random() * 600 - 300
+        Math.random() * 600 - 300,
       );
       scene.add(sphereTab[sphereIdx]);
     }
@@ -180,12 +180,12 @@ function App() {
 
       galaxyGeometry.setAttribute(
         "position",
-        new THREE.BufferAttribute(galaxyPositions, 3)
+        new THREE.BufferAttribute(galaxyPositions, 3),
       );
 
       galaxyGeometry.setAttribute(
         "color",
-        new THREE.BufferAttribute(colors, 3)
+        new THREE.BufferAttribute(colors, 3),
       );
 
       galaxyMaterial = new THREE.PointsMaterial({
@@ -284,7 +284,7 @@ function App() {
       75,
       sizes.width / sizes.height,
       0.1,
-      10000
+      10000,
     );
     camera.position.x = 4;
     camera.position.y = 4;
@@ -334,8 +334,7 @@ function App() {
           material.emissiveIntensity =
             base +
             amplitude *
-              (0.5 +
-                0.5 * Math.sin(elapsedTime * speed + positionIdx * 0.3));
+              (0.5 + 0.5 * Math.sin(elapsedTime * speed + positionIdx * 0.3));
         }
       }
 

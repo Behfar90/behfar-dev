@@ -21,7 +21,9 @@ body {
   top: 0;
   left: 0;
   outline: none;
-  transition: filter 0.8s ease, opacity 0.8s ease;
+  transition:
+    filter 0.8s ease,
+    opacity 0.8s ease;
 }
 
 .webgl--blurred {
