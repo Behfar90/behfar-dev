@@ -4,26 +4,29 @@ import {
   Float32BufferAttribute,
   LineBasicMaterial,
   Color,
-} from 'three';
+} from "three";
 
 export default class AnimatedMeshLine extends Line {
   constructor({
     speed = 0.002,
     visibleLength = 0.3,
-    color = new Color('#ffffff'),
+    color = new Color("#ffffff"),
     opacity = 1,
     points = [],
   } = {}) {
     const geometry = new BufferGeometry();
-    geometry.setAttribute('position', new Float32BufferAttribute(points, 3));
+    geometry.setAttribute("position", new Float32BufferAttribute(points, 3));
     geometry.setDrawRange(0, 0);
 
-    super(geometry, new LineBasicMaterial({
-      color,
-      opacity,
-      transparent: true,
-      depthWrite: false,
-    }));
+    super(
+      geometry,
+      new LineBasicMaterial({
+        color,
+        opacity,
+        transparent: true,
+        depthWrite: false,
+      }),
+    );
 
     this.totalPoints = points.length / 3;
     this.speed = speed;
@@ -40,7 +43,10 @@ export default class AnimatedMeshLine extends Line {
     this.geometry.setDrawRange(start, Math.max(0, end - start));
 
     if (this.isDying()) {
-      this.material.opacity = Math.max(0, 1 - (this.currentOffset - 1) / this.visibleLength);
+      this.material.opacity = Math.max(
+        0,
+        1 - (this.currentOffset - 1) / this.visibleLength,
+      );
     }
   }
 

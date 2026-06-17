@@ -1,10 +1,12 @@
-import { Object3D, Color } from 'three';
-import AnimatedMeshLine from './AnimatedMeshLine';
+import { Object3D, Color } from "three";
+import AnimatedMeshLine from "./AnimatedMeshLine";
 
 const rndFloat = (min, max) => Math.random() * (max - min) + min;
 const rndItem = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-const COLORS = ['#dc202e', '#f7ed99', '#2d338b', '#76306b', '#ea8c2d'].map(c => new Color(c));
+const COLORS = ["#dc202e", "#f7ed99", "#2d338b", "#76306b", "#ea8c2d"].map(
+  (c) => new Color(c),
+);
 
 const RADIUS_START = 0.3;
 const RADIUS_START_MIN = 0.1;
