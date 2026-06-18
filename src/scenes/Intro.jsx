@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from "react";
-import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { createStars, updateStars } from "../utils/scenes/stars";
-import { createGalaxies } from "../utils/scenes/galaxies";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
-import styles from "./Intro.module.css";
+import { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { createStars, updateStars } from '../utils/scenes/stars';
+import { createGalaxies } from '../utils/scenes/galaxies';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHandPointer } from '@fortawesome/free-solid-svg-icons';
+import ShootingStarIntro from './ShootingStarIntro';
+import styles from './Intro.module.css';
 
 export default function Intro({ blurred, onReady }) {
   const canvasRef = useRef(null);
@@ -20,12 +21,7 @@ export default function Intro({ blurred, onReady }) {
 
     const sizes = { width: window.innerWidth, height: window.innerHeight };
 
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      sizes.width / sizes.height,
-      0.1,
-      10000,
-    );
+    const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 10000);
     camera.position.set(4, 4, 2);
     scene.add(camera);
 
@@ -44,7 +40,7 @@ export default function Intro({ blurred, onReady }) {
       renderer.setSize(sizes.width, sizes.height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     };
-    window.addEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
 
     const clock = new THREE.Clock();
     let animFrame;
@@ -60,18 +56,19 @@ export default function Intro({ blurred, onReady }) {
     onReady?.();
 
     return () => {
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animFrame);
       renderer.dispose();
     };
   }, [onReady]);
 
-  const canvasClass = `${styles.webgl}${blurred ? ` ${styles["webgl--blurred"]}` : ""}`;
-  const hintClass = `${styles.instruction}${holding ? ` ${styles["instruction--holding"]}` : ""}`;
+  const canvasClass = `${styles.webgl}${blurred ? ` ${styles['webgl--blurred']}` : ''}`;
+  const hintClass = `${styles.instruction}${holding ? ` ${styles['instruction--holding']}` : ''}`;
 
   return (
     <>
       <canvas ref={canvasRef} className={canvasClass} />
+      {!blurred && <ShootingStarIntro />}
       <span
         className={hintClass}
         onMouseDown={() => setHolding(true)}
@@ -79,14 +76,8 @@ export default function Intro({ blurred, onReady }) {
         onPointerDown={() => setHolding(true)}
         onPointerUp={() => setHolding(false)}
       >
-        <FontAwesomeIcon
-          className={styles.instruction__icon}
-          icon={faHandPointer}
-          size="4x"
-        />
-        <span className={styles.instruction__text}>
-          {holding ? "Explore" : "Click & Hold"}
-        </span>
+        <FontAwesomeIcon className={styles.instruction__icon} icon={faHandPointer} size="4x" />
+        <span className={styles.instruction__text}>{holding ? 'Explore' : 'Click & Hold'}</span>
       </span>
     </>
   );
