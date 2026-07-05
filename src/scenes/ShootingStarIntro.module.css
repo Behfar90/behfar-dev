@@ -1,59 +1,10 @@
 .overlay {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 20;
-  overflow: hidden;
-}
-
-/* Horizontal star — sits on the vertical centre line, travels left → right */
-.hStar {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 220px;
-  height: 2px;
-  transform: translateY(-50%);
-  /* tail on the left, bright head on the right */
-  background: linear-gradient(to right, transparent 0%, rgba(200, 220, 255, 0.4) 60%, #fff 100%);
-  border-radius: 2px;
-  box-shadow:
-    0 0 6px 1px rgba(255, 255, 255, 0.7),
-    0 0 20px 3px rgba(160, 190, 255, 0.4);
-}
-
-/* Vertical star — sits on the horizontal centre line, travels top → bottom */
-.vStar {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 2px;
-  height: 220px;
-  transform: translateX(-50%);
-  /* tail on the top, bright head on the bottom */
-  background: linear-gradient(to bottom, transparent 0%, rgba(200, 220, 255, 0.4) 60%, #fff 100%);
-  border-radius: 2px;
-  box-shadow:
-    1px 0 6px 1px rgba(255, 255, 255, 0.7),
-    3px 0 20px 3px rgba(160, 190, 255, 0.4);
-}
-
-.name {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-family: Georgia, serif;
-  font-size: clamp(1.8rem, 4vw, 3.6rem);
-  font-weight: normal;
-  color: #fff;
-  letter-spacing: 0.25em;
-  white-space: nowrap;
-  text-shadow:
-    0 0 30px rgba(255, 255, 255, 0.45),
-    0 0 70px rgba(160, 190, 255, 0.25);
-  opacity: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Crucial: lets mouse events pass through to OrbitControls */
+  z-index: 10;
+  mix-blend-mode: screen; /* Crucial: applies the additive glow over the main canvas */
 }

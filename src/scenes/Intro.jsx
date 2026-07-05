@@ -12,6 +12,9 @@ export default function Intro({ blurred, onReady }) {
   const canvasRef = useRef(null);
   const [holding, setHolding] = useState(false);
 
+  // Track whether the intro animation is still running
+  const [showIntroOverlay, setShowIntroOverlay] = useState(true);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     const scene = new THREE.Scene();
@@ -68,7 +71,14 @@ export default function Intro({ blurred, onReady }) {
   return (
     <>
       <canvas ref={canvasRef} className={canvasClass} />
-      {!blurred && <ShootingStarIntro />}
+
+      {/* Render the intro overlay if not blurred AND the animation hasn't finished. 
+        Once onComplete fires, this unmounts the R3F canvas completely.
+      */}
+      {!blurred && showIntroOverlay && (
+        <ShootingStarIntro onComplete={() => setShowIntroOverlay(false)} />
+      )}
+
       <span
         className={hintClass}
         onMouseDown={() => setHolding(true)}
