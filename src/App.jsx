@@ -1,22 +1,32 @@
 import styles from "./App.module.css";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Intro from "./scenes/Intro";
+import NextSection from "./scenes/NextSection";
+import useScrollJourney from "./hooks/useScrollJourney";
 
 function App() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasMinDurationPassed, setHasMinDurationPassed] = useState(false);
+  const { introWrapperRef, orbitProgress } = useScrollJourney();
 
   useEffect(() => {
     const timer = setTimeout(() => setHasMinDurationPassed(true), 2500);
     return () => clearTimeout(timer);
   }, []);
 
+  const handleIntroReady = useCallback(() => setIsLoaded(true), []);
   const showLoader = !isLoaded || !hasMinDurationPassed;
 
   return (
     <div className={styles.app}>
       {showLoader && <div className={styles.loadingBar} />}
-      <Intro blurred={showLoader} onReady={() => setIsLoaded(true)} />
+      <Intro
+        wrapperRef={introWrapperRef}
+        orbitProgress={orbitProgress}
+        blurred={showLoader}
+        onReady={handleIntroReady}
+      />
+      <NextSection />
     </div>
   );
 }
