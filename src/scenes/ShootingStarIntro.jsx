@@ -223,16 +223,6 @@ const TextReveal = forwardRef((_, ref) => {
         materialRef.current.uniforms.uProgress.value = p;
       }
     },
-    fadeOut: () => {
-      if (materialRef.current) {
-        // Optional smooth fade out before unmount
-        gsap.to(materialRef.current.uniforms.alpha, {
-          value: 0,
-          duration: 1,
-          ease: 'power2.out',
-        });
-      }
-    },
   }));
 
   return (
@@ -249,7 +239,12 @@ const TextReveal = forwardRef((_, ref) => {
   );
 });
 
-const Scene = ({ onComplete }) => {
+// Once the name has been revealed for the first time this session, later
+// mounts (e.g. scrolling back from the next section) skip straight to the
+// settled result instead of replaying the shooting-star sweep.
+let hasPlayed = false;
+
+const Scene = () => {
   const { size } = useThree();
   const starRef = useRef();
   const textRef = useRef();
@@ -257,6 +252,12 @@ const Scene = ({ onComplete }) => {
   useEffect(() => {
     const clientHalfWidth = size.width / 2;
     const clientHalfHeight = size.height / 2;
+
+    if (hasPlayed) {
+      textRef.current?.updateProgress(clientHalfWidth * 1.1 - size.width * 0.08);
+      return;
+    }
+
     const period = Math.PI * 3;
     const amplitude = Math.min(Math.max(size.width * 0.1, 100), 180);
 
@@ -296,19 +297,13 @@ const Scene = ({ onComplete }) => {
       },
       onComplete: () => {
         starRef.current?.resetPosition();
-
-        // Wait for the user to read the name, fade it out, then call onComplete
-        setTimeout(() => {
-          textRef.current?.fadeOut();
-          setTimeout(() => {
-            if (onComplete) onComplete();
-          }, 1000); // 1s buffer for the fade out
-        }, 2000); // 2s reading time
+        // The name stays revealed permanently from here on
+        hasPlayed = true;
       },
     });
 
     return () => tl.kill();
-  }, [size, onComplete]);
+  }, [size]);
 
   return (
     <>
@@ -318,7 +313,7 @@ const Scene = ({ onComplete }) => {
   );
 };
 
-export default function ShootingStarIntro({ onComplete }) {
+export default function ShootingStarIntro() {
   const calculateFov = () => {
     const height = window.innerHeight;
     return Math.atan(height / 2 / CAMERA_Z) * (180 / Math.PI) * 2;
@@ -339,7 +334,7 @@ export default function ShootingStarIntro({ onComplete }) {
           premultipliedAlpha: false,
         }}
       >
-        <Scene onComplete={onComplete} />
+        <Scene />
       </Canvas>
     </div>
   );
