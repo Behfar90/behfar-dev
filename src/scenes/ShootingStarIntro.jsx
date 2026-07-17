@@ -1,4 +1,11 @@
-import React, { useEffect, useRef, useMemo, forwardRef, useImperativeHandle } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useMemo,
+  forwardRef,
+  useImperativeHandle,
+} from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import gsap from 'gsap';
@@ -239,25 +246,20 @@ const TextReveal = forwardRef((_, ref) => {
   );
 });
 
-// Once the name has been revealed for the first time this session, later
-// mounts (e.g. scrolling back from the next section) skip straight to the
-// settled result instead of replaying the shooting-star sweep.
+// The name is only ever revealed once per session; every later shooting-star
+// sweep (triggered by scrolling back to the very top) replays purely as a
+// decorative flourish and leaves the already-revealed text untouched.
 let hasPlayed = false;
 
-const Scene = () => {
+const Scene = ({ orbitProgress = 0 }) => {
   const { size } = useThree();
   const starRef = useRef();
   const textRef = useRef();
+  const wasAwayFromTopRef = useRef(false);
 
-  useEffect(() => {
+  const playSweep = useCallback((revealText) => {
     const clientHalfWidth = size.width / 2;
     const clientHalfHeight = size.height / 2;
-
-    if (hasPlayed) {
-      textRef.current?.updateProgress(clientHalfWidth * 1.1 - size.width * 0.08);
-      return;
-    }
-
     const period = Math.PI * 3;
     const amplitude = Math.min(Math.max(size.width * 0.1, 100), 180);
 
@@ -283,7 +285,7 @@ const Scene = () => {
       },
     });
 
-    // 2. Text Reveal (Straight Line)
+    // 2. Star sweeps across; only reveals the text the first time ever
     const revealTarget = { progress: -clientHalfWidth * 1.1 };
     tl.to(revealTarget, {
       progress: clientHalfWidth * 1.1,
@@ -293,17 +295,48 @@ const Scene = () => {
       onUpdate: () => {
         const p = revealTarget.progress;
         starRef.current?.draw(p, 0);
-        textRef.current?.updateProgress(p - size.width * 0.08);
+        if (revealText) {
+          textRef.current?.updateProgress(p - size.width * 0.08);
+        }
       },
       onComplete: () => {
         starRef.current?.resetPosition();
-        // The name stays revealed permanently from here on
-        hasPlayed = true;
+        if (revealText) {
+          // The name stays revealed permanently from here on
+          hasPlayed = true;
+        }
       },
     });
 
-    return () => tl.kill();
+    return tl;
   }, [size]);
+
+  // Plays once, the very first time this ever mounts.
+  useEffect(() => {
+    if (hasPlayed) {
+      const clientHalfWidth = size.width / 2;
+      textRef.current?.updateProgress(clientHalfWidth * 1.1 - size.width * 0.08);
+      return undefined;
+    }
+
+    const tl = playSweep(true);
+    return () => tl.kill();
+  }, [size, playSweep]);
+
+  // Replays just the shooting star whenever orbitProgress returns to 0 after
+  // having scrolled away from the top - the text is untouched by this.
+  useEffect(() => {
+    if (orbitProgress > 0) {
+      wasAwayFromTopRef.current = true;
+      return undefined;
+    }
+
+    if (!hasPlayed || !wasAwayFromTopRef.current) return undefined;
+    wasAwayFromTopRef.current = false;
+
+    const tl = playSweep(false);
+    return () => tl.kill();
+  }, [orbitProgress, playSweep]);
 
   return (
     <>
@@ -313,7 +346,7 @@ const Scene = () => {
   );
 };
 
-export default function ShootingStarIntro() {
+export default function ShootingStarIntro({ orbitProgress }) {
   const calculateFov = () => {
     const height = window.innerHeight;
     return Math.atan(height / 2 / CAMERA_Z) * (180 / Math.PI) * 2;
@@ -334,7 +367,7 @@ export default function ShootingStarIntro() {
           premultipliedAlpha: false,
         }}
       >
-        <Scene />
+        <Scene orbitProgress={orbitProgress} />
       </Canvas>
     </div>
   );

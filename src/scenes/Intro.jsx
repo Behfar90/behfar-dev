@@ -114,7 +114,7 @@ export default function Intro({ wrapperRef, blurred, orbitProgress = 0, onReady 
       <div className={stickyClass}>
         <canvas ref={canvasRef} className={styles.webgl} />
 
-        {!blurred && <ShootingStarIntro />}
+        {!blurred && <ShootingStarIntro orbitProgress={orbitProgress} />}
 
         <span
           className={hintClass}
