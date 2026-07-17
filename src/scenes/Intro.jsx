@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { createStars, updateStars } from '../utils/scenes/stars';
 import { createGalaxies } from '../utils/scenes/galaxies';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHandPointer } from '@fortawesome/free-solid-svg-icons';
 import ShootingStarIntro from './ShootingStarIntro';
 import styles from './Intro.module.css';
 
@@ -17,7 +15,6 @@ const LOOK_EASE = 0.03;
 
 export default function Intro({ wrapperRef, blurred, orbitProgress = 0, onReady }) {
   const canvasRef = useRef(null);
-  const [holding, setHolding] = useState(false);
 
   // Read via refs (rather than effect dependencies) so a new prop value on
   // every parent render can't retrigger the whole scene setup below - doing
@@ -107,7 +104,6 @@ export default function Intro({ wrapperRef, blurred, orbitProgress = 0, onReady 
   }, []);
 
   const stickyClass = `${styles.sticky}${blurred ? ` ${styles['sticky--blurred']}` : ''}`;
-  const hintClass = `${styles.instruction}${holding ? ` ${styles['instruction--holding']}` : ''}`;
 
   return (
     <div ref={wrapperRef} className={styles.orbitWrapper}>
@@ -115,17 +111,6 @@ export default function Intro({ wrapperRef, blurred, orbitProgress = 0, onReady 
         <canvas ref={canvasRef} className={styles.webgl} />
 
         {!blurred && <ShootingStarIntro orbitProgress={orbitProgress} />}
-
-        <span
-          className={hintClass}
-          onMouseDown={() => setHolding(true)}
-          onMouseUp={() => setHolding(false)}
-          onPointerDown={() => setHolding(true)}
-          onPointerUp={() => setHolding(false)}
-        >
-          <FontAwesomeIcon className={styles.instruction__icon} icon={faHandPointer} size="4x" />
-          <span className={styles.instruction__text}>{holding ? 'Explore' : 'Click & Hold'}</span>
-        </span>
       </div>
     </div>
   );
