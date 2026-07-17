@@ -1,56 +1,44 @@
 import { useEffect, useRef, useState } from 'react';
 
-// Drives the whole app's scroll-jacked journey through an ordered list of
-// steps (e.g. intro orbit, wormhole flight, ...more to come), followed by
-// normal document scroll for whatever comes after the last step.
+// Owns every piece of scroll-derived state for the app - both which section
+// is in view and, within the Intro section, exactly how far through its
+// camera orbit the user has scrolled.
 //
-// Only the active step is mounted at a time - each step component must
-// expose `applyDelta(deltaY)` via ref, returning `{ completed, atStart }`,
-// and accept an `initialProgress` prop telling it where to resume (0 when
-// entered moving forward, Infinity - which each step clamps to its own max -
-// when entered moving backward). This is what makes the journey reversible
-// without keeping every step mounted forever.
-export default function useScrollJourney(stepCount) {
-  const [stepIndex, setStepIndex] = useState(0);
-  const [entryProgress, setEntryProgress] = useState(0);
-  const activeRef = useRef(null);
-
-  const inStep = stepIndex < stepCount;
-
-  useEffect(() => {
-    // Steps scroll-jack the wheel themselves; normal page scroll only takes
-    // over once we're past the last step.
-    document.body.style.overflow = inStep ? 'hidden' : 'auto';
-  }, [inStep]);
+// There's no scroll-jacking at all: the page scrolls completely natively.
+// `introWrapperRef` should be attached to Intro's tall (multi-viewport)
+// wrapper element; its inner content is pinned via plain CSS
+// `position: sticky` for as long as that wrapper is scrolling through view,
+// then unpins itself and scrolls away exactly like any other element - the
+// browser handles that transition, not this hook.
+//
+// `orbitProgress` (0 to 1) is just "how far scrolled through that wrapper
+// are we", recomputed on every scroll/resize. Intro turns that directly into
+// camera rotation, so scrolling up naturally winds the camera back the way
+// it came, all the way to its start.
+export default function useScrollJourney() {
+  const introWrapperRef = useRef(null);
+  const [orbitProgress, setOrbitProgress] = useState(0);
 
   useEffect(() => {
-    const handleWheel = (event) => {
-      if (!inStep) {
-        // Only reclaim the wheel for an upward scroll once the page is
-        // already scrolled to the very top.
-        if (window.scrollY <= 0 && event.deltaY < 0) {
-          event.preventDefault();
-          setEntryProgress(Infinity);
-          setStepIndex(stepCount - 1);
-        }
-        return;
-      }
+    const updateProgress = () => {
+      const wrapper = introWrapperRef.current;
+      if (!wrapper) return;
 
-      event.preventDefault();
-      const result = activeRef.current?.applyDelta(event.deltaY);
+      const scrollableDistance = wrapper.offsetHeight - window.innerHeight;
+      const progress =
+        scrollableDistance > 0 ? (window.scrollY - wrapper.offsetTop) / scrollableDistance : 0;
 
-      if (result?.completed) {
-        setEntryProgress(0);
-        setStepIndex((index) => index + 1);
-      } else if (result?.atStart && stepIndex > 0) {
-        setEntryProgress(Infinity);
-        setStepIndex((index) => index - 1);
-      }
+      setOrbitProgress(Math.min(Math.max(progress, 0), 1));
     };
 
-    window.addEventListener('wheel', handleWheel, { passive: false });
-    return () => window.removeEventListener('wheel', handleWheel);
-  }, [stepIndex, inStep, stepCount]);
+    updateProgress();
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    return () => {
+      window.removeEventListener('scroll', updateProgress);
+      window.removeEventListener('resize', updateProgress);
+    };
+  }, []);
 
-  return { stepIndex, entryProgress, activeRef };
+  return { introWrapperRef, orbitProgress };
 }
