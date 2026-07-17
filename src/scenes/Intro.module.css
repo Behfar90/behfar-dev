@@ -1,16 +1,33 @@
-.webgl {
-  position: fixed;
+/* Provides the scroll distance the orbit maps its progress onto; a plain
+   block, no special positioning needed. */
+.orbitWrapper {
+  position: relative;
+  height: 300vh;
+}
+
+/* Pinned via native CSS sticky for as long as .orbitWrapper is scrolling
+   through view, then unpins and scrolls away like any normal element -
+   no JS-driven position toggling involved. */
+.sticky {
+  position: sticky;
   top: 0;
-  left: 0;
-  outline: none;
+  height: 100vh;
+  overflow: hidden;
   transition:
     filter 0.8s ease,
     opacity 0.8s ease;
 }
 
-.webgl--blurred {
+.sticky--blurred {
   filter: blur(20px);
   opacity: 0;
+}
+
+.webgl {
+  display: block;
+  outline: none;
+  width: 100%;
+  height: 100%;
 }
 
 .instruction {
