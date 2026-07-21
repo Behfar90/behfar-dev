@@ -1,11 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useMemo,
-  forwardRef,
-  useImperativeHandle,
-} from 'react';
+import { useCallback, useEffect, useRef, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import gsap from 'gsap';
