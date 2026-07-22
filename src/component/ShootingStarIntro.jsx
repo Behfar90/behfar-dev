@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useRef, useMemo, forwardRef, useImperativeHandle } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useMemo,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+} from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import gsap from 'gsap';
@@ -154,7 +162,17 @@ const ShootingStar = forwardRef((_, ref) => {
 const TextReveal = forwardRef((_, ref) => {
   const { size } = useThree();
   const materialRef = useRef();
-  const redrawRef = useRef();
+  // Starts with the fallback; swaps to the custom face once it's actually
+  // loaded, triggering a clean re-draw of the canvas via the memo below
+  // instead of mutating an existing texture out from under Three.
+  const [fontFamily, setFontFamily] = useState('Georgia, serif');
+
+  useEffect(() => {
+    document.fonts
+      .load('1em Monoton')
+      .then(() => setFontFamily('Monoton, Georgia, serif'))
+      .catch(() => {});
+  }, []);
 
   const { texture, planeWidth, planeHeight } = useMemo(() => {
     // Custom name replacement here
@@ -174,17 +192,11 @@ const TextReveal = forwardRef((_, ref) => {
     canvas.height = height;
 
     const ctx = canvas.getContext('2d');
-    const drawText = (fontFamily) => {
-      ctx.clearRect(0, 0, width, height);
-      ctx.font = `${fontSize * pixelRatio}px ${fontFamily}`;
-      ctx.fillStyle = '#ffffff';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(text, width / 2, height / 2);
-    };
-    // Draw with the fallback first; the custom face swaps in once loaded (see useEffect below)
-    drawText('Georgia, serif');
-    redrawRef.current = drawText;
+    ctx.font = `${fontSize * pixelRatio}px ${fontFamily}`;
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, width / 2, height / 2);
 
     const tex = new THREE.CanvasTexture(canvas);
     tex.minFilter = THREE.LinearFilter;
@@ -194,17 +206,7 @@ const TextReveal = forwardRef((_, ref) => {
       planeWidth: width / pixelRatio,
       planeHeight: height / pixelRatio,
     };
-  }, [size.width]);
-
-  useEffect(() => {
-    document.fonts
-      .load('1em Monoton')
-      .then(() => {
-        redrawRef.current?.('Monoton, Georgia, serif');
-        texture.needsUpdate = true;
-      })
-      .catch(() => {});
-  }, [texture]);
+  }, [size.width, fontFamily]);
 
   const uniforms = useMemo(
     () => ({
@@ -250,59 +252,62 @@ const Scene = ({ orbitProgress = 0 }) => {
   const textRef = useRef();
   const wasAwayFromTopRef = useRef(false);
 
-  const playSweep = useCallback((revealText) => {
-    const clientHalfWidth = size.width / 2;
-    const clientHalfHeight = size.height / 2;
-    const period = Math.PI * 3;
-    const amplitude = Math.min(Math.max(size.width * 0.1, 100), 180);
+  const playSweep = useCallback(
+    (revealText) => {
+      const clientHalfWidth = size.width / 2;
+      const clientHalfHeight = size.height / 2;
+      const period = Math.PI * 3;
+      const amplitude = Math.min(Math.max(size.width * 0.1, 100), 180);
 
-    const tl = gsap.timeline();
+      const tl = gsap.timeline();
 
-    // 1. Initial Sine Wave Animation
-    const waveTarget = { progress: 0 };
-    tl.to(waveTarget, {
-      progress: 1,
-      duration: 1.08,
-      ease: 'power2.inOut',
-      onUpdate: () => {
-        const p = waveTarget.progress;
-        starRef.current?.draw(
-          Math.cos(p * period) * amplitude,
-          (p * size.height - clientHalfHeight) * 1.3,
-        );
-      },
-      onComplete: () => {
-        starRef.current?.draw(-clientHalfWidth, size.height - clientHalfHeight);
-        starRef.current?.draw(-clientHalfWidth * 1.1, 0);
-        starRef.current?.resetPosition();
-      },
-    });
+      // 1. Initial Sine Wave Animation
+      const waveTarget = { progress: 0 };
+      tl.to(waveTarget, {
+        progress: 1,
+        duration: 1.08,
+        ease: 'power2.inOut',
+        onUpdate: () => {
+          const p = waveTarget.progress;
+          starRef.current?.draw(
+            Math.cos(p * period) * amplitude,
+            (p * size.height - clientHalfHeight) * 1.3,
+          );
+        },
+        onComplete: () => {
+          starRef.current?.draw(-clientHalfWidth, size.height - clientHalfHeight);
+          starRef.current?.draw(-clientHalfWidth * 1.1, 0);
+          starRef.current?.resetPosition();
+        },
+      });
 
-    // 2. Star sweeps across; only reveals the text the first time ever
-    const revealTarget = { progress: -clientHalfWidth * 1.1 };
-    tl.to(revealTarget, {
-      progress: clientHalfWidth * 1.1,
-      duration: 1.08,
-      ease: 'power3.out',
-      delay: 0.3,
-      onUpdate: () => {
-        const p = revealTarget.progress;
-        starRef.current?.draw(p, 0);
-        if (revealText) {
-          textRef.current?.updateProgress(p - size.width * 0.08);
-        }
-      },
-      onComplete: () => {
-        starRef.current?.resetPosition();
-        if (revealText) {
-          // The name stays revealed permanently from here on
-          hasPlayed = true;
-        }
-      },
-    });
+      // 2. Star sweeps across; only reveals the text the first time ever
+      const revealTarget = { progress: -clientHalfWidth * 1.1 };
+      tl.to(revealTarget, {
+        progress: clientHalfWidth * 1.1,
+        duration: 1.08,
+        ease: 'power3.out',
+        delay: 0.3,
+        onUpdate: () => {
+          const p = revealTarget.progress;
+          starRef.current?.draw(p, 0);
+          if (revealText) {
+            textRef.current?.updateProgress(p - size.width * 0.08);
+          }
+        },
+        onComplete: () => {
+          starRef.current?.resetPosition();
+          if (revealText) {
+            // The name stays revealed permanently from here on
+            hasPlayed = true;
+          }
+        },
+      });
 
-    return tl;
-  }, [size]);
+      return tl;
+    },
+    [size],
+  );
 
   // Plays once, the very first time this ever mounts.
   useEffect(() => {
