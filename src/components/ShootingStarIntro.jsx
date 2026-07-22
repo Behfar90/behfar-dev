@@ -15,7 +15,7 @@ import {
   starFragmentShader,
   textVertexShader,
   textFragmentShader,
-} from '../utils/scenes/shootingStarShaders.js';
+} from '../utils/shaders/shootingStar.js';
 import styles from './ShootingStarIntro.module.css';
 
 // --- Constants & Shaders ---
