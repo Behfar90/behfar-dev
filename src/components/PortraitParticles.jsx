@@ -414,13 +414,6 @@ export default function ParticleScene() {
           </React.Suspense>
         </Canvas>
       </div>
-
-      <div className="text" ref={quoteRef}>
-        <p className="quoteText">
-          &nbsp;&nbsp;“ Trapped by a reality,{' '}
-          <span className={styles.highlight}>freed by imagination</span> ”
-        </p>
-      </div>
     </div>
   );
 }
