@@ -1,5 +1,5 @@
 import useInView from '../hooks/useInView';
-import PortraitParticles from '../component/PortraitParticles';
+import PortraitParticles from '../components/PortraitParticles';
 import styles from './ContactMe.module.css';
 
 export default function ContactMe() {

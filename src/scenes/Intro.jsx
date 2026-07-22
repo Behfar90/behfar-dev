@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { createStars, updateStars } from '../utils/scenes/stars';
 import { createGalaxies } from '../utils/scenes/galaxies';
-import ShootingStarIntro from '../component/ShootingStarIntro';
+import ShootingStarIntro from '../components/ShootingStarIntro';
 import styles from './Intro.module.css';
 
 // orbitProgress (0 to 1, from useScrollJourney) maps directly to camera
