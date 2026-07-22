@@ -3,7 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import gsap from 'gsap';
-import './PortraitParticles.module.css';
+import styles from './PortraitParticles.module.css';
 
 // ==========================================
 // 1. UTILITIES & SHADERS
@@ -406,20 +406,8 @@ export default function ParticleScene() {
   }, []);
 
   return (
-    <div
-      id="wrapper"
-      style={{
-        position: 'relative',
-        width: '100%',
-        height: '100%',
-        background: '#000',
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        id="canvas_container"
-        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}
-      >
+    <div className={styles.wrapper}>
+      <div className={styles.canvasContainer}>
         <Canvas camera={{ position: [0, 0, 180], fov: 50, near: 0.1, far: 10000 }}>
           <React.Suspense fallback={null}>
             <Particles />
@@ -430,7 +418,7 @@ export default function ParticleScene() {
       <div className="text" ref={quoteRef}>
         <p className="quoteText">
           &nbsp;&nbsp;“ Trapped by a reality,{' '}
-          <span style={{ color: '#f81b1b' }}>freed by imagination</span> ”
+          <span className={styles.highlight}>freed by imagination</span> ”
         </p>
       </div>
     </div>
