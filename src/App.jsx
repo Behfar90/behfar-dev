@@ -2,6 +2,7 @@ import styles from "./App.module.css";
 import { useCallback, useEffect, useState } from "react";
 import Intro from "./scenes/Intro";
 import NextSection from "./scenes/NextSection";
+import ContactMe from "./scenes/ContactMe";
 import useScrollJourney from "./hooks/useScrollJourney";
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
         onReady={handleIntroReady}
       />
       <NextSection />
+      <ContactMe />
     </div>
   );
 }
