@@ -303,7 +303,15 @@ const Particles = () => {
     const meshAnim = gsap.fromTo(
       meshRef.current.position,
       { z: 0.0 },
-      { z: 15.0, duration: 4, ease: 'elastic.in(1, 0.3)', yoyo: true, repeat: -1, repeatDelay: 5 },
+      {
+        z: 15.0,
+        duration: 4,
+        delay: 8,
+        ease: 'elastic.in(1, 0.3)',
+        yoyo: true,
+        repeat: -1,
+        repeatDelay: 5,
+      },
     );
     const depthAnim = gsap.fromTo(
       materialRef.current.uniforms.uDepth,
@@ -311,6 +319,7 @@ const Particles = () => {
       {
         value: options.maxDepth,
         duration: 4,
+        delay: 8,
         ease: 'elastic.in(1, 0.3)',
         yoyo: true,
         repeat: -1,
@@ -396,18 +405,13 @@ export default function ParticleScene() {
     );
   }, []);
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-    else if (document.exitFullscreen) document.exitFullscreen();
-  };
-
   return (
     <div
       id="wrapper"
       style={{
         position: 'relative',
         width: '100%',
-        height: '100vh',
+        height: '100%',
         background: '#000',
         overflow: 'hidden',
       }}
@@ -429,10 +433,6 @@ export default function ParticleScene() {
           <span style={{ color: '#f81b1b' }}>freed by imagination</span> ”
         </p>
       </div>
-
-      <button className="btn" onClick={toggleFullscreen}>
-        Toggle Fullscreen
-      </button>
     </div>
   );
 }
