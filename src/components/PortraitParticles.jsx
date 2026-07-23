@@ -8,10 +8,6 @@ import usePortraitParticleData from '../hooks/usePortraitParticleData';
 import usePortraitTailInteraction from '../hooks/usePortraitTailInteraction';
 import styles from './PortraitParticles.module.css';
 
-// ==========================================
-// 3. 3D PARTICLES COMPONENT
-// ==========================================
-
 const Particles = () => {
   const texture = useTexture('/MyPic.png');
   const meshRef = useRef();
@@ -141,10 +137,6 @@ const Particles = () => {
     </group>
   );
 };
-
-// ==========================================
-// 4. MAIN EXPORTED COMPONENT
-// ==========================================
 
 export default function ParticleScene() {
   const quoteRef = useRef();
