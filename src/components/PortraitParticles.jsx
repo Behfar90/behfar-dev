@@ -4,157 +4,9 @@ import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { particlesVertexShader, particlesFragmentShader } from '../utils/shaders/particles.js';
+import usePortraitParticleData from '../hooks/usePortraitParticleData';
+import usePortraitTailInteraction from '../hooks/usePortraitTailInteraction';
 import styles from './PortraitParticles.module.css';
-
-// ==========================================
-// 1. UTILITIES
-// ==========================================
-
-const easeOutSine = (t, b, c, d) => c * Math.sin((t / d) * (Math.PI / 2)) + b;
-
-// ==========================================
-// 2. INTERNAL HOOKS
-// ==========================================
-
-const useParticleData = (texture, threshold) => {
-  return useMemo(() => {
-    if (!texture || !texture.image) return { visiblePoints: 0 };
-    const img = texture.image;
-
-    const MAX_WIDTH = 250;
-    const ratio = img.height / img.width;
-    const w = MAX_WIDTH;
-    const h = Math.floor(MAX_WIDTH * ratio);
-    const totalPoints = w * h;
-
-    const canvas = document.createElement('canvas');
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-
-    ctx.translate(0, h);
-    ctx.scale(1, -1);
-    ctx.drawImage(img, 0, 0, w, h);
-
-    const imgData = ctx.getImageData(0, 0, w, h);
-    const data = Float32Array.from(imgData.data);
-
-    let visible = 0;
-    for (let i = 0; i < totalPoints; i++) {
-      if (data[i * 4 + 0] > threshold) visible++;
-    }
-
-    const offsets = new Float32Array(visible * 3);
-    const pindices = new Float32Array(visible);
-    const angles = new Float32Array(visible);
-
-    let j = 0;
-    for (let i = 0; i < totalPoints; i++) {
-      if (data[i * 4 + 0] <= threshold) continue;
-      offsets[j * 3 + 0] = i % w;
-      offsets[j * 3 + 1] = Math.floor(i / w);
-      pindices[j] = i;
-      angles[j] = Math.random() * Math.PI;
-      j++;
-    }
-
-    const fovHeight = 2 * Math.tan((50 * Math.PI) / 180 / 2) * 180;
-    const fModifier = window.innerWidth / window.innerHeight < 2.8 ? -0.2 : 0.1;
-    const scale = fovHeight / h + fModifier;
-
-    return {
-      offsets,
-      angles,
-      pindices,
-      gridW: w,
-      gridH: h,
-      visiblePoints: visible,
-      meshScale: scale,
-    };
-  }, [texture, threshold]);
-};
-
-const useTailInteraction = () => {
-  const tailRef = useRef({
-    array: [],
-    size: 80,
-    maxAge: 70,
-    radius: 0.08,
-    red: 255,
-  });
-
-  const { tailCanvas, tailCtx, tailTexture } = useMemo(() => {
-    const canvas = document.createElement('canvas');
-    canvas.width = canvas.height = tailRef.current.size;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    return {
-      tailCanvas: canvas,
-      tailCtx: ctx,
-      tailTexture: new THREE.CanvasTexture(canvas),
-    };
-  }, []);
-
-  const drawTail = () => {
-    tailCtx.fillStyle = 'black';
-    tailCtx.fillRect(0, 0, tailCanvas.width, tailCanvas.height);
-
-    tailRef.current.array.forEach((point, i) => {
-      point.age++;
-      if (point.age > tailRef.current.maxAge) {
-        tailRef.current.array.splice(i, 1);
-      } else {
-        const pos = {
-          x: point.x * tailRef.current.size,
-          y: (1 - point.y) * tailRef.current.size,
-        };
-        let intensity =
-          point.age < tailRef.current.maxAge * 0.3
-            ? easeOutSine(point.age / (tailRef.current.maxAge * 0.3), 0, 1, 1)
-            : easeOutSine(
-                1 - (point.age - tailRef.current.maxAge * 0.3) / (tailRef.current.maxAge * 0.7),
-                0,
-                1,
-                1,
-              );
-
-        intensity *= point.force;
-        const radius = tailRef.current.size * tailRef.current.radius * intensity;
-        const grd = tailCtx.createRadialGradient(pos.x, pos.y, radius * 0.25, pos.x, pos.y, radius);
-
-        grd.addColorStop(0, `rgba(${tailRef.current.red}, 255, 255, 0.2)`);
-        grd.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
-
-        tailCtx.beginPath();
-        tailCtx.fillStyle = grd;
-        tailCtx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
-        tailCtx.fill();
-      }
-    });
-
-    tailTexture.needsUpdate = true;
-  };
-
-  const handlePointerMove = (e, meshRef) => {
-    const uv = e.uv;
-    let force = 0;
-    const last = tailRef.current.array[tailRef.current.array.length - 1];
-    if (last) {
-      const dx = last.x - uv.x;
-      const dy = last.y - uv.y;
-      force = Math.min((dx * dx + dy * dy) * 10000, 1);
-    }
-    tailRef.current.array.push({ x: uv.x, y: uv.y, age: 0, force });
-
-    if (meshRef.current) {
-      meshRef.current.rotation.y = e.pointer.x / 8;
-      meshRef.current.rotation.x = -e.pointer.y / 8;
-    }
-  };
-
-  return { tailTexture, drawTail, handlePointerMove };
-};
 
 // ==========================================
 // 3. 3D PARTICLES COMPONENT
@@ -178,11 +30,9 @@ const Particles = () => {
     [],
   );
 
-  const { offsets, angles, pindices, gridW, gridH, visiblePoints, meshScale } = useParticleData(
-    texture,
-    options.threshold,
-  );
-  const { tailTexture, drawTail, handlePointerMove } = useTailInteraction();
+  const { offsets, angles, pindices, gridW, gridH, visiblePoints, meshScale } =
+    usePortraitParticleData(texture, options.threshold);
+  const { tailTexture, drawTail, handlePointerMove } = usePortraitTailInteraction();
 
   const uniforms = useMemo(
     () => ({
