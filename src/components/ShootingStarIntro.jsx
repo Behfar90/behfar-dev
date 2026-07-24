@@ -166,11 +166,16 @@ const TextReveal = forwardRef((_, ref) => {
   // loaded, triggering a clean re-draw of the canvas via the memo below
   // instead of mutating an existing texture out from under Three.
   const [fontFamily, setFontFamily] = useState('Georgia, serif');
+  const [subtitleFontFamily, setSubtitleFontFamily] = useState('Georgia, serif');
 
   useEffect(() => {
     document.fonts
       .load('1em Monoton')
       .then(() => setFontFamily('Monoton, Georgia, serif'))
+      .catch(() => {});
+    document.fonts
+      .load('1em Audiowide')
+      .then(() => setSubtitleFontFamily('Audiowide, Georgia, serif'))
       .catch(() => {});
   }, []);
 
@@ -178,8 +183,6 @@ const TextReveal = forwardRef((_, ref) => {
     // Custom name replacement here
     const text = 'Behfar Behzad';
     const subtitle = 'A Passionate Frontend Developer';
-    const subtitleFontFamily =
-      "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif";
     // Brightened version of the shooting-star particles' gold (shaders/particles.js)
     const subtitleColor = '#eeba7b';
     const isMobile = size.width < 768;
@@ -227,7 +230,7 @@ const TextReveal = forwardRef((_, ref) => {
       planeWidth: width / pixelRatio,
       planeHeight: height / pixelRatio,
     };
-  }, [size.width, fontFamily]);
+  }, [size.width, fontFamily, subtitleFontFamily]);
 
   const uniforms = useMemo(
     () => ({
