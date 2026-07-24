@@ -13,6 +13,15 @@ const FULL_SPIN = Math.PI;
 const LOOK_RANGE = 1.5;
 const LOOK_EASE = 0.03;
 
+// Placeholder copy - just trying out the crossfade-on-orbit-progress idea for
+// now, wording isn't final.
+const ORBIT_CAPTIONS = [
+  'Keep scrolling…',
+  'Detail-obsessed. Motion-driven.',
+  '5+ years building for the web',
+  "Here's what I've built ↓",
+];
+
 export default function Intro({ wrapperRef, blurred, orbitProgress = 0, onReady }) {
   const canvasRef = useRef(null);
 
@@ -104,6 +113,10 @@ export default function Intro({ wrapperRef, blurred, orbitProgress = 0, onReady 
   }, []);
 
   const stickyClass = `${styles.sticky}${blurred ? ` ${styles['sticky--blurred']}` : ''}`;
+  const captionIndex = Math.min(
+    ORBIT_CAPTIONS.length - 1,
+    Math.floor(orbitProgress * ORBIT_CAPTIONS.length),
+  );
 
   return (
     <div ref={wrapperRef} className={styles.orbitWrapper}>
@@ -111,6 +124,19 @@ export default function Intro({ wrapperRef, blurred, orbitProgress = 0, onReady 
         <canvas ref={canvasRef} className={styles.webgl} />
 
         {!blurred && <ShootingStarIntro orbitProgress={orbitProgress} />}
+
+        {!blurred && (
+          <div className={styles.caption}>
+            {ORBIT_CAPTIONS.map((text, i) => (
+              <span
+                key={text}
+                className={`${styles.captionText}${i === captionIndex ? ` ${styles['captionText--visible']}` : ''}`}
+              >
+                {text}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
