@@ -177,26 +177,47 @@ const TextReveal = forwardRef((_, ref) => {
   const { texture, planeWidth, planeHeight } = useMemo(() => {
     // Custom name replacement here
     const text = 'Behfar Behzad';
+    const subtitle = 'A Passionate Frontend Developer';
+    const subtitleFontFamily =
+      "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif";
+    // Brightened version of the shooting-star particles' gold (shaders/particles.js)
+    const subtitleColor = '#eeba7b';
     const isMobile = size.width < 768;
     const isMin = size.width < 360;
     const fontSize = isMin ? 28 : isMobile ? 36 : 50;
+    const subtitleFontSize = isMin ? 18 : isMobile ? 21 : 27;
     const letterSpacing = isMobile ? 0.1 : 0.18;
     const pixelRatio = window.devicePixelRatio;
 
-    const canvas = document.createElement('canvas');
-    const width =
+    const nameWidth =
       (fontSize * text.length + fontSize * letterSpacing * (text.length - 1)) * pixelRatio;
-    const height = fontSize * 1.2 * pixelRatio;
+    const nameHeight = fontSize * 1.2 * pixelRatio;
+    const subtitleHeight = subtitleFontSize * 1.6 * pixelRatio;
+
+    const canvas = document.createElement('canvas');
+    // measureText only needs a context, not the final canvas size - resizing
+    // the canvas below would otherwise wipe out any font set before it.
+    const measureCtx = canvas.getContext('2d');
+    measureCtx.font = `${subtitleFontSize * pixelRatio}px ${subtitleFontFamily}`;
+    const subtitleWidth = measureCtx.measureText(subtitle).width;
+
+    const width = Math.max(nameWidth, subtitleWidth);
+    const height = nameHeight + subtitleHeight;
 
     canvas.width = width;
     canvas.height = height;
 
     const ctx = canvas.getContext('2d');
-    ctx.font = `${fontSize * pixelRatio}px ${fontFamily}`;
-    ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(text, width / 2, height / 2);
+
+    ctx.font = `${fontSize * pixelRatio}px ${fontFamily}`;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(text, width / 2, nameHeight / 2);
+
+    ctx.font = `${subtitleFontSize * pixelRatio}px ${subtitleFontFamily}`;
+    ctx.fillStyle = subtitleColor;
+    ctx.fillText(subtitle, width / 2, nameHeight + subtitleHeight / 2);
 
     const tex = new THREE.CanvasTexture(canvas);
     tex.minFilter = THREE.LinearFilter;
