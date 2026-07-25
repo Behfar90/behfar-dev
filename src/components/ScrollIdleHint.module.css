@@ -1,0 +1,15 @@
+.hint {
+  position: fixed;
+  left: 50%;
+  bottom: 2rem;
+  transform: translateX(-50%);
+  color: #eeba7b;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 1s ease-in;
+}
+
+.hint--visible {
+  opacity: 1;
+}
