@@ -81,11 +81,12 @@ export default function Intro({ wrapperRef, blurred, orbitProgress = 0, onReady 
     };
     window.addEventListener('resize', handleResize);
 
-    const clock = new THREE.Clock();
+    const timer = new THREE.Timer();
     let animFrame;
 
-    const tick = () => {
-      const elapsedTime = clock.getElapsedTime();
+    const tick = (timestamp) => {
+      timer.update(timestamp);
+      const elapsedTime = timer.getElapsed();
       updateStars(stars, elapsedTime);
 
       const targetTheta = baseTheta + orbitProgressRef.current * FULL_SPIN;
