@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import Intro from "./scenes/Intro";
 import NextSection from "./scenes/NextSection";
 import ContactMe from "./scenes/ContactMe";
+import ScrollIdleHint from "./components/ScrollIdleHint";
 import useScrollJourney from "./hooks/useScrollJourney";
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
       />
       <NextSection />
       <ContactMe />
+      {!showLoader && <ScrollIdleHint />}
     </div>
   );
 }
