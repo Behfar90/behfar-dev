@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 // reached (or the page never had) any more room to scroll.
 const isAtPageBottom = () => {
   const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
-  return scrollableHeight <= 100 || window.scrollY >= scrollableHeight - 20;
+  return scrollableHeight <= 0 || window.scrollY >= scrollableHeight - 200;
 };
 
 // True once `delay` ms have passed without a scroll event firing - starts
