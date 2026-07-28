@@ -1,7 +1,7 @@
 import styles from "./App.module.css";
 import { useCallback, useEffect, useState } from "react";
 import Intro from "./scenes/Intro";
-import NextSection from "./scenes/NextSection";
+import Projects from "./scenes/Projects";
 import ContactMe from "./scenes/ContactMe";
 import ScrollIdleHint from "./components/ScrollIdleHint";
 import useScrollJourney from "./hooks/useScrollJourney";
@@ -28,7 +28,7 @@ function App() {
         blurred={showLoader}
         onReady={handleIntroReady}
       />
-      <NextSection />
+      <Projects />
       <ContactMe />
       {!showLoader && <ScrollIdleHint />}
     </div>

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import styles from './NextSection.module.css';
+import styles from './Projects.module.css';
 
 // Back-to-front stagger: each layer's assembly window starts at the midpoint
 // of the previous layer's (50% overlap), so motion is continuous rather than
@@ -44,7 +44,7 @@ const LAYER_NAMES = ['ridge', 'trees', 'mid', 'figure', 'fore'];
 const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
 const cubicOut = (t) => 1 - (1 - t) ** 3;
 
-export default function NextSection() {
+export default function Projects() {
   const wrapperRef = useRef(null);
 
   useEffect(() => {
