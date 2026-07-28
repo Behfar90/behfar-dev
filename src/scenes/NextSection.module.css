@@ -1,14 +1,90 @@
-.section {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.wrapper {
+  position: relative;
+  height: 250vh;
+}
+
+/* Pinned via native CSS sticky for as long as .wrapper is scrolling through
+   view, then unpins and scrolls away like any normal element - matches the
+   pattern in Intro.module.css. */
+.sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
   background: #000;
-  color: #fff;
 }
 
 .heading {
+  position: absolute;
+  top: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
   font-size: clamp(1.5rem, 4vw, 3rem);
   letter-spacing: 0.05em;
+  color: #fff;
   opacity: 0.8;
+  z-index: 10;
+}
+
+/* Full-bleed terrain layers - each SVG's own viewBox + preserveAspectRatio
+   ("xMidYMax slice") handles the cover/crop-from-top behavior; here we only
+   ever animate `transform`, never top/height/margin. Height is a static
+   value taller than the container (never animated) so the parallax phase's
+   upward drift (up to 190px) has room to consume without exposing the
+   layer's own bottom edge. */
+.layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100% + 220px);
+  will-change: transform;
+}
+
+.ridge {
+  z-index: 1;
+  transform: translateY(var(--ns-ridge-y, 0px));
+}
+
+.trees {
+  z-index: 2;
+  transform: translateY(var(--ns-trees-y, 0px));
+}
+
+.mid {
+  z-index: 3;
+  transform: translateY(var(--ns-mid-y, 0px));
+}
+
+/* Sits between mid and foreground so foreground grass passes in front of it.
+   `bottom` is a static resting anchor (never animated) tuned to align with
+   the mid layer's ground line; all motion happens via `transform`. */
+.figure {
+  position: absolute;
+  bottom: -10%;
+  left: 20%;
+  width: min(40%, 340px);
+  height: auto;
+  z-index: 4;
+  transform: translate(-50%, var(--ns-figure-y, 0px));
+  will-change: transform;
+}
+
+.foreground {
+  z-index: 5;
+  transform: translateY(var(--ns-fore-y, 0px));
+}
+
+/* `bottom` scales off the container's height while `.figure`'s own size
+   scales off its width - on a narrow/tall phone viewport those diverge
+   enough that the desktop-tuned `bottom` pushes the (now much smaller)
+   figure below .sticky's overflow:hidden edge. Re-tuned here instead of
+   trying to make one value work at every aspect ratio. */
+@media (max-width: 700px) {
+  .figure {
+    bottom: 6%;
+    left: 35%;
+    width: min(55%, 220px);
+  }
 }
