@@ -22,14 +22,19 @@ const START_OFFSET_VH = {
   fore: 110,
 };
 
-// Parallax drift (px) once assembly completes - slowest to fastest,
+// Parallax drift (vh) once assembly completes - slowest to fastest,
 // figure matched to mid so it stays planted on it. Upward (negative).
-const DRIFT_PX = {
-  ridge: 30,
-  trees: 70,
-  mid: 130,
-  figure: 130,
-  fore: 190,
+// In vh (not fixed px) so it scales with viewport height the same way
+// START_OFFSET_VH/RESTING_SHIFT_VH do - a fixed-px drift gets dwarfed by
+// RESTING_SHIFT_VH on tall viewports (e.g. ultrawide monitors), leaving
+// the figure shifted far enough down to be clipped by .sticky's
+// overflow:hidden.
+const DRIFT_VH = {
+  ridge: 3.3,
+  trees: 7.8,
+  mid: 14.4,
+  figure: 14.4,
+  fore: 21.1,
 };
 
 // Shifts the whole assembled scene down by this many vh once settled,
@@ -90,7 +95,7 @@ export default function Projects() {
         const [start, end] = ASSEMBLY_WINDOW[name];
         const localProgress = cubicOut(clamp01((assemblyProgress - start) / (end - start)));
         const assemblyY = START_OFFSET_VH[name] * vh * (1 - localProgress);
-        const drift = -DRIFT_PX[name] * parallaxProgress;
+        const drift = -DRIFT_VH[name] * vh * parallaxProgress;
         const restingShift = RESTING_SHIFT_VH * vh * localProgress;
         values[name] = assemblyY + drift + restingShift;
       });
