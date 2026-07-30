@@ -1,0 +1,117 @@
+/* Positioned exactly like the other full-bleed layers in Projects.module.css
+   (absolute, full box, scroll-driven translateY) - kept in its own module
+   since this is a plain component, not one of Projects.jsx's <img> layers,
+   but it reads the same global custom property those layers write. */
+.sky {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: translateY(var(--ns-stars-y, 0px));
+  will-change: transform;
+}
+
+.constellation {
+  cursor: pointer;
+  /* Suppressed unconditionally, not just for :focus-visible - a mouse click
+     still gives the group plain :focus, and without this the browser's
+     default focus rectangle would flash around it on every click/tap. The
+     hitArea outline below is the keyboard-accessible replacement. */
+  outline: none;
+}
+
+.constellation:focus-visible .hitArea {
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-width: 1;
+  fill: rgba(255, 255, 255, 0.04);
+}
+
+/* Transparent hit area padded around each constellation's stars - without
+   it, hover/click only fires directly over a 3px-radius star or a
+   hairline-thin connecting line, which is unusably fiddly. `pointer-events:
+   all` is required because SVG shapes with a transparent fill are not
+   hit-tested by default (only their painted area is, unlike a plain HTML
+   element's box). */
+.hitArea {
+  fill: transparent;
+  pointer-events: all;
+}
+
+/* Invisible by default - these are what "not connected by default" means:
+   the shape only reveals itself as a constellation on hover/tap. */
+.line {
+  stroke: #fff;
+  stroke-width: 1.5;
+  fill: none;
+  opacity: 0;
+  transition:
+    opacity 0.35s ease,
+    filter 0.3s ease;
+}
+
+/* Close to a plain background star (no default glow) rather than the
+   always-on bright glow this used to have - just a touch brighter so
+   there's *something* to notice before hovering. Twinkles the same way
+   BackgroundStars' stars do, just a subtler swing and a higher floor - 20%
+   brighter and less shimmery, per-star delay/duration set inline (see
+   Constellations.jsx) so every star doesn't pulse in lockstep.
+   `transform-box`/`transform-origin` keep the scale() pulse centered on the
+   circle itself instead of the SVG viewport's origin - without it, a star
+   away from (0,0) visibly drifts as it "pulses" instead of growing in place. */
+.star {
+  fill: #fff;
+  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.72));
+  transition: filter 0.3s ease;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: constellationTwinkle 4s ease-in-out infinite;
+}
+
+@keyframes constellationTwinkle {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star {
+    animation: none;
+    opacity: 0.85;
+  }
+}
+
+.constellation:hover .line,
+.constellation.active .line {
+  opacity: 0.7;
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.6));
+}
+
+.constellation:hover .star,
+.constellation.active .star {
+  filter:
+    drop-shadow(0 0 3px rgba(255, 255, 255, 1)) drop-shadow(0 0 9px rgba(150, 180, 255, 0.9));
+}
+
+.label {
+  fill: #fff;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  filter:
+    drop-shadow(0 0 4px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 10px rgba(150, 180, 255, 0.7));
+  pointer-events: none;
+}
+
+.constellation:hover .label,
+.constellation.active .label,
+.constellation:focus-visible .label {
+  opacity: 1;
+}
