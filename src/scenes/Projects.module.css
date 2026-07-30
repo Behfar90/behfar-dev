@@ -25,6 +25,7 @@
   color: #fff;
   opacity: 0.8;
   z-index: 10;
+  pointer-events: none;
 }
 
 /* Full-bleed terrain layers - each SVG's own viewBox + preserveAspectRatio
@@ -34,7 +35,13 @@
    upward drift (up to 21.1vh, see DRIFT_VH.fore in Projects.jsx) has room
    to consume without exposing the layer's own bottom edge. Expressed in vh
    (not a fixed px) so the buffer scales with viewport height the same way
-   the drift it's covering for does. */
+   the drift it's covering for does.
+
+   `pointer-events: none` because these are plain <img> layers stacked
+   above the Constellations SVG (further back, z-index-wise, but earlier in
+   z-order doesn't stop an <img>'s full bounding box - transparent pixels
+   included - from swallowing hover/click before it reaches what's behind
+   it). None of these need to be interactive themselves. */
 .layer {
   position: absolute;
   top: 0;
@@ -42,6 +49,7 @@
   width: 100%;
   height: calc(100% + 22vh);
   will-change: transform;
+  pointer-events: none;
 }
 
 .ridge {
