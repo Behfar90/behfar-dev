@@ -68,12 +68,29 @@ const DRIFT_VH = {
   fore: 21.1,
 };
 
-// Shifts the whole assembled scene down by this many vh once settled,
-// leaving more black sky at the top of the viewport for the starfield/
-// constellations planned for later. Applied uniformly to every layer
-// (figure included) so their relative alignment to each other is
-// untouched - only the entire scene's position on screen changes.
-const RESTING_SHIFT_VH = 14;
+// Shifts the terrain down by this many vh once settled, leaving more black
+// sky at the top of the viewport - originally shared by every layer
+// (figure included) so the whole terrain moves as one block, but the sky
+// elements need 0 here: they're not part of that block, they're what the
+// shift is making room *for*. Giving them the same 14vh pushed each one
+// down by ~12vh net (14 minus their own small DRIFT_VH) for the entire
+// stretch of scroll between finishing assembly and parallax drift kicking
+// in past overall progress 0.4 - long enough to land Orion/Cassiopeia
+// behind the terrain's horizon on real scroll positions, not just a
+// theoretical edge case.
+const RESTING_SHIFT_VH = {
+  cassiopeia: 0,
+  'ursa-minor': 0,
+  moon: 0,
+  orion: 0,
+  scorpius: 0,
+  'ursa-major': 0,
+  ridge: 14,
+  trees: 14,
+  mid: 14,
+  figure: 14,
+  fore: 14,
+};
 
 const LAYER_NAMES = [
   'cassiopeia',
@@ -149,7 +166,7 @@ export default function Projects() {
         const localProgress = cubicOut(clamp01((assemblyProgress - start) / (end - start)));
         const assemblyY = START_OFFSET_VH[name] * vh * (1 - localProgress);
         const drift = -DRIFT_VH[name] * vh * parallaxProgress;
-        const restingShift = RESTING_SHIFT_VH * vh * localProgress;
+        const restingShift = RESTING_SHIFT_VH[name] * vh * localProgress;
         values[name] = assemblyY + drift + restingShift;
       });
 
