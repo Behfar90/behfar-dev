@@ -1,0 +1,6 @@
+.moon {
+  width: var(--moon-size, 150px);
+  height: var(--moon-size, 150px);
+  color: #ccdbef;
+  filter: drop-shadow(0 0 10px #a1bbed);
+}
