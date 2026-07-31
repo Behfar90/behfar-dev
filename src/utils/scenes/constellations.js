@@ -1,17 +1,33 @@
 // Simplified, recognizable constellation line-art (not literal star-chart
-// accuracy) sharing one 1000x500 viewBox with Constellations.jsx. Placement
-// keeps every shape clear of the top-center band where Projects.jsx's
-// "More to come" heading sits, and clear of each other.
+// accuracy). Each constellation is its own small, independently-positioned
+// element (position/size below), not a shared canvas - a single big shared
+// viewBox got compressed hard on narrow/short viewports (that's what was
+// making constellations shrink to near-invisible sub-pixel dots there), and
+// it also couldn't give each shape its own independent scroll-driven
+// transform (CSS transforms on elements *inside* an SVG resolve in the
+// SVG's own user-coordinate space, not real screen pixels, so the shared
+// vh-based scroll math from Projects.jsx didn't translate correctly to
+// individual <g> children). A standalone <svg> per constellation - the same
+// treatment MoonPhase already gets - sidesteps both problems: its own
+// `transform` is a normal CSS box transform (real px, correct), and its own
+// tight viewBox+fixed pixel size means it never gets crushed by the overall
+// page's aspect ratio.
+//
+// `position` is top/left % of the Projects sticky container. `size` is the
+// rendered CSS px width/height (viewBox scaled to fit, aspect preserved).
 export const CONSTELLATIONS = [
   {
     id: 'cassiopeia',
     name: 'Cassiopeia',
+    viewBox: '0 0 170 109',
+    position: { top: '8%', left: '16%' },
+    size: { width: 210, height: 135 },
     stars: [
-      { x: 60, y: 53 },
-      { x: 95, y: 60 },
-      { x: 130, y: 95 },
-      { x: 165, y: 53 },
-      { x: 200, y: 88 },
+      { x: 15, y: 15 },
+      { x: 50, y: 22 },
+      { x: 85, y: 57 },
+      { x: 120, y: 15 },
+      { x: 155, y: 50 },
     ],
     lines: [
       [0, 1],
@@ -19,20 +35,22 @@ export const CONSTELLATIONS = [
       [2, 3],
       [3, 4],
     ],
-    label: 'Cassiopeia',
-    labelAnchor: { x: 130, y: 132 },
+    labelAnchor: { x: 85, y: 94 },
   },
   {
     id: 'ursa-minor',
     name: 'Ursa Minor',
+    viewBox: '0 0 123 121',
+    position: { top: '4%', left: '78%' },
+    size: { width: 160, height: 158 },
     stars: [
-      { x: 680, y: 61 },
-      { x: 704, y: 50 },
-      { x: 713, y: 70 },
-      { x: 689, y: 81 },
-      { x: 729, y: 37 },
-      { x: 752, y: 19 },
-      { x: 773, y: 17 },
+      { x: 15, y: 59 },
+      { x: 39, y: 48 },
+      { x: 48, y: 68 },
+      { x: 24, y: 79 },
+      { x: 64, y: 35 },
+      { x: 87, y: 17 },
+      { x: 108, y: 15 },
     ],
     lines: [
       [0, 1],
@@ -43,20 +61,22 @@ export const CONSTELLATIONS = [
       [4, 5],
       [5, 6],
     ],
-    label: 'Ursa Minor',
-    labelAnchor: { x: 725, y: 108 },
+    labelAnchor: { x: 60, y: 106 },
   },
   {
     id: 'ursa-major',
     name: 'Ursa Major',
+    viewBox: '0 0 232 128',
+    position: { top: '22%', left: '76%' },
+    size: { width: 320, height: 177 },
     stars: [
-      { x: 760, y: 167 },
-      { x: 819, y: 180 },
-      { x: 831, y: 225 },
-      { x: 765, y: 238 },
-      { x: 877, y: 167 },
-      { x: 923, y: 174 },
-      { x: 962, y: 199 },
+      { x: 15, y: 15 },
+      { x: 74, y: 28 },
+      { x: 86, y: 73 },
+      { x: 20, y: 86 },
+      { x: 132, y: 15 },
+      { x: 178, y: 22 },
+      { x: 217, y: 47 },
     ],
     lines: [
       [0, 1],
@@ -67,25 +87,22 @@ export const CONSTELLATIONS = [
       [4, 5],
       [5, 6],
     ],
-    label: 'Ursa Major',
-    labelAnchor: { x: 860, y: 265 },
+    labelAnchor: { x: 115, y: 113 },
   },
   {
     id: 'orion',
     name: 'Orion',
-    // Shifted up from an earlier revision that put its legs right at the
-    // terrain's horizon line - the sky layer's "meet" scaling and the
-    // terrain's "slice" scaling don't share a scale factor, so keeping a
-    // healthy vertical margin above the horizon matters more than exact
-    // placement. Confirmed clear at phone/laptop/ultrawide sizes.
+    viewBox: '0 0 119 190',
+    position: { top: '38%', left: '28%' },
+    size: { width: 130, height: 208 },
     stars: [
-      { x: 296, y: 180 },
-      { x: 385, y: 188 },
-      { x: 325, y: 233 },
-      { x: 345, y: 240 },
-      { x: 365, y: 228 },
-      { x: 293, y: 300 },
-      { x: 383, y: 308 },
+      { x: 15, y: 15 },
+      { x: 104, y: 23 },
+      { x: 44, y: 68 },
+      { x: 64, y: 75 },
+      { x: 84, y: 63 },
+      { x: 12, y: 135 },
+      { x: 102, y: 143 },
     ],
     lines: [
       [0, 2],
@@ -95,23 +112,24 @@ export const CONSTELLATIONS = [
       [2, 5],
       [4, 6],
     ],
-    label: 'Orion',
-    labelAnchor: { x: 335, y: 340 },
+    labelAnchor: { x: 54, y: 175 },
   },
   {
     id: 'scorpius',
     name: 'Scorpius',
-    // Shifted up for the same horizon-clearance reason as Orion above.
+    viewBox: '0 0 154 202',
+    position: { top: '36%', left: '55%' },
+    size: { width: 168, height: 220 },
     stars: [
-      { x: 560, y: 183 },
-      { x: 580, y: 170 },
-      { x: 586, y: 196 },
-      { x: 612, y: 203 },
-      { x: 645, y: 216 },
-      { x: 671, y: 243 },
-      { x: 684, y: 274 },
-      { x: 671, y: 307 },
-      { x: 638, y: 320 },
+      { x: 15, y: 28 },
+      { x: 35, y: 15 },
+      { x: 41, y: 41 },
+      { x: 67, y: 48 },
+      { x: 100, y: 61 },
+      { x: 126, y: 88 },
+      { x: 139, y: 119 },
+      { x: 126, y: 152 },
+      { x: 93, y: 165 },
     ],
     lines: [
       [0, 2],
@@ -123,7 +141,6 @@ export const CONSTELLATIONS = [
       [6, 7],
       [7, 8],
     ],
-    label: 'Scorpius',
-    labelAnchor: { x: 620, y: 342 },
+    labelAnchor: { x: 75, y: 187 },
   },
 ];

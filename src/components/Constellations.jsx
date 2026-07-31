@@ -33,11 +33,7 @@ export default function Constellations() {
   };
 
   return (
-    <svg
-      className={styles.sky}
-      viewBox="0 0 1000 500"
-      preserveAspectRatio="xMidYMin meet"
-    >
+    <>
       {CONSTELLATIONS.map((c, ci) => {
         const isActive = activeId === c.id;
         // Padded bounding box around the stars, rendered as an invisible hit
@@ -45,7 +41,7 @@ export default function Constellations() {
         // star or a hairline-thin connecting line, which is unusably fiddly.
         const xs = c.stars.map((s) => s.x);
         const ys = c.stars.map((s) => s.y);
-        const pad = 24;
+        const pad = 12;
         const hitBox = {
           x: Math.min(...xs) - pad,
           y: Math.min(...ys) - pad,
@@ -54,52 +50,71 @@ export default function Constellations() {
         };
 
         return (
-          <g
+          <svg
             key={c.id}
-            className={`${styles.constellation}${isActive ? ` ${styles.active}` : ''}`}
-            role="button"
-            tabIndex={0}
-            aria-label={c.name}
-            aria-pressed={isActive}
-            onClick={() => toggle(c.id)}
-            onKeyDown={(event) => handleKeyDown(event, c.id)}
+            className={styles.constellationRoot}
+            viewBox={c.viewBox}
+            style={{
+              top: c.position.top,
+              left: c.position.left,
+              width: c.size.width,
+              height: c.size.height,
+              '--c-width': `${c.size.width}px`,
+              '--c-height': `${c.size.height}px`,
+              transform: `translateY(var(--ns-${c.id}-y, 0px))`,
+            }}
           >
-            <rect
-              x={hitBox.x}
-              y={hitBox.y}
-              width={hitBox.width}
-              height={hitBox.height}
-              className={styles.hitArea}
-            />
-            {c.lines.map(([a, b], i) => (
-              <line
-                key={i}
-                x1={c.stars[a].x}
-                y1={c.stars[a].y}
-                x2={c.stars[b].x}
-                y2={c.stars[b].y}
-                className={styles.line}
+            <g
+              className={`${styles.constellation}${isActive ? ` ${styles.active}` : ''}`}
+              role="button"
+              tabIndex={0}
+              aria-label={c.name}
+              aria-pressed={isActive}
+              onClick={() => toggle(c.id)}
+              onKeyDown={(event) => handleKeyDown(event, c.id)}
+            >
+              <rect
+                x={hitBox.x}
+                y={hitBox.y}
+                width={hitBox.width}
+                height={hitBox.height}
+                className={styles.hitArea}
               />
-            ))}
-            {c.stars.map((star, i) => {
-              const { delay, duration } = twinkleTimings[ci][i];
-              return (
-                <circle
+              {c.lines.map(([a, b], i) => (
+                <line
                   key={i}
-                  cx={star.x}
-                  cy={star.y}
-                  r={2}
-                  className={styles.star}
-                  style={{ animationDelay: `${delay}s`, animationDuration: `${duration}s` }}
+                  x1={c.stars[a].x}
+                  y1={c.stars[a].y}
+                  x2={c.stars[b].x}
+                  y2={c.stars[b].y}
+                  className={styles.line}
                 />
-              );
-            })}
-            <text x={c.labelAnchor.x} y={c.labelAnchor.y} textAnchor="middle" className={styles.label}>
-              {c.name}
-            </text>
-          </g>
+              ))}
+              {c.stars.map((star, i) => {
+                const { delay, duration } = twinkleTimings[ci][i];
+                return (
+                  <circle
+                    key={i}
+                    cx={star.x}
+                    cy={star.y}
+                    r={2}
+                    className={styles.star}
+                    style={{ animationDelay: `${delay}s`, animationDuration: `${duration}s` }}
+                  />
+                );
+              })}
+              <text
+                x={c.labelAnchor.x}
+                y={c.labelAnchor.y}
+                textAnchor="middle"
+                className={styles.label}
+              >
+                {c.name}
+              </text>
+            </g>
+          </svg>
         );
       })}
-    </svg>
+    </>
   );
 }

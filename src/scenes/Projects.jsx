@@ -7,12 +7,21 @@ import MoonPhase from '../components/MoonPhase';
 // Back-to-front stagger: each layer's assembly window starts at the midpoint
 // of the previous layer's (50% overlap), so motion is continuous rather than
 // sequential. Figure shares mid's window exactly so it arrives seated on it.
-// Stars gets its own early window since it descends from above rather than
-// rising from below, and should already be in place well before the terrain
-// finishes assembling.
+//
+// The sky elements (constellations + moon) all descend from above rather
+// than rising from below, and arrive one by one rather than as a single
+// block: cassiopeia/ursa-minor form an early pair, the moon has its own
+// distinct window overlapping neither pair, then orion/scorpius/ursa-major
+// form a later group - staggered the same way the terrain layers are,
+// just on their own earlier schedule so the sky is mostly in place before
+// the terrain finishes assembling.
 const ASSEMBLY_WINDOW = {
-  stars: [0, 0.5],
-  moon: [0, 0.5],
+  cassiopeia: [0, 0.35],
+  'ursa-minor': [0.08, 0.43],
+  moon: [0.3, 0.65],
+  orion: [0.55, 0.9],
+  scorpius: [0.63, 0.98],
+  'ursa-major': [0.7, 1],
   ridge: [0, 0.4],
   trees: [0.2, 0.6],
   mid: [0.4, 0.8],
@@ -21,12 +30,16 @@ const ASSEMBLY_WINDOW = {
 };
 
 // How far below its resting position each layer starts, in vh - back layers
-// travel least, foreground travels furthest. Stars is negative: it starts
-// *above* the viewport and eases down, the mirror image of every other
-// layer here, using this same formula (see assemblyY in tick() below).
+// travel least, foreground travels furthest. The sky elements are negative:
+// they start *above* the viewport and ease down, the mirror image of every
+// other layer here, using this same formula (see assemblyY in tick() below).
 const START_OFFSET_VH = {
-  stars: -70,
+  cassiopeia: -50,
+  'ursa-minor': -55,
   moon: -60,
+  orion: -60,
+  scorpius: -65,
+  'ursa-major': -70,
   ridge: 40,
   trees: 60,
   mid: 85,
@@ -42,8 +55,12 @@ const START_OFFSET_VH = {
 // the figure shifted far enough down to be clipped by .sticky's
 // overflow:hidden.
 const DRIFT_VH = {
-  stars: 2,
-  moon: 1.5,
+  cassiopeia: 1.5,
+  'ursa-minor': 1.8,
+  moon: 2.5,
+  orion: 2,
+  scorpius: 2.2,
+  'ursa-major': 1.7,
   ridge: 3.3,
   trees: 7.8,
   mid: 14.4,
@@ -58,7 +75,19 @@ const DRIFT_VH = {
 // untouched - only the entire scene's position on screen changes.
 const RESTING_SHIFT_VH = 14;
 
-const LAYER_NAMES = ['stars', 'moon', 'ridge', 'trees', 'mid', 'figure', 'fore'];
+const LAYER_NAMES = [
+  'cassiopeia',
+  'ursa-minor',
+  'moon',
+  'orion',
+  'scorpius',
+  'ursa-major',
+  'ridge',
+  'trees',
+  'mid',
+  'figure',
+  'fore',
+];
 
 const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
 const cubicOut = (t) => 1 - (1 - t) ** 3;
@@ -79,7 +108,19 @@ export default function Projects() {
     };
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      applyLayerPositions({ stars: 0, moon: 0, ridge: 0, trees: 0, mid: 0, figure: 0, fore: 0 });
+      applyLayerPositions({
+        cassiopeia: 0,
+        'ursa-minor': 0,
+        moon: 0,
+        orion: 0,
+        scorpius: 0,
+        'ursa-major': 0,
+        ridge: 0,
+        trees: 0,
+        mid: 0,
+        figure: 0,
+        fore: 0,
+      });
       return undefined;
     }
 

@@ -1,14 +1,25 @@
-/* Positioned exactly like the other full-bleed layers in Projects.module.css
-   (absolute, full box, scroll-driven translateY) - kept in its own module
-   since this is a plain component, not one of Projects.jsx's <img> layers,
-   but it reads the same global custom property those layers write. */
-.sky {
+/* Each constellation is its own standalone element now (see constellations.js
+   for why) - position/size come from that data file via inline style, same
+   as MoonPhase; `transform` (the scroll-driven descent) is also set inline
+   per instance since each constellation reads a differently-named
+   `--ns-{id}-y` custom property. `overflow: visible` because the label sits
+   outside the nominal star bounding box. */
+.constellationRoot {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  transform: translateY(var(--ns-stars-y, 0px));
   will-change: transform;
+  overflow: visible;
+}
+
+/* Below ~700px width these fixed sizes would start overlapping each other
+   and crowding the sky - scale every constellation down together rather
+   than repositioning each one individually for narrow screens. `!important`
+   is deliberate: width/height are otherwise set inline (per-constellation,
+   from data), which a plain class rule can't out-specificity. */
+@media (max-width: 700px) {
+  .constellationRoot {
+    width: calc(var(--c-width) * 0.6) !important;
+    height: calc(var(--c-height) * 0.6) !important;
+  }
 }
 
 .constellation {
