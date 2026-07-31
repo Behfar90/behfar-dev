@@ -107,6 +107,21 @@
   transform: translateY(var(--ns-fore-y, 0px));
 }
 
+/* Top middle, leaning right - `left` is the moon's horizontal center (paired
+   with the translateX(-50%) below), placed left of where Ursa Minor sits in
+   Constellations' sky (that shape lives roughly in the 68-77% band there) so
+   the two don't overlap. Plain percentages are fine here (unlike .figure
+   above) since the moon doesn't need to align with anything on the
+   cover-scaled terrain - it just needs to sit somewhere in the empty sky. */
+.moon {
+  position: absolute;
+  top: -10%;
+  left: 50%;
+  z-index: 1;
+  transform: translate(-50%, var(--ns-moon-y, 0px));
+  will-change: transform;
+}
+
 /* `bottom` scales off the container's height while `.figure`'s own size
    scales off its width - on a narrow/tall phone viewport those diverge
    enough that the desktop-tuned `bottom` pushes the (now much smaller)

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import BackgroundStars from '../components/BackgroundStars';
 import Constellations from '../components/Constellations';
 import styles from './Projects.module.css';
+import MoonPhase from '../components/MoonPhase';
 
 // Back-to-front stagger: each layer's assembly window starts at the midpoint
 // of the previous layer's (50% overlap), so motion is continuous rather than
@@ -11,6 +12,7 @@ import styles from './Projects.module.css';
 // finishes assembling.
 const ASSEMBLY_WINDOW = {
   stars: [0, 0.5],
+  moon: [0, 0.5],
   ridge: [0, 0.4],
   trees: [0.2, 0.6],
   mid: [0.4, 0.8],
@@ -24,6 +26,7 @@ const ASSEMBLY_WINDOW = {
 // layer here, using this same formula (see assemblyY in tick() below).
 const START_OFFSET_VH = {
   stars: -70,
+  moon: -60,
   ridge: 40,
   trees: 60,
   mid: 85,
@@ -40,6 +43,7 @@ const START_OFFSET_VH = {
 // overflow:hidden.
 const DRIFT_VH = {
   stars: 2,
+  moon: 1.5,
   ridge: 3.3,
   trees: 7.8,
   mid: 14.4,
@@ -54,7 +58,7 @@ const DRIFT_VH = {
 // untouched - only the entire scene's position on screen changes.
 const RESTING_SHIFT_VH = 14;
 
-const LAYER_NAMES = ['stars', 'ridge', 'trees', 'mid', 'figure', 'fore'];
+const LAYER_NAMES = ['stars', 'moon', 'ridge', 'trees', 'mid', 'figure', 'fore'];
 
 const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
 const cubicOut = (t) => 1 - (1 - t) ** 3;
@@ -75,7 +79,7 @@ export default function Projects() {
     };
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      applyLayerPositions({ stars: 0, ridge: 0, trees: 0, mid: 0, figure: 0, fore: 0 });
+      applyLayerPositions({ stars: 0, moon: 0, ridge: 0, trees: 0, mid: 0, figure: 0, fore: 0 });
       return undefined;
     }
 
@@ -123,6 +127,7 @@ export default function Projects() {
     <div ref={wrapperRef} className={styles.wrapper}>
       <div className={styles.sticky}>
         <BackgroundStars />
+        <MoonPhase phase={0.6} size={150} className={styles.moon} />
         <Constellations />
 
         <img src="/terrain-1-ridge.svg" alt="" className={`${styles.layer} ${styles.ridge}`} />
