@@ -115,7 +115,7 @@
    cover-scaled terrain - it just needs to sit somewhere in the empty sky. */
 .moon {
   position: absolute;
-  top: -10%;
+  top: 8%;
   left: 50%;
   z-index: 1;
   transform: translate(-50%, var(--ns-moon-y, 0px));

@@ -41,7 +41,7 @@ export const CONSTELLATIONS = [
     id: 'ursa-minor',
     name: 'Ursa Minor',
     viewBox: '0 0 123 121',
-    position: { top: '4%', left: '78%' },
+    position: { top: '4%', left: '66%' },
     size: { width: 160, height: 158 },
     stars: [
       { x: 15, y: 59 },
@@ -67,7 +67,7 @@ export const CONSTELLATIONS = [
     id: 'ursa-major',
     name: 'Ursa Major',
     viewBox: '0 0 232 128',
-    position: { top: '22%', left: '76%' },
+    position: { top: '26%', left: '66%' },
     size: { width: 320, height: 177 },
     stars: [
       { x: 15, y: 15 },
