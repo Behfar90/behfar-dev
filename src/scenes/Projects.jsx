@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
 import BackgroundStars from '../components/BackgroundStars';
 import Constellations from '../components/Constellations';
-import styles from './Projects.module.css';
 import MoonPhase from '../components/MoonPhase';
+import TerrainLayers from '../components/TerrainLayers';
+import styles from './Projects.module.css';
 
 // Back-to-front stagger: each layer's assembly window starts at the midpoint
 // of the previous layer's (50% overlap), so motion is continuous rather than
@@ -187,16 +188,7 @@ export default function Projects() {
         <BackgroundStars />
         <MoonPhase phase={0.6} size={150} className={styles.moon} />
         <Constellations />
-
-        <img src="/terrain-1-ridge.svg" alt="" className={`${styles.layer} ${styles.ridge}`} />
-        <img src="/terrain-2-trees.svg" alt="" className={`${styles.layer} ${styles.trees}`} />
-        <img src="/terrain-3-mid.svg" alt="" className={`${styles.layer} ${styles.mid}`} />
-        <img
-          src="/man_with_telescope.png"
-          alt="Silhouette of a person looking through a telescope at the night sky"
-          className={styles.figure}
-        />
-        <img src="/terrain-4-fore.svg" alt="" className={`${styles.layer} ${styles.foreground}`} />
+        <TerrainLayers />
       </div>
     </div>
   );
