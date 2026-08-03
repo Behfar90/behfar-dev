@@ -80,6 +80,16 @@ export default function Constellations() {
                 height={hitBox.height}
                 className={styles.hitArea}
               />
+              {c.mythIllustration && (
+                <image
+                  href={c.mythIllustration.url}
+                  x={c.mythIllustration.x}
+                  y={c.mythIllustration.y}
+                  width={c.mythIllustration.width}
+                  height={c.mythIllustration.height}
+                  className={styles.mythImage}
+                />
+              )}
               {c.lines.map(([a, b], i) => (
                 <line
                   key={i}
