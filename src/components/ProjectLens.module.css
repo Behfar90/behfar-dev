@@ -3,11 +3,12 @@
    dark tint on top of that blur. Click-outside-to-close: the overlay itself
    carries the onClose handler, the lens below stops that click from
    bubbling back up to it.
-   Plain opacity fade for now (step 3 of the build) - stays mounted at
-   opacity 0/pointer-events: none while closed rather than unmounting
-   instantly, so ProjectLens can hold the last project's content through the
-   fade-out (see its onTransitionEnd). The iris-from-click-point animation
-   replaces this crossfade in the next step. */
+   Stays mounted at opacity 0/pointer-events: none while closed rather than
+   unmounting instantly, so ProjectLens can hold the last project's content
+   through the closing animation (see its onTransitionEnd) - and that
+   transition's duration must match .lens's transform below, since
+   onTransitionEnd only listens for *this* element's own opacity transition
+   to know the whole close animation (backdrop fade + lens shrink) is done. */
 .overlay {
   position: fixed;
   inset: 0;
@@ -20,7 +21,7 @@
   -webkit-backdrop-filter: blur(16px);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.4s ease;
 }
 
 .overlay.open {
@@ -32,7 +33,15 @@
    dimension via vmin, capped at 640px so it doesn't balloon on ultrawide/4K
    screens. The layered box-shadows build a metal eyepiece ring - two hard
    rings plus a soft outer glow - without needing border-image gradients,
-   which don't play well with border-radius: 50%. */
+   which don't play well with border-radius: 50%.
+   The iris itself: closed, .lens sits scaled down and translated to
+   --origin-x/-y (the clicked constellation's viewport position, set inline
+   by ProjectLens) instead of its natural centered flex position; .open
+   animates that back to identity (translate(0,0) scale(1)), i.e. centered
+   and full-size. `50vw`/`50vh` fallbacks mean it degrades to a plain
+   grow-from-center if origin was never set. Closing reverses the same
+   transform, so the lens shrinks back toward the constellation it opened
+   from rather than just fading in place. */
 .lens {
   position: relative;
   width: min(70vmin, 640px);
@@ -45,6 +54,22 @@
     0 0 0 12px rgba(150, 180, 255, 0.15),
     0 0 60px rgba(0, 0, 0, 0.85),
     0 0 90px rgba(120, 160, 255, 0.12);
+  transform: translate(
+      calc(var(--origin-x, 50vw) - 50vw),
+      calc(var(--origin-y, 50vh) - 50vh)
+    )
+    scale(0.1);
+  /* Deliberately NOT the more common easeOutExpo-ish (0.22,1,0.36,1) curve -
+     that one front-loads ~58% of the visual motion into the first 16% of
+     the duration, which at 400ms is fast enough that the eye reads it as
+     "appears near center" rather than "travels from the click point". This
+     easeOutSine-ish curve spreads it much more evenly (~25% visual progress
+     at 16% time) so the grow-from-origin motion is actually visible. */
+  transition: transform 0.4s cubic-bezier(0.61, 1, 0.88, 1);
+}
+
+.overlay.open .lens {
+  transform: translate(0, 0) scale(1);
 }
 
 /* Rangefinder-style reticle - faint crosshair ticks plus a hairline ring
@@ -99,7 +124,11 @@
    container's width (even top/bottom), which on a perfect circle keeps
    text clear of the curve on every side without needing to shape text to
    the radius itself. Scrolls internally if content runs long, since the
-   circle's own size is capped and can't grow to fit. */
+   circle's own size is capped and can't grow to fit.
+   The blur is a "focus pull" - content starts soft and sharpens as the
+   lens finishes growing, mimicking an actual telescope settling into
+   focus. Scale isn't needed here on top of it: .lens's own transform
+   already scales this along with everything else inside it. */
 .content {
   position: absolute;
   inset: 0;
@@ -111,6 +140,13 @@
   overflow-y: auto;
   text-align: center;
   color: #fff;
+  filter: blur(6px);
+  transition: filter 0.35s ease;
+}
+
+.overlay.open .content {
+  filter: blur(0);
+  transition-delay: 0.15s;
 }
 
 .title {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { CircleX } from 'lucide-react';
 import styles from './ProjectLens.module.css';
 
@@ -6,25 +6,57 @@ import styles from './ProjectLens.module.css';
 // closed), owned by Projects.jsx. `displayedProject` mirrors it but doesn't
 // clear immediately on close - it holds the last project's content through
 // the fade-out transition (see onTransitionEnd below) so the lens doesn't
-// just vanish mid-fade with blank content. Plain opacity fade for now (step
-// 3 of the build) - the iris-from-click-point animation replaces this in
-// the next step.
-export default function ProjectLens({ project, onClose }) {
-  const [displayedProject, setDisplayedProject] = useState(project);
-  const isOpen = Boolean(project);
+// just vanish mid-fade with blank content. `origin` (viewport coords of the
+// clicked/focused constellation) drives the iris animation - see .lens's
+// transform in the CSS module - growing the lens from that point and
+// shrinking back to it on close, rather than a flat crossfade.
+export default function ProjectLens({ project, origin, onClose }) {
+  const [displayedProject, setDisplayedProject] = useState(null);
+  // Separate from `Boolean(project)` on purpose: the overlay <div> fully
+  // unmounts on close (see the early return below), so every open re-inserts
+  // a brand new DOM node. If `.open` were applied in the very same render
+  // that inserts it, the browser would never register a "before" state for
+  // the transition to animate from, and it'd just snap straight to open.
+  const [isOpen, setIsOpen] = useState(false);
+  const lensRef = useRef(null);
 
   useEffect(() => {
-    if (project) setDisplayedProject(project);
+    if (!project) {
+      setIsOpen(false);
+      return;
+    }
+    setDisplayedProject(project);
   }, [project]);
+
+  // Flips isOpen right after the closed-state DOM actually commits, forcing
+  // a synchronous reflow first (reading offsetHeight) so the browser has to
+  // resolve styles for that closed state before the very next line changes
+  // them - the standard way to guarantee a transition actually plays on a
+  // freshly-inserted element. Deliberately NOT requestAnimationFrame-based:
+  // this page keeps several other animations running continuously (the
+  // twinkling stars, the moon), and under load a couple of rAF callbacks can
+  // land 100ms+ apart, making the "grow" visibly stall before it starts.
+  // useLayoutEffect + forced reflow is synchronous, so it doesn't depend on
+  // frame timing at all.
+  useLayoutEffect(() => {
+    if (!displayedProject || !lensRef.current) return;
+    // eslint-disable-next-line no-unused-expressions -- reflow, not a no-op
+    lensRef.current.offsetHeight;
+    setIsOpen(true);
+  }, [displayedProject]);
 
   // Scroll lock + Esc-to-close are active for the lens's full visible
   // lifetime, including the closing fade (tied to displayedProject, not
   // isOpen) - otherwise the background could start scrolling out from under
-  // a still-fading-out lens.
+  // a still-fading-out lens. Restores to '' rather than a captured "previous
+  // value" - nothing else in this app sets body.style.overflow inline, and
+  // capturing/restoring a snapshot is fragile here: onClose (or any other
+  // dependency) getting a new reference between renders would re-run this
+  // effect and re-capture 'hidden' as the "previous" value mid-lock,
+  // permanently stomping the real original value.
   useEffect(() => {
     if (!displayedProject) return undefined;
 
-    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
     const handleKeyDown = (event) => {
@@ -33,7 +65,7 @@ export default function ProjectLens({ project, onClose }) {
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.body.style.overflow = previousOverflow;
+      document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [displayedProject, onClose]);
@@ -43,12 +75,13 @@ export default function ProjectLens({ project, onClose }) {
   return (
     <div
       className={`${styles.overlay}${isOpen ? ` ${styles.open}` : ''}`}
+      style={origin ? { '--origin-x': `${origin.x}px`, '--origin-y': `${origin.y}px` } : undefined}
       onClick={onClose}
       onTransitionEnd={(event) => {
         if (event.target === event.currentTarget && !isOpen) setDisplayedProject(null);
       }}
     >
-      <div className={styles.lens} onClick={(event) => event.stopPropagation()}>
+      <div ref={lensRef} className={styles.lens} onClick={(event) => event.stopPropagation()}>
         <svg className={styles.reticle} viewBox="0 0 100 100" aria-hidden="true">
           <line x1="50" y1="4" x2="50" y2="14" />
           <line x1="50" y1="86" x2="50" y2="96" />
