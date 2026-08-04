@@ -24,10 +24,13 @@ export default function Constellations({ onSelect }) {
   // Origin point (viewport coords, from the focused/clicked <g> itself -
   // works the same for a mouse click and a keyboard Enter/Space) for
   // ProjectLens's iris animation: it grows from wherever this constellation
-  // actually is on screen, not a fixed/centered point.
+  // actually is on screen, not a fixed/centered point. The <g> itself is
+  // also passed through so ProjectLens can return focus to it on close -
+  // relying on document.activeElement there instead would be unreliable,
+  // since not every browser focuses a non-form element on click by default.
   const select = (event, id) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    onSelect(id, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+    onSelect(id, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }, event.currentTarget);
   };
 
   const handleKeyDown = (event, id) => {

@@ -204,3 +204,32 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* Drops the "travel from the click point" motion entirely - .lens stays at
+   its identity transform in both the closed and open state, so opening/
+   closing reads as a plain, near-instant fade (via .overlay's own opacity
+   transition, also shortened here) instead of anything growing or moving
+   across the screen. Durations use 0.01ms rather than 0s - some browsers
+   don't reliably fire transitionend for a genuinely 0s transition, and
+   ProjectLens's close logic (clearing displayedProject, returning focus)
+   depends on that event firing. Selectors are repeated at matching
+   specificity (rather than a single lower-specificity override) so this
+   actually wins over .overlay.open .lens/.content further up the file. */
+@media (prefers-reduced-motion: reduce) {
+  .overlay {
+    transition-duration: 0.01ms;
+  }
+
+  .lens,
+  .overlay.open .lens {
+    transition-duration: 0.01ms;
+    transform: translate(0, 0) scale(1);
+  }
+
+  .content,
+  .overlay.open .content {
+    transition-duration: 0.01ms;
+    transition-delay: 0s;
+    filter: blur(0);
+  }
+}
