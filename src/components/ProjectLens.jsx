@@ -1,18 +1,53 @@
+import { useEffect, useState } from 'react';
 import { CircleX } from 'lucide-react';
 import styles from './ProjectLens.module.css';
 
-// Static shell only for now (step 2 of the build) - no open/close state, no
-// animation, no click wiring yet. Renders whenever a `project` is passed in,
-// purely so the visual design (frame, reticle, porthole content, sizing
-// across viewport shapes) can be checked and tuned before any interactivity
-// exists. `onClose` is wired to the close button/backdrop/Esc already since
-// those are cheap now and won't need touching again once real open/close
-// state lands in a later step.
+// `project` is the source of truth for *which* project is open (or null for
+// closed), owned by Projects.jsx. `displayedProject` mirrors it but doesn't
+// clear immediately on close - it holds the last project's content through
+// the fade-out transition (see onTransitionEnd below) so the lens doesn't
+// just vanish mid-fade with blank content. Plain opacity fade for now (step
+// 3 of the build) - the iris-from-click-point animation replaces this in
+// the next step.
 export default function ProjectLens({ project, onClose }) {
-  if (!project) return null;
+  const [displayedProject, setDisplayedProject] = useState(project);
+  const isOpen = Boolean(project);
+
+  useEffect(() => {
+    if (project) setDisplayedProject(project);
+  }, [project]);
+
+  // Scroll lock + Esc-to-close are active for the lens's full visible
+  // lifetime, including the closing fade (tied to displayedProject, not
+  // isOpen) - otherwise the background could start scrolling out from under
+  // a still-fading-out lens.
+  useEffect(() => {
+    if (!displayedProject) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [displayedProject, onClose]);
+
+  if (!displayedProject) return null;
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
+    <div
+      className={`${styles.overlay}${isOpen ? ` ${styles.open}` : ''}`}
+      onClick={onClose}
+      onTransitionEnd={(event) => {
+        if (event.target === event.currentTarget && !isOpen) setDisplayedProject(null);
+      }}
+    >
       <div className={styles.lens} onClick={(event) => event.stopPropagation()}>
         <svg className={styles.reticle} viewBox="0 0 100 100" aria-hidden="true">
           <line x1="50" y1="4" x2="50" y2="14" />
@@ -27,21 +62,21 @@ export default function ProjectLens({ project, onClose }) {
         </button>
 
         <div className={styles.content}>
-          <h2 className={styles.title}>{project.title}</h2>
-          <p className={styles.summary}>{project.summary}</p>
-          <p className={styles.description}>{project.description}</p>
-          {project.tags.length > 0 && (
+          <h2 className={styles.title}>{displayedProject.title}</h2>
+          <p className={styles.summary}>{displayedProject.summary}</p>
+          <p className={styles.description}>{displayedProject.description}</p>
+          {displayedProject.tags.length > 0 && (
             <ul className={styles.tags}>
-              {project.tags.map((tag) => (
+              {displayedProject.tags.map((tag) => (
                 <li key={tag} className={styles.tag}>
                   {tag}
                 </li>
               ))}
             </ul>
           )}
-          {project.links.length > 0 && (
+          {displayedProject.links.length > 0 && (
             <div className={styles.links}>
-              {project.links.map((link) => (
+              {displayedProject.links.map((link) => (
                 <a key={link.url} href={link.url} className={styles.link}>
                   {link.label}
                 </a>

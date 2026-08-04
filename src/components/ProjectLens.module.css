@@ -2,7 +2,12 @@
    scene is live underneath (no snapshotting needed), `background` is the
    dark tint on top of that blur. Click-outside-to-close: the overlay itself
    carries the onClose handler, the lens below stops that click from
-   bubbling back up to it. */
+   bubbling back up to it.
+   Plain opacity fade for now (step 3 of the build) - stays mounted at
+   opacity 0/pointer-events: none while closed rather than unmounting
+   instantly, so ProjectLens can hold the last project's content through the
+   fade-out (see its onTransitionEnd). The iris-from-click-point animation
+   replaces this crossfade in the next step. */
 .overlay {
   position: fixed;
   inset: 0;
@@ -13,6 +18,14 @@
   background: rgba(0, 0, 10, 0.72);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.overlay.open {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* A true circle (equal width/height) that scales with the smaller viewport
@@ -56,6 +69,10 @@
   position: absolute;
   top: -6px;
   right: -6px;
+  /* Without this, .content (transparent but still hit-testable, and later
+     in DOM order so it paints/stacks above this by default) would swallow
+     clicks in the region where its inset:0 box overlaps this button. */
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;

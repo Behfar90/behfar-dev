@@ -1,15 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { randomTwinkleTiming } from '../utils/components/twinkle';
 import { CONSTELLATIONS } from '../utils/scenes/constellations';
 import styles from './Constellations.module.css';
 
-// Desktop reveal is pure CSS (:hover), so only the tap/click "pin" needs
-// React state - that's what makes the label stick open on touch devices,
-// which have no hover state to fall back on. Clicking a different
-// constellation swaps which one is pinned; clicking the same one closes it.
-export default function Constellations() {
-  const [activeId, setActiveId] = useState(null);
-
+// Desktop reveal (line/star glow + label) is pure CSS (:hover /
+// :focus-visible), so this component carries no state of its own - a click
+// or Enter/Space doesn't toggle anything here, it opens that constellation's
+// project in ProjectLens, whose open/closed state lives in Projects.jsx
+// (which needs to know regardless of which constellation triggered it, to
+// dim the whole scene, not just this one).
+export default function Constellations({ onSelect }) {
   // Per-star twinkle timing, same idea as BackgroundStars' randomized
   // delay/duration - computed once (not inline per render) so hovering one
   // constellation doesn't re-roll and visibly reset every star's animation.
@@ -21,21 +21,16 @@ export default function Constellations() {
     [],
   );
 
-  const toggle = (id) => {
-    setActiveId((current) => (current === id ? null : id));
-  };
-
   const handleKeyDown = (event, id) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      toggle(id);
+      onSelect(id);
     }
   };
 
   return (
     <>
       {CONSTELLATIONS.map((c, ci) => {
-        const isActive = activeId === c.id;
         // Padded bounding box around the stars, rendered as an invisible hit
         // area - without it, hover/click only fires directly over a 3px-radius
         // star or a hairline-thin connecting line, which is unusably fiddly.
@@ -63,12 +58,11 @@ export default function Constellations() {
             }}
           >
             <g
-              className={`${styles.constellation}${isActive ? ` ${styles.active}` : ''}`}
+              className={styles.constellation}
               role="button"
               tabIndex={0}
               aria-label={c.name}
-              aria-pressed={isActive}
-              onClick={() => toggle(c.id)}
+              onClick={() => onSelect(c.id)}
               onKeyDown={(event) => handleKeyDown(event, c.id)}
             >
               {/* Tilt (Orion's `rotation`) is a CSS class, not a computed

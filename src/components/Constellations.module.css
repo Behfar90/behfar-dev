@@ -116,14 +116,12 @@
   }
 }
 
-.constellation:hover .line,
-.constellation.active .line {
+.constellation:hover .line {
   opacity: 0.7;
   filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.6));
 }
 
-.constellation:hover .star,
-.constellation.active .star {
+.constellation:hover .star {
   filter: drop-shadow(0 0 3px rgba(255, 255, 255, 1)) drop-shadow(0 0 9px rgba(150, 180, 255, 0.9));
 }
 
@@ -140,7 +138,6 @@
 }
 
 .constellation:hover .label,
-.constellation.active .label,
 .constellation:focus-visible .label {
   opacity: 1;
 }
