@@ -14,6 +14,15 @@
   font-display: swap;
 }
 
+/* Reserves the scrollbar's track permanently, whether or not it's actually
+   showing at a given moment (e.g. while ProjectLens locks body scroll via
+   overflow: hidden). Without this, the page's content width shifts by the
+   scrollbar's width every time it's hidden/restored - a visible flicker on
+   every open/close. */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   margin: 0;
   font-family:
