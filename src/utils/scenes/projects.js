@@ -7,7 +7,7 @@
 export const PROJECTS = [
   {
     id: 'cassiopeia',
-    title: 'Project Title',
+    title: 'cassiopeia',
     summary: 'One-line summary of what this project is.',
     description: 'Placeholder description. Replace with real project copy.',
     tags: [],
@@ -15,7 +15,7 @@ export const PROJECTS = [
   },
   {
     id: 'ursa-minor',
-    title: 'Project Title',
+    title: 'ursa-minor',
     summary: 'One-line summary of what this project is.',
     description: 'Placeholder description. Replace with real project copy.',
     tags: [],
@@ -23,7 +23,7 @@ export const PROJECTS = [
   },
   {
     id: 'ursa-major',
-    title: 'Project Title',
+    title: 'ursa-major',
     summary: 'One-line summary of what this project is.',
     description: 'Placeholder description. Replace with real project copy.',
     tags: [],
@@ -31,7 +31,7 @@ export const PROJECTS = [
   },
   {
     id: 'orion',
-    title: 'Project Title',
+    title: 'orion',
     summary: 'One-line summary of what this project is.',
     description: 'Placeholder description. Replace with real project copy.',
     tags: [],
@@ -39,7 +39,7 @@ export const PROJECTS = [
   },
   {
     id: 'scorpius',
-    title: 'Project Title',
+    title: 'scorpius',
     summary: 'One-line summary of what this project is.',
     description: 'Placeholder description. Replace with real project copy.',
     tags: [],
