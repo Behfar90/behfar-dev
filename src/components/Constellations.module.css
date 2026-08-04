@@ -63,7 +63,7 @@
    the mythological figure is meant to read as a soft, ambient backdrop
    behind the star pattern, not an interactive reveal. */
 .mythImage {
-  opacity: 0.65;
+  opacity: 0.35;
   pointer-events: none;
 }
 
