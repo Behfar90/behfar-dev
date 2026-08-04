@@ -105,6 +105,29 @@ const LAYER_NAMES = [
 const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
 const cubicOut = (t) => 1 - (1 - t) ** 3;
 
+// Constellation/moon sizes (Constellations.jsx's `size`, MoonPhase's `size`
+// prop) are fixed CSS px, chosen against a ~1512x900 reference viewport.
+// On a shorter or narrower one (a 13" laptop's shallower height, a phone's
+// narrow width) those fixed sizes eat a bigger share of the sky and start
+// crowding/overlapping/clipping. `--sky-scale` shrinks them continuously
+// with whichever dimension is more constrained, rather than relying on
+// enumerated breakpoints that can miss viewport combinations in between.
+const SKY_SCALE_REFERENCE_WIDTH = 1512;
+const SKY_SCALE_REFERENCE_HEIGHT = 900;
+const MIN_SKY_SCALE = 0.55;
+
+const computeSkyScale = () =>
+  Math.min(
+    1,
+    Math.max(
+      MIN_SKY_SCALE,
+      Math.min(
+        window.innerWidth / SKY_SCALE_REFERENCE_WIDTH,
+        window.innerHeight / SKY_SCALE_REFERENCE_HEIGHT,
+      ),
+    ),
+  );
+
 // Drives the Projects scene's scroll-triggered layer assembly: every layer
 // (terrain, figure, moon, constellations) eases in from off-screen, settles,
 // then drifts at its own parallax speed, all from a single rAF loop writing
@@ -126,6 +149,15 @@ export default function useProjectsSceneAnimation() {
       });
     };
 
+    // Independent of the scroll-driven rAF loop below (and of the
+    // prefers-reduced-motion branch, which returns before ever reaching
+    // that loop) since it only needs to react to resize, not scroll.
+    const applySkyScale = () => {
+      root.style.setProperty('--sky-scale', computeSkyScale());
+    };
+    applySkyScale();
+    window.addEventListener('resize', applySkyScale, { passive: true });
+
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       applyLayerPositions({
         cassiopeia: 0,
@@ -140,7 +172,7 @@ export default function useProjectsSceneAnimation() {
         figure: 0,
         fore: 0,
       });
-      return undefined;
+      return () => window.removeEventListener('resize', applySkyScale);
     }
 
     // Scroll listener only stores the raw value - every read (bounding
@@ -178,6 +210,7 @@ export default function useProjectsSceneAnimation() {
     animFrame = window.requestAnimationFrame(tick);
 
     return () => {
+      window.removeEventListener('resize', applySkyScale);
       window.removeEventListener('scroll', handleScroll);
       cancelAnimationFrame(animFrame);
     };

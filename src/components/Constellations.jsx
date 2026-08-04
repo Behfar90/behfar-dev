@@ -57,8 +57,6 @@ export default function Constellations() {
             style={{
               top: c.position.top,
               left: c.position.left,
-              width: c.size.width,
-              height: c.size.height,
               '--c-width': `${c.size.width}px`,
               '--c-height': `${c.size.height}px`,
               transform: `translateY(var(--ns-${c.id}-y, 0px))`,
@@ -73,46 +71,55 @@ export default function Constellations() {
               onClick={() => toggle(c.id)}
               onKeyDown={(event) => handleKeyDown(event, c.id)}
             >
-              <rect
-                x={hitBox.x}
-                y={hitBox.y}
-                width={hitBox.width}
-                height={hitBox.height}
-                className={styles.hitArea}
-              />
-              {c.mythIllustration && (
-                <image
-                  href={c.mythIllustration.url}
-                  x={c.mythIllustration.x}
-                  y={c.mythIllustration.y}
-                  width={c.mythIllustration.width}
-                  height={c.mythIllustration.height}
-                  className={styles.mythImage}
+              {/* Tilt (Orion's `rotation`) is a CSS class, not a computed
+                  SVG transform attribute - scoped to this inner group so
+                  the hover label stays upright while everything else
+                  tilts. See .tilt's `transform-box: view-box` in the CSS
+                  module for how it rotates around the viewBox center
+                  despite the mythIllustration image extending well beyond
+                  the viewBox's own bounds. */}
+              <g className={c.rotation ? styles.tilt : undefined}>
+                <rect
+                  x={hitBox.x}
+                  y={hitBox.y}
+                  width={hitBox.width}
+                  height={hitBox.height}
+                  className={styles.hitArea}
                 />
-              )}
-              {c.lines.map(([a, b], i) => (
-                <line
-                  key={i}
-                  x1={c.stars[a].x}
-                  y1={c.stars[a].y}
-                  x2={c.stars[b].x}
-                  y2={c.stars[b].y}
-                  className={styles.line}
-                />
-              ))}
-              {c.stars.map((star, i) => {
-                const { delay, duration } = twinkleTimings[ci][i];
-                return (
-                  <circle
-                    key={i}
-                    cx={star.x}
-                    cy={star.y}
-                    r={2}
-                    className={styles.star}
-                    style={{ animationDelay: `${delay}s`, animationDuration: `${duration}s` }}
+                {c.mythIllustration && (
+                  <image
+                    href={c.mythIllustration.url}
+                    x={c.mythIllustration.x}
+                    y={c.mythIllustration.y}
+                    width={c.mythIllustration.width}
+                    height={c.mythIllustration.height}
+                    className={styles.mythImage}
                   />
-                );
-              })}
+                )}
+                {c.lines.map(([a, b], i) => (
+                  <line
+                    key={i}
+                    x1={c.stars[a].x}
+                    y1={c.stars[a].y}
+                    x2={c.stars[b].x}
+                    y2={c.stars[b].y}
+                    className={styles.line}
+                  />
+                ))}
+                {c.stars.map((star, i) => {
+                  const { delay, duration } = twinkleTimings[ci][i];
+                  return (
+                    <circle
+                      key={i}
+                      cx={star.x}
+                      cy={star.y}
+                      r={2}
+                      className={styles.star}
+                      style={{ animationDelay: `${delay}s`, animationDuration: `${duration}s` }}
+                    />
+                  );
+                })}
+              </g>
               <text
                 x={c.labelAnchor.x}
                 y={c.labelAnchor.y}

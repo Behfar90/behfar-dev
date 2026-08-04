@@ -1,25 +1,22 @@
 /* Each constellation is its own standalone element now (see constellations.js
-   for why) - position/size come from that data file via inline style, same
-   as MoonPhase; `transform` (the scroll-driven descent) is also set inline
-   per instance since each constellation reads a differently-named
-   `--ns-{id}-y` custom property. `overflow: visible` because the label sits
-   outside the nominal star bounding box. */
+   for why) - position comes from that data file via inline style, same as
+   MoonPhase; `transform` (the scroll-driven descent) is also set inline per
+   instance since each constellation reads a differently-named `--ns-{id}-y`
+   custom property. `overflow: visible` because the label sits outside the
+   nominal star bounding box.
+   Width/height are `--c-width`/`--c-height` (the data file's per-instance
+   px size) scaled by `--sky-scale` - a continuous 0.55-1 factor kept
+   updated on resize by useProjectsSceneAnimation, shrinking every
+   constellation together on any viewport short or narrow enough that the
+   fixed reference sizes would start crowding/overlapping/clipping (a 13"
+   laptop's shallower height, a phone's narrow width) rather than relying on
+   one enumerated breakpoint that can miss shapes in between. */
 .constellationRoot {
   position: absolute;
+  width: calc(var(--c-width) * var(--sky-scale, 1));
+  height: calc(var(--c-height) * var(--sky-scale, 1));
   will-change: transform;
   overflow: visible;
-}
-
-/* Below ~700px width these fixed sizes would start overlapping each other
-   and crowding the sky - scale every constellation down together rather
-   than repositioning each one individually for narrow screens. `!important`
-   is deliberate: width/height are otherwise set inline (per-constellation,
-   from data), which a plain class rule can't out-specificity. */
-@media (max-width: 700px) {
-  .constellationRoot {
-    width: calc(var(--c-width) * 0.6) !important;
-    height: calc(var(--c-height) * 0.6) !important;
-  }
 }
 
 .constellation {
@@ -35,6 +32,20 @@
   stroke: rgba(255, 255, 255, 0.35);
   stroke-width: 1;
   fill: rgba(255, 255, 255, 0.04);
+}
+
+/* Orion's tilt (`rotation` in constellations.js) - a plain CSS transform,
+   not a JS-computed SVG transform attribute, and scoped in Constellations.jsx
+   to a group that excludes the label, so the hover text never tilts.
+   `transform-box: view-box` pins the rotation origin to the constellation's
+   own viewBox center regardless of how far its mythIllustration image
+   extends beyond the viewBox's own bounds - without it, percentage-based
+   origins like `center` would default to the rotated group's own content
+   bounding box (dominated by that oversized image) instead. */
+.tilt {
+  transform: rotate(12deg);
+  transform-box: view-box;
+  transform-origin: center;
 }
 
 /* Transparent hit area padded around each constellation's stars - without
