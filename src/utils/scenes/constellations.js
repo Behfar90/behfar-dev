@@ -22,7 +22,7 @@ export const CONSTELLATIONS = [
     viewBox: '0 0 170 109',
     position: { top: '8%', left: '16%' },
     size: { width: 210, height: 135 },
-    mythIllustration: { url: '/cassiopeia.png', x: -15, y: -30, width: 200, height: 200 },
+    mythIllustration: { url: '/png/cassiopeia.png', x: -15, y: -30, width: 200, height: 200 },
     // Star positions are real landmarks on cassiopeia.png itself (crown
     // tip, both throne finials, both hands on the armrests), read off a
     // pixel grid overlaid on the source PNG and converted through the
@@ -58,7 +58,7 @@ export const CONSTELLATIONS = [
     // every star's new position was searched against the actual alpha
     // channel (not a bounding-box guess) to land it back on solid bear
     // silhouette at the larger size.
-    mythIllustration: { url: '/ursa-minor.png', x: -26.9, y: -17.9, width: 221, height: 221 },
+    mythIllustration: { url: '/png/ursa-minor.png', x: -26.9, y: -17.9, width: 221, height: 221 },
     stars: [
       { x: 104.5, y: 24.1 }, // Polaris (handle tip), near the ear
       { x: 89.4, y: 45.7 }, // Yildun, neck
@@ -94,7 +94,7 @@ export const CONSTELLATIONS = [
     // every star's new position was searched against the actual alpha
     // channel (not a bounding-box guess) to land it back on solid bear
     // silhouette at the larger size.
-    mythIllustration: { url: '/ursa-major.png', x: -37, y: -89.6, width: 273.3, height: 273.3 },
+    mythIllustration: { url: '/png/ursa-major.png', x: -37, y: -89.6, width: 273.3, height: 273.3 },
     stars: [
       { x: 27.1, y: 18 }, // Dubhe
       { x: 15.2, y: 50.5 }, // Merak
@@ -126,7 +126,7 @@ export const CONSTELLATIONS = [
     // (Constellations.module.css's `.tilt`) applied in Constellations.jsx,
     // scoped to exclude the label so hover text stays upright.
     rotation: 12,
-    mythIllustration: { url: '/orion.png', x: -155, y: 1, width: 393, height: 229 },
+    mythIllustration: { url: '/png/orion.png', x: -155, y: 1, width: 393, height: 229 },
     // Expanded to a fuller figure: head, both shoulders, the raised club
     // and shield/pelt he's holding, the belt, a hanging sword, and both
     // feet - all real landmarks read off orion.png. Bigger/wider than the
@@ -172,7 +172,7 @@ export const CONSTELLATIONS = [
     size: { width: 184, height: 190 },
     // scorpius.png (500x500, real alpha) shows the pincers at bottom-left
     // and the tail curling up and over to a hooked stinger at top-right.
-    mythIllustration: { url: '/scorpius.png', x: -20, y: -10, width: 200, height: 200 },
+    mythIllustration: { url: '/png/scorpius.png', x: -20, y: -10, width: 200, height: 200 },
     // Double-jointed claws (tip + elbow, each side) and a smoother
     // multi-segment tail curl - real landmarks read off the PNG.
     stars: [
