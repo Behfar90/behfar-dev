@@ -16,9 +16,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 10, 0.72);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  /* Darker and a touch more blurred than before - deliberately so, now that
+     .lens's own interior is brighter: without a clear dark/light split
+     between "the dimmed sky" and "the lit view", the lens doesn't read as
+     the focused thing you're looking through, it just reads as a slightly
+     different patch of the same dark scene. */
+  background: rgba(0, 0, 6, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.4s ease;
@@ -34,6 +39,12 @@
    screens. The layered box-shadows build a metal eyepiece ring - two hard
    rings plus a soft outer glow - without needing border-image gradients,
    which don't play well with border-radius: 50%.
+   The interior gradient is deliberately brighter than the dimmed, blurred
+   sky behind the overlay (see .overlay's own comment) - a lighter, richer
+   navy rather than the near-black it used to share with the backdrop, so
+   the lens itself reads as the lit, focused view rather than just a darker
+   patch of the same night sky. The glow ring picks up the same blue so the
+   light appears to originate from inside the lens, not painted onto its rim.
    The iris itself: closed, .lens sits scaled down and translated to
    --origin-x/-y (the clicked constellation's viewport position, set inline
    by ProjectLens) instead of its natural centered flex position; .open
@@ -47,17 +58,21 @@
   width: min(70vmin, 640px);
   height: min(70vmin, 640px);
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 42%, #0d1526 0%, #04070d 70%, #000 100%);
+  background: radial-gradient(
+    circle at 50% 40%,
+    #24365e 0%,
+    #182643 28%,
+    #101a30 55%,
+    #0a111f 80%,
+    #04070d 100%
+  );
   box-shadow:
-    0 0 0 3px rgba(210, 225, 255, 0.18),
+    0 0 0 3px rgba(210, 225, 255, 0.3),
     0 0 0 10px rgba(8, 12, 22, 0.95),
-    0 0 0 12px rgba(150, 180, 255, 0.15),
-    0 0 60px rgba(0, 0, 0, 0.85),
-    0 0 90px rgba(120, 160, 255, 0.12);
-  transform: translate(
-      calc(var(--origin-x, 50vw) - 50vw),
-      calc(var(--origin-y, 50vh) - 50vh)
-    )
+    0 0 0 12px rgba(150, 180, 255, 0.25),
+    0 0 60px rgba(0, 0, 0, 0.75),
+    0 0 110px rgba(130, 170, 255, 0.28);
+  transform: translate(calc(var(--origin-x, 50vw) - 50vw), calc(var(--origin-y, 50vh) - 50vh))
     scale(0.1);
   /* Deliberately NOT the more common easeOutExpo-ish (0.22,1,0.36,1) curve -
      that one front-loads ~58% of the visual motion into the first 16% of
