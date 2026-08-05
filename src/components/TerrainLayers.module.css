@@ -70,6 +70,7 @@
   z-index: 4;
   transform: translate(-50%, var(--ns-figure-y, 0px));
   will-change: transform;
+  opacity: 0.7;
 }
 
 .foreground {
