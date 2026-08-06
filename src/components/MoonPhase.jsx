@@ -13,8 +13,10 @@ import styles from './MoonPhase.module.css';
  * @param {number} phase - A value from 0 (New Moon) to 1.0 (Next New Moon). 0.5 is Full Moon.
  * @param {number|string} size - The width and height of the SVG.
  * @param {string} className - Optional extra class (e.g. positioning styles from a parent scene).
+ * @param {object} moonRef - Optional ref applied to the root <svg>, so a
+ * parent (Projects) can watch it with an IntersectionObserver.
  */
-export default function MoonPhase({ phase = 0.5, size = 150, className }) {
+export default function MoonPhase({ phase = 0.5, size = 150, className, moonRef }) {
   // Generate unique IDs for SVG filters to allow multiple moons on one page
   const id = useId();
   const noiseId = `${id}-noise`;
@@ -59,6 +61,7 @@ export default function MoonPhase({ phase = 0.5, size = 150, className }) {
 
   return (
     <svg
+      ref={moonRef}
       viewBox="-6 -6 12 12"
       className={`${styles.moon}${className ? ` ${className}` : ''}`}
       style={{ '--moon-size': typeof size === 'number' ? `${size}px` : size }}

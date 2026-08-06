@@ -10,6 +10,9 @@ function App() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasMinDurationPassed, setHasMinDurationPassed] = useState(false);
   const { introWrapperRef, orbitProgress } = useScrollJourney();
+  // Mirrors Projects' own Hint visibility, so ScrollIdleHint can yield its
+  // shared fixed slot for exactly as long as that one occupies it.
+  const [suppressIdleHint, setSuppressIdleHint] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setHasMinDurationPassed(true), 2500);
@@ -28,9 +31,15 @@ function App() {
         blurred={showLoader}
         onReady={handleIntroReady}
       />
-      <Projects />
+      <Projects onHintActiveChange={setSuppressIdleHint} />
       <ContactMe />
-      {!showLoader && <ScrollIdleHint />}
+      {/* `key` forces a remount (and so a fresh idle countdown) on every
+          suppress/unsuppress transition - otherwise leaving Projects'
+          hint range could reveal this immediately, using up idle time
+          that accrued while it was suppressed and invisible. */}
+      {!showLoader && (
+        <ScrollIdleHint key={String(suppressIdleHint)} suppressed={suppressIdleHint} />
+      )}
     </div>
   );
 }

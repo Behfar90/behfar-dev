@@ -1,12 +1,17 @@
 import { Mouse } from 'lucide-react';
 import useScrollIdle from '../hooks/useScrollIdle';
-import styles from './ScrollIdleHint.module.css';
+import Hint from './Hint';
 
 // App-wide nudge: appears anywhere in the page, regardless of which scene is
-// in view, once the user hasn't scrolled for a while.
-export default function ScrollIdleHint() {
+// in view, once the user hasn't scrolled for a while. `suppressed` lets a
+// scene override that - Projects sets it while its own Hint occupies this
+// same fixed slot, so the two never show at once.
+export default function ScrollIdleHint({ suppressed = false }) {
   const isIdle = useScrollIdle(3000);
-  const className = `${styles.hint}${isIdle ? ` ${styles['hint--visible']}` : ''}`;
 
-  return <Mouse className={className} size={26} strokeWidth={1.5} />;
+  return (
+    <Hint visible={isIdle && !suppressed}>
+      <Mouse size={26} strokeWidth={1.5} />
+    </Hint>
+  );
 }
