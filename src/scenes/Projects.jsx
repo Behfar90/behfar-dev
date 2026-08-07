@@ -1,3 +1,4 @@
+import { Telescope } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import BackgroundStars from '../components/BackgroundStars';
 import Constellations from '../components/Constellations';
@@ -46,7 +47,9 @@ export default function Projects({ onHintActiveChange = () => {} }) {
   useEffect(() => {
     const el = figureRef.current;
     if (!el) return undefined;
-    const observer = new IntersectionObserver(([entry]) => setFigureInViewport(entry.isIntersecting));
+    const observer = new IntersectionObserver(([entry]) =>
+      setFigureInViewport(entry.isIntersecting),
+    );
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
@@ -96,7 +99,10 @@ export default function Projects({ onHintActiveChange = () => {} }) {
         onClose={handleClose}
         returnFocusRef={triggerRef}
       />
-      <Hint visible={showHint}>Click a constellation to explore a project</Hint>
+      <Hint visible={showHint}>
+        <Telescope size={26} strokeWidth={1.5} />
+        Click a constellation to explore a project
+      </Hint>
     </div>
   );
 }
