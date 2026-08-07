@@ -101,7 +101,7 @@ export default function Projects({ onHintActiveChange = () => {} }) {
       />
       <Hint visible={showHint}>
         <Telescope size={26} strokeWidth={1.5} />
-        Click a constellation to explore a project
+        Explore the projects in the sky
       </Hint>
     </div>
   );
