@@ -1,0 +1,17 @@
+/* Scoped to Projects.jsx's .sticky. No z-index (same as BackgroundStars and
+   Constellations) so it stacks purely by DOM order - it's the first child of
+   .sticky, so it stays the backdrop behind the moon/constellations/terrain
+   rather than needing an explicit stacking rule to stay out of their way. */
+.container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
