@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import BackgroundStars from '../components/BackgroundStars';
 import Constellations from '../components/Constellations';
 import Hint from '../components/Hint';
+import MilkywayGalaxy from '../components/MilkywayGalaxy';
 import MoonPhase from '../components/MoonPhase';
 import ProjectLens from '../components/ProjectLens';
 import TerrainLayers from '../components/TerrainLayers';
@@ -88,6 +89,7 @@ export default function Projects({ onHintActiveChange = () => {} }) {
           reader user tabbing past the dialog shouldn't be able to reach the
           dimmed, inoperable scene behind it at all. */}
       <div className={styles.sticky} inert={openProjectId ? true : undefined}>
+        <MilkywayGalaxy />
         <BackgroundStars />
         <MoonPhase phase={0.6} size={150} className={styles.moon} moonRef={moonRef} />
         <Constellations onSelect={handleSelect} />
