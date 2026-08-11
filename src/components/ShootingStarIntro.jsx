@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useMemo,
   useState,
@@ -186,21 +187,33 @@ const TextReveal = forwardRef((_, ref) => {
     // Brightened version of the shooting-star particles' gold (shaders/particles.js)
     const subtitleColor = '#eeba7b';
     const isMobile = size.width < 768;
-    const isMin = size.width < 360;
-    const fontSize = isMin ? 28 : isMobile ? 36 : 50;
-    const subtitleFontSize = isMin ? 18 : isMobile ? 21 : 27;
     const letterSpacing = isMobile ? 0.1 : 0.18;
     const pixelRatio = window.devicePixelRatio;
 
-    const nameWidth =
-      (fontSize * text.length + fontSize * letterSpacing * (text.length - 1)) * pixelRatio;
+    // Cap both strings' rendered width to a share of the viewport so the
+    // wipe-reveal shader's uStartX (size.width/2 - planeWidth/2, see
+    // ShootingStarIntro below) never goes negative - a negative uStartX
+    // flips the sign of the reveal progress term and the text never shows.
+    const maxContentWidth = size.width * 0.9 * pixelRatio;
+    const maxFontSize = 50;
+    const maxSubtitleFontSize = 27;
+
+    const nameCharFactor = text.length + letterSpacing * (text.length - 1);
+    const fontSize = Math.min(maxFontSize, maxContentWidth / pixelRatio / nameCharFactor);
+    const nameWidth = fontSize * nameCharFactor * pixelRatio;
     const nameHeight = fontSize * 1.2 * pixelRatio;
-    const subtitleHeight = subtitleFontSize * 1.6 * pixelRatio;
 
     const canvas = document.createElement('canvas');
     // measureText only needs a context, not the final canvas size - resizing
     // the canvas below would otherwise wipe out any font set before it.
     const measureCtx = canvas.getContext('2d');
+    measureCtx.font = `${maxSubtitleFontSize * pixelRatio}px ${subtitleFontFamily}`;
+    const subtitleWidthAtMax = measureCtx.measureText(subtitle).width;
+    const subtitleFontSize = Math.min(
+      maxSubtitleFontSize,
+      (maxContentWidth / subtitleWidthAtMax) * maxSubtitleFontSize,
+    );
+    const subtitleHeight = subtitleFontSize * 1.6 * pixelRatio;
     measureCtx.font = `${subtitleFontSize * pixelRatio}px ${subtitleFontFamily}`;
     const subtitleWidth = measureCtx.measureText(subtitle).width;
 
@@ -271,10 +284,20 @@ const TextReveal = forwardRef((_, ref) => {
 let hasPlayed = false;
 
 const Scene = ({ orbitProgress = 0 }) => {
-  const { size } = useThree();
+  const { size, camera } = useThree();
   const starRef = useRef();
   const textRef = useRef();
   const wasAwayFromTopRef = useRef(false);
+
+  // The fov passed to <Canvas> is only applied once, at mount - it doesn't
+  // get recalculated by R3F on resize (only aspect does). Re-derive it from
+  // the live, resize-reactive `size` so the 1-world-unit = 1-css-pixel
+  // calibration this scene relies on survives window resizes and orientation
+  // changes, not just re-renders triggered by scroll.
+  useLayoutEffect(() => {
+    camera.fov = Math.atan(size.height / 2 / CAMERA_Z) * (180 / Math.PI) * 2;
+    camera.updateProjectionMatrix();
+  }, [camera, size.height]);
 
   const playSweep = useCallback(
     (revealText) => {
