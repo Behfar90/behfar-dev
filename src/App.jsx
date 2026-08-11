@@ -6,6 +6,11 @@ import ContactMe from "./scenes/ContactMe";
 import ScrollIdleHint from "./components/ScrollIdleHint";
 import useScrollJourney from "./hooks/useScrollJourney";
 
+// Small deliberate pause before the intro reveals itself, so it doesn't feel
+// like it's firing the instant the JS parses - short enough that it needs no
+// loading UI of its own.
+const MIN_INTRO_DELAY_MS = 250;
+
 function App() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasMinDurationPassed, setHasMinDurationPassed] = useState(false);
@@ -15,7 +20,7 @@ function App() {
   const [suppressIdleHint, setSuppressIdleHint] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setHasMinDurationPassed(true), 2500);
+    const timer = setTimeout(() => setHasMinDurationPassed(true), MIN_INTRO_DELAY_MS);
     return () => clearTimeout(timer);
   }, []);
 
@@ -24,7 +29,6 @@ function App() {
 
   return (
     <div className={styles.app}>
-      {showLoader && <div className={styles.loadingBar} />}
       <Intro
         wrapperRef={introWrapperRef}
         orbitProgress={orbitProgress}

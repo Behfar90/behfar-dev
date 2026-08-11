@@ -12,13 +12,3 @@ body {
 .app {
   position: relative;
 }
-
-.loadingBar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 3px;
-  background: #ff6030;
-  z-index: 200;
-  pointer-events: none;
-}
