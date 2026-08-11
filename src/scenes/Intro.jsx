@@ -131,7 +131,7 @@ export default function Intro({ wrapperRef, blurred, orbitProgress = 0, onReady 
             {ORBIT_CAPTIONS.map((text, i) => (
               <span
                 key={text}
-                className={`${styles.captionText}${i === captionIndex ? ` ${styles['captionText--visible']}` : ''}`}
+                className={`${styles.captionText}${orbitProgress > 0 && i === captionIndex ? ` ${styles['captionText--visible']}` : ''}`}
               >
                 {text}
               </span>
