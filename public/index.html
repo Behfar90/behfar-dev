@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <!-- Every load of this site is meant to play like a fresh intro (shooting
+         star + name reveal), so the browser's native scroll-position
+         restoration on reload is turned off in favor of always starting at
+         the top. Runs as early as possible, before the browser's own
+         restoration logic. -->
+    <script>
+      if ("scrollRestoration" in window.history) {
+        window.history.scrollRestoration = "manual";
+      }
+      window.scrollTo(0, 0);
+    </script>
     <!-- Google tag (gtag.js) -->
     <script
       async
