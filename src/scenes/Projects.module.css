@@ -31,9 +31,10 @@
 /* Top middle, leaning right - `left` is the moon's horizontal center (paired
    with the translateX(-50%) below), placed left of where Ursa Minor sits in
    Constellations' sky (that shape lives roughly in the 68-77% band there) so
-   the two don't overlap. Plain percentages are fine here (unlike .figure
-   above) since the moon doesn't need to align with anything on the
-   cover-scaled terrain - it just needs to sit somewhere in the empty sky. */
+   the two don't overlap. Plain percentages of the real viewport are fine
+   here - the moon doesn't need to align with anything on the terrain, it
+   just needs to sit somewhere in the empty sky, spread across whatever the
+   real viewport actually is so it's never cropped off an edge. */
 .moon {
   position: absolute;
   top: 8%;

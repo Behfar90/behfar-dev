@@ -1,11 +1,14 @@
-/* Full-bleed terrain layers - each SVG's own viewBox + preserveAspectRatio
-   ("xMidYMax slice") handles the cover/crop-from-top behavior; here we only
-   ever animate `transform`, never top/height/margin. Height is a static
-   value taller than the container (never animated) so the parallax phase's
-   upward drift (up to 21.1vh, see DRIFT_VH.fore in useProjectsSceneAnimation)
-   has room to consume without exposing the layer's own bottom edge.
-   Expressed in vh (not a fixed px) so the buffer scales with viewport
-   height the same way the drift it's covering for does.
+/* Full-bleed terrain layers, sized against the real viewport (via .sticky,
+   Projects.module.css) - each SVG's own viewBox + preserveAspectRatio
+   ("xMidYMax slice", or "xMaxYMax slice" for the ridge layer - see
+   terrain-1-ridge.svg) handles the cover/crop-from-top behavior, scaling up
+   or down with the screen natively; here we only ever animate `transform`,
+   never top/height/margin. Height is a static value taller than the
+   container (never animated) so the parallax phase's upward drift (up to
+   21.1vh, see DRIFT_VH.fore in useProjectsSceneAnimation) has room to
+   consume without exposing the layer's own bottom edge. Expressed in vh
+   (not a fixed px) so the buffer scales with viewport height the same way
+   the drift it's covering for does.
 
    `pointer-events: none` because these are plain <img> layers stacked
    above the Constellations SVG (further back, z-index-wise, but earlier in
@@ -38,34 +41,26 @@
 }
 
 /* Sits between mid and foreground so foreground grass passes in front of it.
-   `bottom`/`left` are static resting anchors (never animated) tuned to align
-   with the mid layer's ground line; all motion happens via `transform`.
+   `bottom`/`left` are static resting anchors (never animated) - plain
+   percentages of the real viewport (via .sticky), same as the moon/
+   constellations, rather than tied to any specific point in the terrain
+   artwork; all motion happens via `transform`.
 
-   `left` is a calc(), not a plain percentage, because the terrain SVGs
-   cover-scale ("xMidYMax slice") to fill the viewport: they scale up by
-   whichever of width or height needs it more, then crop-center the rest.
-   For any viewport shape short/wide enough to still be height-bound (true
-   for every realistic browser window - it only flips for a sliver-thin
-   window under ~0.41 width/height), that works out to
-     scale = 1.22 * 100vh / 800
-   (1.22 because .layer's own height is 100% + 22vh; 800 is the terrain
-   SVGs' viewBox height). A plain `left: X%` has no idea this scale-and-crop
-   is happening, so it drifts off whatever spot on the terrain it was tuned
-   against as soon as the aspect ratio changes - on one 34" ultrawide window
-   only ~20% of the figure remained visible even though the same value
-   looked fine on a laptop screen. This calc() instead solves for the
-   screen-space x of a *fixed point on the terrain's own viewBox* (x=700,
-   found by testing leftward until the figure started clipping on a 320px-
-   wide phone) at any viewport size:
-     screen_x = scale * (700 - 800) + 50vw = 50vw - 15.25vh
-   so the figure stays anchored to the same patch of ground regardless of
-   window shape, while still being a plain positioned element (not embedded
-   in the SVG) so it can take pointer/hover interaction. */
+   `width` is scaled by `--ground-scale` (see useProjectsSceneAnimation's
+   computeGroundScale) - the same cover-style factor the terrain layers
+   themselves scale by (via their own SVG preserveAspectRatio "slice"), so
+   the figure grows/shrinks in proportion with the ground it's standing on
+   instead of drifting out of proportion with it. Deliberately *not*
+   `--scene-scale` (the moon/constellations' factor) - that one's tuned to
+   never let sky elements outgrow the viewport, which is the wrong goal
+   here and would size the figure against a different formula than its
+   surroundings. */
 .figure {
   position: absolute;
   bottom: 2%;
-  left: calc(30vw - 15.25vh);
-  width: min(40%, 340px);
+  left: 25%;
+  width: calc(300px * var(--ground-scale, 1));
+  max-width: 480px;
   height: auto;
   z-index: 4;
   transform: translate(-50%, var(--ns-figure-y, 0px));
@@ -76,18 +71,4 @@
 .foreground {
   z-index: 5;
   transform: translateY(var(--ns-fore-y, 0px));
-}
-
-/* `bottom` scales off the container's height while `.figure`'s own size
-   scales off its width - on a narrow/tall phone viewport those diverge
-   enough that the desktop-tuned `bottom` pushes the (now much smaller)
-   figure below .sticky's overflow:hidden edge. Re-tuned here instead of
-   trying to make one value work at every aspect ratio; `left` doesn't need
-   a mobile override since the calc() above already accounts for aspect
-   ratio generally. */
-@media (max-width: 700px) {
-  .figure {
-    bottom: 4%;
-    width: min(55%, 220px);
-  }
 }

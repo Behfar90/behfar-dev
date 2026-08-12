@@ -5,16 +5,26 @@
    custom property. `overflow: visible` because the label sits outside the
    nominal star bounding box.
    Width/height are `--c-width`/`--c-height` (the data file's per-instance
-   px size) scaled by `--sky-scale` - a continuous 0.55-1 factor kept
-   updated on resize by useProjectsSceneAnimation, shrinking every
-   constellation together on any viewport short or narrow enough that the
-   fixed reference sizes would start crowding/overlapping/clipping (a 13"
-   laptop's shallower height, a phone's narrow width) rather than relying on
-   one enumerated breakpoint that can miss shapes in between. */
+   px size) scaled by `--scene-scale` - a continuous factor (floored at
+   MIN_SCENE_SCALE, see useProjectsSceneAnimation's computeSceneScale)
+   shared with the moon (MoonPhase.module.css) and the figure
+   (TerrainLayers.module.css's .figure), shrinking/growing every one of them
+   together on any viewport short or narrow enough that the fixed reference
+   sizes would start feeling disproportionate (a 13" laptop's shallower
+   height, a phone's narrow width) - a single shared factor instead of each
+   element scaling independently and drifting out of proportion with the
+   others. Constellations are positioned by plain percentage of the real
+   viewport (not a fixed-size canvas), so they're always spread across the
+   full visible sky and never cropped off an edge. */
 .constellationRoot {
   position: absolute;
-  width: calc(var(--c-width) * var(--sky-scale, 1));
-  height: calc(var(--c-height) * var(--sky-scale, 1));
+  /* Above .moon's z-index (Projects.module.css) - constellations are the
+     interactive elements here, so even if positions are ever retuned close
+     enough to overlap, the moon (purely decorative) should never be able
+     to block one. */
+  z-index: 2;
+  width: calc(var(--c-width) * var(--scene-scale, 1));
+  height: calc(var(--c-height) * var(--scene-scale, 1));
   will-change: transform;
   overflow: visible;
 }

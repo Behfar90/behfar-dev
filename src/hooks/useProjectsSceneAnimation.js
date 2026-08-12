@@ -43,13 +43,8 @@ const START_OFFSET_VH = {
   fore: 110,
 };
 
-// Parallax drift (vh) once assembly completes - slowest to fastest,
-// figure matched to mid so it stays planted on it. Upward (negative).
-// In vh (not fixed px) so it scales with viewport height the same way
-// START_OFFSET_VH/RESTING_SHIFT_VH do - a fixed-px drift gets dwarfed by
-// RESTING_SHIFT_VH on tall viewports (e.g. ultrawide monitors), leaving
-// the figure shifted far enough down to be clipped by .sticky's
-// overflow:hidden.
+// Parallax drift (vh) once assembly completes - slowest to fastest, figure
+// matched to mid so it stays planted on it. Upward (negative).
 const DRIFT_VH = {
   cassiopeia: 1.5,
   'ursa-minor': 1.8,
@@ -65,15 +60,15 @@ const DRIFT_VH = {
 };
 
 // Shifts the terrain down by this many vh once settled, leaving more black
-// sky at the top of the viewport - originally shared by every layer
-// (figure included) so the whole terrain moves as one block, but the sky
-// elements need 0 here: they're not part of that block, they're what the
-// shift is making room *for*. Giving them the same 14vh pushed each one
-// down by ~12vh net (14 minus their own small DRIFT_VH) for the entire
-// stretch of scroll between finishing assembly and parallax drift kicking
-// in past overall progress 0.4 - long enough to land Orion/Cassiopeia
-// behind the terrain's horizon on real scroll positions, not just a
-// theoretical edge case.
+// sky at the top of the viewport - originally shared by every layer (figure
+// included) so the whole terrain moves as one block, but the sky elements
+// need 0 here: they're not part of that block, they're what the shift is
+// making room *for*. Giving them the same 14vh pushed each one down by
+// ~12vh net (14 minus their own small DRIFT_VH) for the entire stretch of
+// scroll between finishing assembly and parallax drift kicking in past
+// overall progress 0.4 - long enough to land Orion/Cassiopeia behind the
+// terrain's horizon on real scroll positions, not just a theoretical edge
+// case.
 const RESTING_SHIFT_VH = {
   cassiopeia: 0,
   'ursa-minor': 0,
@@ -105,27 +100,58 @@ const LAYER_NAMES = [
 const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
 const cubicOut = (t) => 1 - (1 - t) ** 3;
 
-// Constellation/moon sizes (Constellations.jsx's `size`, MoonPhase's `size`
-// prop) are fixed CSS px, chosen against a ~1512x900 reference viewport.
-// On a shorter or narrower one (a 13" laptop's shallower height, a phone's
-// narrow width) those fixed sizes eat a bigger share of the sky and start
-// crowding/overlapping/clipping. `--sky-scale` shrinks them continuously
-// with whichever dimension is more constrained, rather than relying on
-// enumerated breakpoints that can miss viewport combinations in between.
-const SKY_SCALE_REFERENCE_WIDTH = 1512;
-const SKY_SCALE_REFERENCE_HEIGHT = 900;
-const MIN_SKY_SCALE = 0.55;
+// Moon and constellations (Constellations.jsx's `size`) are fixed CSS px,
+// chosen against a ~1512x900 reference viewport. On a shorter or narrower
+// one (a 13" laptop's shallower height, a phone's narrow width) those fixed
+// sizes eat a bigger share of the screen and start crowding/overlapping.
+// `--scene-scale` shrinks/grows both together, continuously, with whichever
+// dimension is *less* constrained (Math.min - "contain" behavior), rather
+// than relying on enumerated breakpoints that can miss viewport
+// combinations in between. Contain, not cover, because these are
+// individually-interactive elements that must never get cropped off an
+// edge - see Constellations.module.css.
+//
+// Floored at MIN_SCENE_SCALE rather than left uncapped: the tightest pair
+// (Cassiopeia vs. the moon - every other pair clears at a noticeably larger
+// scale) stays fully collision-free down to a scale of ~0.43 at 360px wide
+// (a realistic modern-phone floor) and ~0.38 at 320px (last-gen/small
+// phones) - 0.4 sits between those, trading a handful of px of soft,
+// low-opacity overlap on the narrowest real devices (~5px at 320px wide,
+// well under the star glow/hit-area padding, not visually noticeable) for
+// meaningfully bigger, more legible constellations on every phone above
+// ~335px. An earlier version floored this at 0.55, which was too high and
+// caused real crowding/overlap on narrow phones - the floor itself isn't
+// the problem, too-high a floor was.
+const SCENE_SCALE_REFERENCE_WIDTH = 1512;
+const SCENE_SCALE_REFERENCE_HEIGHT = 900;
+const MIN_SCENE_SCALE = 0.55;
 
-const computeSkyScale = () =>
-  Math.min(
-    1,
-    Math.max(
-      MIN_SKY_SCALE,
-      Math.min(
-        window.innerWidth / SKY_SCALE_REFERENCE_WIDTH,
-        window.innerHeight / SKY_SCALE_REFERENCE_HEIGHT,
-      ),
+const computeSceneScale = () =>
+  Math.max(
+    MIN_SCENE_SCALE,
+    Math.min(
+      window.innerWidth / SCENE_SCALE_REFERENCE_WIDTH,
+      window.innerHeight / SCENE_SCALE_REFERENCE_HEIGHT,
     ),
+  );
+
+// The figure (TerrainLayers.module.css's .figure) is also a fixed reference
+// px size, but unlike the moon/constellations it needs to track the
+// *terrain's* own zoom level, not the sky's - it's meant to look
+// proportionate standing next to the mountains/trees around it, and the
+// terrain layers scale by whichever dimension is *more* constrained
+// (Math.max - "cover" behavior, filling the viewport edge-to-edge with no
+// gaps, via each SVG's own preserveAspectRatio "slice"). Using
+// --scene-scale (contain-based) here instead would size the figure against
+// a completely different formula than its surroundings, so it'd drift out
+// of proportion with the terrain depending on aspect ratio - the same
+// category of bug fixed elsewhere in this scene, just for size instead of
+// position. Not floored: the terrain itself never stops shrinking either,
+// so flooring just this one element would be the same mismatch again.
+const computeGroundScale = () =>
+  Math.max(
+    window.innerWidth / SCENE_SCALE_REFERENCE_WIDTH,
+    window.innerHeight / SCENE_SCALE_REFERENCE_HEIGHT,
   );
 
 // Drives the Projects scene's scroll-triggered layer assembly: every layer
@@ -152,11 +178,12 @@ export default function useProjectsSceneAnimation() {
     // Independent of the scroll-driven rAF loop below (and of the
     // prefers-reduced-motion branch, which returns before ever reaching
     // that loop) since it only needs to react to resize, not scroll.
-    const applySkyScale = () => {
-      root.style.setProperty('--sky-scale', computeSkyScale());
+    const applySceneScale = () => {
+      root.style.setProperty('--scene-scale', computeSceneScale());
+      root.style.setProperty('--ground-scale', computeGroundScale());
     };
-    applySkyScale();
-    window.addEventListener('resize', applySkyScale, { passive: true });
+    applySceneScale();
+    window.addEventListener('resize', applySceneScale, { passive: true });
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       applyLayerPositions({
@@ -172,7 +199,7 @@ export default function useProjectsSceneAnimation() {
         figure: 0,
         fore: 0,
       });
-      return () => window.removeEventListener('resize', applySkyScale);
+      return () => window.removeEventListener('resize', applySceneScale);
     }
 
     // Scroll listener only stores the raw value - every read (bounding
@@ -210,7 +237,7 @@ export default function useProjectsSceneAnimation() {
     animFrame = window.requestAnimationFrame(tick);
 
     return () => {
-      window.removeEventListener('resize', applySkyScale);
+      window.removeEventListener('resize', applySceneScale);
       window.removeEventListener('scroll', handleScroll);
       cancelAnimationFrame(animFrame);
     };
