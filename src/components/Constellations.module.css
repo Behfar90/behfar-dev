@@ -131,7 +131,15 @@
   filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.6));
 }
 
-.constellation:hover .star {
+/* .revealed is the non-hover trigger for the same "shown" star glow - used
+   by ConstellationGlyph when rendered statically (e.g. inside ProjectLens,
+   which also passes showLines={false} - lines are never rendered there at
+   all, so there's no equivalent .revealed .line rule to pair with this).
+   It's applied to the same element .tilt would be (see
+   ConstellationGlyph.jsx), i.e. an ancestor of .star, so the descendant
+   selector below matches it exactly like :hover does. */
+.constellation:hover .star,
+.revealed .star {
   filter: drop-shadow(0 0 3px rgba(255, 255, 255, 1)) drop-shadow(0 0 9px rgba(150, 180, 255, 0.9));
 }
 

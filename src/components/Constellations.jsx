@@ -1,5 +1,4 @@
-import { useMemo } from 'react';
-import { randomTwinkleTiming } from '../utils/components/twinkle';
+import ConstellationGlyph from './ConstellationGlyph';
 import { CONSTELLATIONS } from '../utils/scenes/constellations';
 import styles from './Constellations.module.css';
 
@@ -10,17 +9,6 @@ import styles from './Constellations.module.css';
 // (which needs to know regardless of which constellation triggered it, to
 // dim the whole scene, not just this one).
 export default function Constellations({ onSelect }) {
-  // Per-star twinkle timing, same idea as BackgroundStars' randomized
-  // delay/duration - computed once (not inline per render) so hovering one
-  // constellation doesn't re-roll and visibly reset every star's animation.
-  const twinkleTimings = useMemo(
-    () =>
-      CONSTELLATIONS.map((c) =>
-        c.stars.map(() => randomTwinkleTiming({ delayMax: 5, durationMin: 3, durationRange: 3 })),
-      ),
-    [],
-  );
-
   // Origin point (viewport coords, from the focused/clicked <g> itself -
   // works the same for a mouse click and a keyboard Enter/Space) for
   // ProjectLens's iris animation: it grows from wherever this constellation
@@ -42,7 +30,7 @@ export default function Constellations({ onSelect }) {
 
   return (
     <>
-      {CONSTELLATIONS.map((c, ci) => {
+      {CONSTELLATIONS.map((c) => {
         // Padded bounding box around the stars, rendered as an invisible hit
         // area - without it, hover/click only fires directly over a 3px-radius
         // star or a hairline-thin connecting line, which is unusably fiddly.
@@ -83,7 +71,9 @@ export default function Constellations({ onSelect }) {
                   tilts. See .tilt's `transform-box: view-box` in the CSS
                   module for how it rotates around the viewBox center
                   despite the mythIllustration image extending well beyond
-                  the viewBox's own bounds. */}
+                  the viewBox's own bounds. ConstellationGlyph applies this
+                  same tilt to its own lines/stars independently, since it
+                  isn't nested inside this group. */}
               <g className={c.rotation ? styles.tilt : undefined}>
                 <rect
                   x={hitBox.x}
@@ -102,30 +92,8 @@ export default function Constellations({ onSelect }) {
                     className={styles.mythImage}
                   />
                 )}
-                {c.lines.map(([a, b], i) => (
-                  <line
-                    key={i}
-                    x1={c.stars[a].x}
-                    y1={c.stars[a].y}
-                    x2={c.stars[b].x}
-                    y2={c.stars[b].y}
-                    className={styles.line}
-                  />
-                ))}
-                {c.stars.map((star, i) => {
-                  const { delay, duration } = twinkleTimings[ci][i];
-                  return (
-                    <circle
-                      key={i}
-                      cx={star.x}
-                      cy={star.y}
-                      r={2}
-                      className={styles.star}
-                      style={{ animationDelay: `${delay}s`, animationDuration: `${duration}s` }}
-                    />
-                  );
-                })}
               </g>
+              <ConstellationGlyph constellation={c} />
               <text
                 x={c.labelAnchor.x}
                 y={c.labelAnchor.y}
