@@ -1,6 +1,28 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { CircleX } from 'lucide-react';
+import ConstellationGlyph from './ConstellationGlyph';
+import { CONSTELLATIONS } from '../utils/scenes/constellations';
 import styles from './ProjectLens.module.css';
+
+// A constellation's authored viewBox (constellations.js) is sized to fit
+// its label too, which ProjectLens doesn't render (see ConstellationGlyph's
+// showLines={false} usage below) - reusing that viewBox here would center
+// the *label's* empty space, not the stars, leaving the star pattern
+// visibly off-center in the lens. This computes a tight box around just the
+// star positions instead, padded by 18% of their own span on each side.
+const starsViewBox = (stars) => {
+  const xs = stars.map((s) => s.x);
+  const ys = stars.map((s) => s.y);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const width = maxX - minX;
+  const height = maxY - minY;
+  const padX = width * 0.18;
+  const padY = height * 0.18;
+  return `${minX - padX} ${minY - padY} ${width + padX * 2} ${height + padY * 2}`;
+};
 
 // `project` is the source of truth for *which* project is open (or null for
 // closed), owned by Projects.jsx. `displayedProject` mirrors it but doesn't
@@ -106,6 +128,11 @@ export default function ProjectLens({ project, origin, onClose, returnFocusRef }
 
   if (!displayedProject) return null;
 
+  // Projects and constellations share the same `id` (see projects.js) - the
+  // join between "which constellation was clicked" and "which project this
+  // is" is the id itself, so no extra id needs to be threaded through props.
+  const constellation = CONSTELLATIONS.find((c) => c.id === displayedProject.id);
+
   return (
     <div
       className={`${styles.overlay}${isOpen ? ` ${styles.open}` : ''}`}
@@ -134,6 +161,16 @@ export default function ProjectLens({ project, origin, onClose, returnFocusRef }
           <line x1="86" y1="50" x2="96" y2="50" />
           <circle cx="50" cy="50" r="47" />
         </svg>
+
+        {constellation && (
+          <svg
+            className={styles.constellationBackdrop}
+            viewBox={starsViewBox(constellation.stars)}
+            aria-hidden="true"
+          >
+            <ConstellationGlyph constellation={constellation} revealed showLines={false} />
+          </svg>
+        )}
 
         <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close">
           <CircleX size={22} strokeWidth={1.5} />

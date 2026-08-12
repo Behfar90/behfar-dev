@@ -105,6 +105,22 @@
   stroke: rgba(200, 220, 255, 0.16);
 }
 
+/* The clicked constellation's own star pattern (ConstellationGlyph, shared
+   with Constellations.jsx - see that component), rendered as a static
+   background layer behind .content. `revealed` (passed to the glyph) forces
+   its normally hover-only lines/stars into their "shown" state, since
+   there's no hover here. Padded well inside the circle (unlike .reticle,
+   which goes edge to edge) so the shape doesn't compete with the frame's
+   own ring, and dimmed so .content's text stays the clear focal point. */
+.constellationBackdrop {
+  position: absolute;
+  inset: 14%;
+  width: 72%;
+  height: 72%;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .closeButton {
   position: absolute;
   top: -6px;
