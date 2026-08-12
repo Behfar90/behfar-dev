@@ -83,7 +83,7 @@ export const CONSTELLATIONS = [
     id: 'ursa-major',
     name: 'Ursa Major',
     viewBox: '0 0 220 175',
-    position: { top: '49%', left: '63%' },
+    position: { top: '47%', left: '68%' },
     size: { width: 275, height: 219 },
     // Same Big Dipper schematic form as before (Dubhe/Merak/Phecda/Megrez
     // bowl, Alioth/Mizar/Alkaid handle - the ones actually used in most
@@ -119,7 +119,7 @@ export const CONSTELLATIONS = [
     id: 'orion',
     name: 'Orion',
     viewBox: '0 0 130 210',
-    position: { top: '38%', left: '24%' },
+    position: { top: '36%', left: '20%' },
     size: { width: 150, height: 242 },
     // A bit of tilt for dynamism, matching the lunging pose already baked
     // into the artwork - just a flag; the actual rotation is a CSS class
