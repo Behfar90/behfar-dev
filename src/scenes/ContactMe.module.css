@@ -143,6 +143,48 @@
   color: #eeba7b;
 }
 
+/* Positioning context for .copiedLabel - only the email button needs one,
+   so this wraps just that rail item rather than every .railLink. */
+.railItem {
+  position: relative;
+  display: inline-flex;
+}
+
+/* The old text-link version of this button showed "Copied!" inline; once
+   the rail went icon-only that visible confirmation disappeared (only
+   title/aria-label remained, which sighted mouse/touch users won't see).
+   This restores it as a small floating label instead of adding a
+   permanently-visible text row that would break the rail's icon-only
+   rhythm. */
+.copiedLabel {
+  position: absolute;
+  right: calc(100% + 0.75rem);
+  top: 50%;
+  transform: translateY(-50%) translateX(4px);
+  margin: 0;
+  white-space: nowrap;
+  color: #eeba7b;
+  font-family:
+    'Audiowide',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    'Roboto',
+    sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.copiedLabel--visible {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
 @media (max-width: 700px) {
   /* No room for a side rail on a narrow screen - drops to a horizontal row
      anchored near the bottom of the scene instead of clinging to a
@@ -156,5 +198,20 @@
     top: auto;
     transform: translateX(-50%);
     flex-direction: row;
+  }
+
+  /* Left-of-icon placement only works in a vertical rail with open space
+     to the left - in the horizontal row it'd get clipped by the screen
+     edge or overlap the GitHub/LinkedIn icons, so flip it above instead. */
+  .copiedLabel {
+    right: auto;
+    left: 50%;
+    top: auto;
+    bottom: calc(100% + 0.5rem);
+    transform: translateX(-50%) translateY(4px);
+  }
+
+  .copiedLabel--visible {
+    transform: translateX(-50%) translateY(0);
   }
 }

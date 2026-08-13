@@ -50,15 +50,23 @@ export default function ContactMe() {
           space), title/aria-label carry the same info a visible label
           would. */}
       <div className={styles.socialRail}>
-        <button
-          type="button"
-          className={`${styles.railLink}${copied ? ` ${styles.copied}` : ''}`}
-          onClick={handleCopyEmail}
-          title={EMAIL}
-          aria-label={copied ? 'Email address copied' : `Copy email address ${EMAIL}`}
-        >
-          <Mail size={20} strokeWidth={1.5} />
-        </button>
+        <div className={styles.railItem}>
+          <button
+            type="button"
+            className={`${styles.railLink}${copied ? ` ${styles.copied}` : ''}`}
+            onClick={handleCopyEmail}
+            title={EMAIL}
+            aria-label={copied ? 'Email address copied' : `Copy email address ${EMAIL}`}
+          >
+            <Mail size={20} strokeWidth={1.5} />
+          </button>
+          <span
+            className={`${styles.copiedLabel}${copied ? ` ${styles['copiedLabel--visible']}` : ''}`}
+            aria-hidden="true"
+          >
+            Copied!
+          </span>
+        </div>
         <a
           className={styles.railLink}
           href="https://github.com/behfar90"
