@@ -1,10 +1,10 @@
-import styles from "./App.module.css";
-import { useCallback, useEffect, useState } from "react";
-import Intro from "./scenes/Intro";
-import Projects from "./scenes/Projects";
-import ContactMe from "./scenes/ContactMe";
-import ScrollIdleHint from "./components/ScrollIdleHint";
-import useScrollJourney from "./hooks/useScrollJourney";
+import styles from './App.module.css';
+import { useCallback, useEffect, useState } from 'react';
+import Intro from './scenes/Intro';
+import Projects from './scenes/Projects';
+import ContactMe from './scenes/ContactMe';
+import ScrollIdleHint from './components/ScrollIdleHint';
+import useScrollJourney from './hooks/useScrollJourney';
 
 // Small deliberate pause before the intro reveals itself, so it doesn't feel
 // like it's firing the instant the JS parses - short enough that it needs no
