@@ -1,0 +1,28 @@
+.cue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.line {
+  width: 2px;
+  height: 10px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0;
+  transition:
+    opacity 0.3s ease,
+    height 0.3s ease;
+}
+
+.line--visible {
+  opacity: 1;
+}
+
+/* Shorter when both lines are showing at once, so the pair reads as two
+   distinct marks flanking the icon rather than one bar that happens to have
+   a mouse in the middle. */
+.line--short {
+  height: 6px;
+}
