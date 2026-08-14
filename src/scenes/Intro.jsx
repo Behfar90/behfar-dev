@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { createStars, updateStars } from '../utils/scenes/stars';
 import { createGalaxies } from '../utils/scenes/galaxies';
 import ShootingStarIntro from '../components/ShootingStarIntro';
+import CaptionGravity from '../components/CaptionGravity';
 import styles from './Intro.module.css';
 
 // orbitProgress (0 to 1, from useScrollJourney) maps directly to camera
@@ -114,10 +115,6 @@ export default function Intro({ wrapperRef, blurred, orbitProgress = 0, onReady 
   }, []);
 
   const stickyClass = `${styles.sticky}${blurred ? ` ${styles['sticky--blurred']}` : ''}`;
-  const captionIndex = Math.min(
-    ORBIT_CAPTIONS.length - 1,
-    Math.floor(orbitProgress * ORBIT_CAPTIONS.length),
-  );
 
   return (
     <div ref={wrapperRef} className={styles.orbitWrapper}>
@@ -126,18 +123,7 @@ export default function Intro({ wrapperRef, blurred, orbitProgress = 0, onReady 
 
         {!blurred && <ShootingStarIntro orbitProgress={orbitProgress} />}
 
-        {!blurred && (
-          <div className={styles.caption}>
-            {ORBIT_CAPTIONS.map((text, i) => (
-              <span
-                key={text}
-                className={`${styles.captionText}${orbitProgress > 0 && i === captionIndex ? ` ${styles['captionText--visible']}` : ''}`}
-              >
-                {text}
-              </span>
-            ))}
-          </div>
-        )}
+        {!blurred && <CaptionGravity orbitProgress={orbitProgress} captions={ORBIT_CAPTIONS} />}
       </div>
     </div>
   );
