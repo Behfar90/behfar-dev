@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { createStars, updateStars } from '../utils/scenes/stars';
 import { createGalaxies } from '../utils/scenes/galaxies';
+import { createNebulas, updateNebulas } from '../utils/scenes/nebulas';
 import ShootingStarIntro from '../components/ShootingStarIntro';
 import CaptionGravity from '../components/CaptionGravity';
 import styles from './Intro.module.css';
@@ -46,6 +47,7 @@ export default function Intro({ wrapperRef, blurred, orbitProgress = 0, onReady 
 
     const stars = createStars(scene);
     createGalaxies(scene);
+    const nebulas = createNebulas(scene);
 
     const sizes = { width: window.innerWidth, height: window.innerHeight };
 
@@ -89,6 +91,7 @@ export default function Intro({ wrapperRef, blurred, orbitProgress = 0, onReady 
       timer.update(timestamp);
       const elapsedTime = timer.getElapsed();
       updateStars(stars, elapsedTime);
+      updateNebulas(nebulas, elapsedTime);
 
       const targetTheta = baseTheta + orbitProgressRef.current * FULL_SPIN;
       theta += (targetTheta - theta) * ORBIT_EASE;
