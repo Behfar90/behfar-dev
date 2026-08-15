@@ -112,12 +112,14 @@ class MwStarCluster {
       for (let i = 1; i < starsPerLayer; i++) {
         const posX = this.x + 2 * layerRadius * (Math.random() - 0.5);
         const posY =
-          this.y +
-          2 * Math.sqrt(layerRadius ** 2 - (this.x - posX) ** 2) * (Math.random() - 0.5);
+          this.y + 2 * Math.sqrt(layerRadius ** 2 - (this.x - posX) ** 2) * (Math.random() - 0.5);
         const size = 0.05 + Math.random() * 0.15;
         const alpha = 0.3 + Math.random() * 0.4;
         const whitePercentage =
-          this.baseWhiteProportion + 8 + 8 * this.brightnessModifier + Math.floor(Math.random() * 10);
+          this.baseWhiteProportion +
+          8 +
+          8 * this.brightnessModifier +
+          Math.floor(Math.random() * 10);
         ctx.beginPath();
         ctx.arc(posX, posY, size, 0, Math.PI * 2, false);
         ctx.fillStyle = `hsla(${this.hue},100%,${whitePercentage}%,${alpha})`;
@@ -171,7 +173,9 @@ export default function MilkywayGalaxy() {
       if (mode === 'star') {
         return (
           Math.floor(
-            Math.random() ** 1.2 * height * (Math.random() - 0.5) + height / 2 + (Math.random() - 0.5) * 100,
+            Math.random() ** 1.2 * height * (Math.random() - 0.5) +
+              height / 2 +
+              (Math.random() - 0.5) * 100,
           ) + offset
         );
       }
@@ -194,7 +198,10 @@ export default function MilkywayGalaxy() {
       for (let i = 0; i < mwStarCount; i++) {
         mwCtx.beginPath();
         const xPos = milkyWayX();
-        const yPos = Math.random() < mwRandomStarProp ? Math.floor(Math.random() * height) : milkyWayYFromX(xPos, 'star');
+        const yPos =
+          Math.random() < mwRandomStarProp
+            ? Math.floor(Math.random() * height)
+            : milkyWayYFromX(xPos, 'star');
         mwCtx.arc(xPos, yPos, Math.random() * 0.27, 0, Math.PI * 2, false);
         mwCtx.fillStyle = `hsla(0,100%,100%,${0.4 + Math.random() * 0.6})`;
         mwCtx.fill();
@@ -203,9 +210,11 @@ export default function MilkywayGalaxy() {
         const xPos = milkyWayX();
         const yPos = milkyWayYFromX(xPos, 'cluster');
         const distToCenter =
-          (1 - Math.abs(xPos - width / 2) / (width / 2)) * (1 - Math.abs(yPos - height / 2) / (height / 2));
+          (1 - Math.abs(xPos - width / 2) / (width / 2)) *
+          (1 - Math.abs(yPos - height / 2) / (height / 2));
         const size = mwClusterSize + Math.random() * mwClusterSizeR;
-        const hue = mwHueMin + Math.floor((Math.random() * 0.5 + distToCenter * 0.5) * (mwHueMax - mwHueMin));
+        const hue =
+          mwHueMin + Math.floor((Math.random() * 0.5 + distToCenter * 0.5) * (mwHueMax - mwHueMin));
         new MwStarCluster(
           xPos,
           yPos,
@@ -221,7 +230,8 @@ export default function MilkywayGalaxy() {
     let lastTime = null;
     let nextShootingStarAt = null;
     const randomShootingStarGap = () =>
-      SHOOTING_STAR_MIN_GAP_MS + Math.random() * (SHOOTING_STAR_MAX_GAP_MS - SHOOTING_STAR_MIN_GAP_MS);
+      SHOOTING_STAR_MIN_GAP_MS +
+      Math.random() * (SHOOTING_STAR_MAX_GAP_MS - SHOOTING_STAR_MIN_GAP_MS);
 
     const animate = (time) => {
       // Clamped so a tab that was backgrounded (and so missed a stretch of

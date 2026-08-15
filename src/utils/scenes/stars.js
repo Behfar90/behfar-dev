@@ -1,16 +1,16 @@
-import * as THREE from "three";
+import * as THREE from 'three';
 
 function makeGlowTexture() {
-  const canvas = document.createElement("canvas");
+  const canvas = document.createElement('canvas');
   canvas.width = 32;
   canvas.height = 32;
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext('2d');
   const g = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
-  g.addColorStop(0, "rgba(255, 255, 255, 1)"); // solid white core
-  g.addColorStop(0.2, "rgba(255, 255, 255, 1)"); // keep white before glow starts
-  g.addColorStop(0.45, "rgba(180, 200, 255, 0.5)"); // blue-white halo
-  g.addColorStop(0.75, "rgba(100, 130, 255, 0.15)"); // soft blue outer glow
-  g.addColorStop(1, "rgba(0, 0, 0, 0)");
+  g.addColorStop(0, 'rgba(255, 255, 255, 1)'); // solid white core
+  g.addColorStop(0.2, 'rgba(255, 255, 255, 1)'); // keep white before glow starts
+  g.addColorStop(0.45, 'rgba(180, 200, 255, 0.5)'); // blue-white halo
+  g.addColorStop(0.75, 'rgba(100, 130, 255, 0.15)'); // soft blue outer glow
+  g.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, 32, 32);
   return new THREE.CanvasTexture(canvas);
@@ -40,8 +40,8 @@ export function createStars(scene) {
   }
 
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
   const material = new THREE.PointsMaterial({
     size: 0.3,
@@ -62,8 +62,7 @@ export function updateStars({ geometry, phases, speeds, count }, elapsedTime) {
   const colors = geometry.attributes.color.array;
   for (let i = 0; i < count; i++) {
     // opacity oscillates 0.2 → 1.0, matching CSS parpadeo keyframes
-    const b =
-      0.2 + 0.8 * (0.5 + 0.5 * Math.sin(elapsedTime * speeds[i] + phases[i]));
+    const b = 0.2 + 0.8 * (0.5 + 0.5 * Math.sin(elapsedTime * speeds[i] + phases[i]));
     colors[i * 3] = b;
     colors[i * 3 + 1] = b;
     colors[i * 3 + 2] = b; // pure white; texture gradient handles the blue glow

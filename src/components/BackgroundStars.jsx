@@ -30,7 +30,11 @@ export default function BackgroundStars() {
       const depth = isStatic ? 0 : 0.2 + Math.random() * 0.6;
       const size = isStatic ? 1 + Math.random() : 1 + Math.random() * 2;
 
-      const { delay, duration } = randomTwinkleTiming({ delayMax: 5, durationMin: 2, durationRange: 4 });
+      const { delay, duration } = randomTwinkleTiming({
+        delayMax: 5,
+        durationMin: 2,
+        durationRange: 4,
+      });
 
       el.style.left = `${x}%`;
       el.style.top = `${y}%`;

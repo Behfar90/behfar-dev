@@ -1,4 +1,4 @@
-import * as THREE from "three";
+import * as THREE from 'three';
 
 const GALAXY_PARAMS = {
   count: 10000,
@@ -7,8 +7,8 @@ const GALAXY_PARAMS = {
   branches: 5,
   spin: 1,
   randomnessPower: 3,
-  insideColor: "#ff6030",
-  outsideColor: "#1b3984",
+  insideColor: '#ff6030',
+  outsideColor: '#1b3984',
 };
 
 const GALAXY_CENTERS = [
@@ -25,23 +25,14 @@ const GALAXY_CENTERS = [
 ];
 
 function buildGalaxy(scene, { x, y, z }) {
-  const {
-    count,
-    size,
-    radius,
-    branches,
-    spin,
-    randomnessPower,
-    insideColor,
-    outsideColor,
-  } = GALAXY_PARAMS;
+  const { count, size, radius, branches, spin, randomnessPower, insideColor, outsideColor } =
+    GALAXY_PARAMS;
 
   const positions = new Float32Array(count * 3);
   const colors = new Float32Array(count * 3);
   const colorIn = new THREE.Color(insideColor);
   const colorOut = new THREE.Color(outsideColor);
-  const rand = (pow) =>
-    Math.pow(Math.random(), pow) * (Math.random() < 0.5 ? 1 : -1);
+  const rand = (pow) => Math.pow(Math.random(), pow) * (Math.random() < 0.5 ? 1 : -1);
 
   for (let i = 0; i < count; i++) {
     const i3 = i * 3;
@@ -49,11 +40,9 @@ function buildGalaxy(scene, { x, y, z }) {
     const spinAngle = r * spin;
     const branchAngle = ((i % branches) / branches) * Math.PI * 2;
 
-    positions[i3] =
-      Math.cos(branchAngle + spinAngle) * r + rand(randomnessPower);
+    positions[i3] = Math.cos(branchAngle + spinAngle) * r + rand(randomnessPower);
     positions[i3 + 1] = rand(randomnessPower);
-    positions[i3 + 2] =
-      Math.sin(branchAngle + spinAngle) * r + rand(randomnessPower);
+    positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * r + rand(randomnessPower);
 
     const mixed = colorIn.clone().lerp(colorOut, r / radius);
     colors[i3] = mixed.r;
@@ -62,8 +51,8 @@ function buildGalaxy(scene, { x, y, z }) {
   }
 
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
   const material = new THREE.PointsMaterial({
     size,

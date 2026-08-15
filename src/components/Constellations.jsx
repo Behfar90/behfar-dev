@@ -18,7 +18,11 @@ export default function Constellations({ onSelect }) {
   // since not every browser focuses a non-form element on click by default.
   const select = (event, id) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    onSelect(id, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }, event.currentTarget);
+    onSelect(
+      id,
+      { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 },
+      event.currentTarget,
+    );
   };
 
   const handleKeyDown = (event, id) => {

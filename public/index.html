@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <!-- Every load of this site is meant to play like a fresh intro (shooting
@@ -7,24 +7,21 @@
          the top. Runs as early as possible, before the browser's own
          restoration logic. -->
     <script>
-      if ("scrollRestoration" in window.history) {
-        window.history.scrollRestoration = "manual";
+      if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'manual';
       }
       window.scrollTo(0, 0);
     </script>
     <!-- Google tag (gtag.js) -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-KBC5VR1B2F"
-    ></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KBC5VR1B2F"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
         dataLayer.push(arguments);
       }
-      gtag("js", new Date());
+      gtag('js', new Date());
 
-      gtag("config", "G-KBC5VR1B2F");
+      gtag('config', 'G-KBC5VR1B2F');
     </script>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
