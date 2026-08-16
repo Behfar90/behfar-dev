@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import styles from './CaptionGravity.module.css';
 
 const CAMERA_Z = 2000;
-// Matches Intro's old `bottom: 12%` caption anchor.
+// Matches Universe's old `bottom: 12%` caption anchor.
 const BOTTOM_FRACTION = 0.12;
 const COLOR = '#eeba7b';
 

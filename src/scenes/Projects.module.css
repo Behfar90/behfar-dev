@@ -5,7 +5,7 @@
 
 /* Pinned via native CSS sticky for as long as .wrapper is scrolling through
    view, then unpins and scrolls away like any normal element - matches the
-   pattern in Intro.module.css. */
+   pattern in Universe.module.css. */
 .sticky {
   position: sticky;
   top: 0;

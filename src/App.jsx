@@ -1,6 +1,6 @@
 import styles from './App.module.css';
 import { useCallback, useEffect, useState } from 'react';
-import Intro from './scenes/Intro';
+import Universe from './scenes/Universe';
 import Projects from './scenes/Projects';
 import ContactMe from './scenes/ContactMe';
 import ScrollIdleHint from './components/ScrollIdleHint';
@@ -14,7 +14,7 @@ const MIN_INTRO_DELAY_MS = 250;
 function App() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasMinDurationPassed, setHasMinDurationPassed] = useState(false);
-  const { introWrapperRef, orbitProgress } = useScrollJourney();
+  const { universeWrapperRef, orbitProgress } = useScrollJourney();
   // Mirrors Projects' own Hint visibility, so ScrollIdleHint can yield its
   // shared fixed slot for exactly as long as that one occupies it.
   const [suppressIdleHint, setSuppressIdleHint] = useState(false);
@@ -24,16 +24,16 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleIntroReady = useCallback(() => setIsLoaded(true), []);
+  const handleUniverseReady = useCallback(() => setIsLoaded(true), []);
   const showLoader = !isLoaded || !hasMinDurationPassed;
 
   return (
     <div className={styles.app}>
-      <Intro
-        wrapperRef={introWrapperRef}
+      <Universe
+        wrapperRef={universeWrapperRef}
         orbitProgress={orbitProgress}
         blurred={showLoader}
-        onReady={handleIntroReady}
+        onReady={handleUniverseReady}
       />
       <Projects onHintActiveChange={setSuppressIdleHint} />
       <ContactMe />

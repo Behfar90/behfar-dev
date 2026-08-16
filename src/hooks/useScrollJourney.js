@@ -1,27 +1,27 @@
 import { useEffect, useRef, useState } from 'react';
 
 // Owns every piece of scroll-derived state for the app - both which section
-// is in view and, within the Intro section, exactly how far through its
+// is in view and, within the Universe section, exactly how far through its
 // camera orbit the user has scrolled.
 //
 // There's no scroll-jacking at all: the page scrolls completely natively.
-// `introWrapperRef` should be attached to Intro's tall (multi-viewport)
+// `universeWrapperRef` should be attached to Universe's tall (multi-viewport)
 // wrapper element; its inner content is pinned via plain CSS
 // `position: sticky` for as long as that wrapper is scrolling through view,
 // then unpins itself and scrolls away exactly like any other element - the
 // browser handles that transition, not this hook.
 //
 // `orbitProgress` (0 to 1) is just "how far scrolled through that wrapper
-// are we", recomputed on every scroll/resize. Intro turns that directly into
-// camera rotation, so scrolling up naturally winds the camera back the way
-// it came, all the way to its start.
+// are we", recomputed on every scroll/resize. Universe turns that directly
+// into camera rotation, so scrolling up naturally winds the camera back the
+// way it came, all the way to its start.
 export default function useScrollJourney() {
-  const introWrapperRef = useRef(null);
+  const universeWrapperRef = useRef(null);
   const [orbitProgress, setOrbitProgress] = useState(0);
 
   useEffect(() => {
     const updateProgress = () => {
-      const wrapper = introWrapperRef.current;
+      const wrapper = universeWrapperRef.current;
       if (!wrapper) return;
 
       const scrollableDistance = wrapper.offsetHeight - window.innerHeight;
@@ -40,5 +40,5 @@ export default function useScrollJourney() {
     };
   }, []);
 
-  return { introWrapperRef, orbitProgress };
+  return { universeWrapperRef, orbitProgress };
 }

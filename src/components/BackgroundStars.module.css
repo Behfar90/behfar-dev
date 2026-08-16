@@ -1,5 +1,5 @@
 /* Scoped to Projects.jsx's .sticky (not position:fixed page-wide like the
-   reference this was adapted from) - Intro and ContactMe have their own
+   reference this was adapted from) - Universe and ContactMe have their own
    visual treatments, so this shouldn't bleed into them. */
 .container {
   position: absolute;

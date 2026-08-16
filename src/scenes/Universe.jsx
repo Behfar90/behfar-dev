@@ -5,7 +5,7 @@ import { createGalaxies } from '../utils/scenes/galaxies';
 import { createNebulas, updateNebulas } from '../utils/scenes/nebulas';
 import ShootingStarIntro from '../components/ShootingStarIntro';
 import CaptionGravity from '../components/CaptionGravity';
-import styles from './Intro.module.css';
+import styles from './Universe.module.css';
 
 // orbitProgress (0 to 1, from useScrollJourney) maps directly to camera
 // rotation - it's driven by real scroll position, not scroll-jacked, so
@@ -24,7 +24,7 @@ const ORBIT_CAPTIONS = [
   "Here's what I've built ↓",
 ];
 
-export default function Intro({ wrapperRef, blurred, orbitProgress = 0, onReady }) {
+export default function Universe({ wrapperRef, blurred, orbitProgress = 0, onReady }) {
   const canvasRef = useRef(null);
 
   // Read via refs (rather than effect dependencies) so a new prop value on

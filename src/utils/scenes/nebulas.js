@@ -188,7 +188,7 @@ function buildRingNebula(scene, texture, center, radius, count) {
   const puffs = [];
 
   // A ring only reads as a ring face-on - side-on it collapses into a
-  // blob. The orbiting camera in Intro.jsx stays at a fixed height and
+  // blob. The orbiting camera in Universe.jsx stays at a fixed height and
   // always looks roughly toward the origin, so orient the ring's plane to
   // face back that way (its normal points from `center` to the origin)
   // instead of lying flat in world XZ, which the camera never looks down.
@@ -238,7 +238,7 @@ function buildRingNebula(scene, texture, center, radius, count) {
 // GALAXY_CENTERS) so nothing overlaps a galaxy's footprint, and spaced well
 // apart from one another.
 //
-// Placement also accounts for the orbiting camera in Intro.jsx: it travels
+// Placement also accounts for the orbiting camera in Universe.jsx: it travels
 // along one semicircle (azimuth ~63-243deg, per its baseTheta/FULL_SPIN)
 // while always looking back across to the *opposite* semicircle (azimuth
 // ~243-360/0-63deg). A nebula sitting in the camera's own travel arc is
