@@ -239,25 +239,42 @@ function buildRingNebula(scene, texture, center, radius, count) {
 // apart from one another.
 //
 // Placement also accounts for the orbiting camera in Universe.jsx: it travels
-// along one semicircle (azimuth ~63-243deg, per its baseTheta/FULL_SPIN)
-// while always looking back across to the *opposite* semicircle (azimuth
-// ~243-360/0-63deg). A nebula sitting in the camera's own travel arc is
-// mostly looked away from; one placed in the look-at arc gets swept into
-// view as the camera orbits. Each of the three below sits at a different
-// point along that look-at arc, so they reveal in turn over the scroll
-// instead of all competing for the same moment.
+// along one semicircle (azimuth ~0-180deg, per its baseTheta/FULL_SPIN) while
+// always looking back across to the *opposite* semicircle (azimuth
+// ~180-360deg). A nebula sitting in the camera's own travel arc is mostly
+// looked away from; one placed in the look-at arc gets swept into view as
+// the camera orbits. Each of the three below sits at a different point along
+// that look-at arc, so they reveal in turn over the scroll instead of all
+// competing for the same moment.
+//
+// Originally a straight rigid rotation re-anchoring these to the camera's
+// current baseTheta (0deg, from its position at (0,0,8) - see Universe.jsx;
+// the camera used to start at (4,4,2), baseTheta ~63deg). That got each
+// nebula back into the correct arc, but left two problems a pure rotation
+// can't fix: the ring nebula, sitting right on the camera's initial look-at
+// azimuth, landed dead center on screen - directly behind
+// ShootingStarIntro's name reveal - and both the shell and wing nebulas'
+// azimuths were within ~15deg of a galaxy's (see galaxies.js's
+// GALAXY_CENTERS), close enough to visually overlap one from the camera.
+// Each was nudged along its arc into a gap between galaxy azimuths (kept at
+// its original radius from the origin, so reveal timing is unchanged); the
+// ring nebula was also lifted well above the camera's height so it clears
+// the (roughly vertically centered) text instead of sitting behind it.
 export function createNebulas(scene) {
   const texture = createPuffTexture();
   const starTexture = createStarTexture();
 
   return [
-    // ~48deg azimuth - only comes into view late in the orbit.
-    ...buildWingNebula(scene, texture, starTexture, { x: 20, y: -34, z: 28 }, 6, 65),
-    // ~333deg azimuth - swept into view around the midpoint of the orbit.
-    ...buildShellNebula(scene, texture, starTexture, { x: -80, y: -18, z: 80 }, 7, 70),
-    // Sits almost exactly on the camera's initial look-at azimuth (~243deg)
-    // - in view right from orbitProgress 0, before any scrolling.
-    ...buildRingNebula(scene, texture, { x: -34, y: -2, z: -2 }, 5.5, 60),
+    // ~320deg azimuth - only comes into view late in the orbit; nudged from
+    // ~332deg, which was ~8deg from the galaxy at galaxies.js's (-10,-20,28).
+    ...buildWingNebula(scene, texture, starTexture, { x: -22.12, y: -34, z: 26.36 }, 6, 65),
+    // ~275deg azimuth - swept into view around the midpoint of the orbit;
+    // nudged from ~252deg, which was ~13deg from the galaxy at (-30,15,-18).
+    ...buildShellNebula(scene, texture, starTexture, { x: -112.7, y: -18, z: 9.86 }, 7, 70),
+    // ~190deg azimuth, lifted to y=14 (well above the camera's own height of
+    // 0) - still in view right from orbitProgress 0, but above ShootingStarIntro's
+    // centered text instead of behind it.
+    ...buildRingNebula(scene, texture, { x: -5.91, y: 14, z: -33.54 }, 5.5, 60),
   ];
 }
 
