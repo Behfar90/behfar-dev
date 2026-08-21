@@ -1,0 +1,17 @@
+/* Fixed (not absolute) so it covers the viewport regardless of scroll -
+   this plays before the user has any reason to have scrolled, but pinning
+   it explicitly avoids relying on that.
+
+   No background/opacity transition here - the WebGL canvas inside has its
+   own transparent clear color, and the page's own black background (see
+   index.css) shows through anywhere neither it nor Universe (paused and so
+   still fully transparent) has drawn anything yet. Once Universe resumes
+   rendering (see BigBang.jsx's onSettled), it shows through immediately
+   wherever the cloud isn't covering it - no separate fade needed to reveal
+   it. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+}
