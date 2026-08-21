@@ -97,11 +97,21 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
 
     const timer = new THREE.Timer();
     let animFrame;
+    // Universe mounts (and this timer starts) well before it's ever
+    // actually rendered - BigBang plays out first. Stars' staggered
+    // ignition flash (see stars.js) needs to count from when rendering
+    // actually starts, not from mount, or they'd all have already ignited,
+    // unseen, during BigBang's sequence.
+    let renderStartTime = null;
 
     const tick = (timestamp) => {
       timer.update(timestamp);
       const elapsedTime = timer.getElapsed();
-      updateStars(stars, elapsedTime);
+      if (renderingRef.current && renderStartTime === null) {
+        renderStartTime = elapsedTime;
+      }
+      const sinceReveal = renderStartTime === null ? 0 : elapsedTime - renderStartTime;
+      updateStars(stars, elapsedTime, sinceReveal);
       updateNebulas(nebulas, elapsedTime);
 
       const targetTheta = baseTheta + orbitProgressRef.current * FULL_SPIN;
