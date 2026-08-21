@@ -24,7 +24,7 @@
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 8s ease-in;
+  transition: opacity 5s ease-in;
 }
 
 /* Dimmed, not fully opaque - reads as ambient backdrop behind the centered
