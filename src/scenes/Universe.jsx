@@ -24,7 +24,7 @@ const ORBIT_CAPTIONS = [
   "Here's what I've built ↓",
 ];
 
-export default function Universe({ wrapperRef, blurred, orbitProgress = 0, onReady }) {
+export default function Universe({ wrapperRef, rendering, showOverlays, orbitProgress = 0 }) {
   const canvasRef = useRef(null);
 
   // Read via refs (rather than effect dependencies) so a new prop value on
@@ -36,10 +36,17 @@ export default function Universe({ wrapperRef, blurred, orbitProgress = 0, onRea
     orbitProgressRef.current = orbitProgress;
   }, [orbitProgress]);
 
-  const onReadyRef = useRef(onReady);
+  // While BigBang's cloud fully covers this canvas, it was still rendering
+  // every frame underneath - competing with BigBang's own WebGL context for
+  // the GPU right when BigBang most needs a smooth framerate. Skipping the
+  // render call (not the whole loop, so camera/orbit state stays in sync)
+  // until BigBang settles fixes that; `rendering` flips true right then, so
+  // Universe is already live (not a frozen frame) once BigBang's cloud
+  // thins enough to show it through.
+  const renderingRef = useRef(rendering);
   useEffect(() => {
-    onReadyRef.current = onReady;
-  }, [onReady]);
+    renderingRef.current = rendering;
+  }, [rendering]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -103,11 +110,12 @@ export default function Universe({ wrapperRef, blurred, orbitProgress = 0, onRea
       lookTarget.y += (mouse.y * LOOK_RANGE - lookTarget.y) * LOOK_EASE;
       camera.lookAt(lookTarget);
 
-      renderer.render(scene, camera);
+      if (renderingRef.current) {
+        renderer.render(scene, camera);
+      }
       animFrame = window.requestAnimationFrame(tick);
     };
     tick();
-    onReadyRef.current?.();
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
@@ -117,16 +125,17 @@ export default function Universe({ wrapperRef, blurred, orbitProgress = 0, onRea
     };
   }, []);
 
-  const stickyClass = `${styles.sticky}${blurred ? ` ${styles['sticky--blurred']}` : ''}`;
-
   return (
     <div ref={wrapperRef} className={styles.orbitWrapper}>
-      <div className={stickyClass}>
+      <div className={styles.sticky}>
         <canvas ref={canvasRef} className={styles.webgl} />
 
-        {!blurred && <ShootingStarIntro orbitProgress={orbitProgress} />}
+        {/* Held back until BigBang's cloud has actually finished dissipating
+            (not just "settled") - otherwise this reveal flourish plays
+            while the cloud is still visibly fading in front of it. */}
+        {showOverlays && <ShootingStarIntro orbitProgress={orbitProgress} />}
 
-        {!blurred && <CaptionGravity orbitProgress={orbitProgress} captions={ORBIT_CAPTIONS} />}
+        {showOverlays && <CaptionGravity orbitProgress={orbitProgress} captions={ORBIT_CAPTIONS} />}
       </div>
     </div>
   );

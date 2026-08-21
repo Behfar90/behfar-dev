@@ -13,14 +13,6 @@
   top: 0;
   height: 100vh;
   overflow: hidden;
-  transition:
-    filter 0.8s ease,
-    opacity 0.8s ease;
-}
-
-.sticky--blurred {
-  filter: blur(20px);
-  opacity: 0;
 }
 
 .webgl {
