@@ -59,7 +59,11 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
     const sizes = { width: window.innerWidth, height: window.innerHeight };
 
     const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 10000);
-    camera.position.set(4, 4, 2);
+    // Matches BigBang's camera position ((0,0,8), see BigBang.jsx) so the
+    // handoff between the two (independent WebGL contexts, briefly visible
+    // together while the cloud thins) reads as one continuous shot instead
+    // of a cut to a different vantage point.
+    camera.position.set(0, 0, 8);
     scene.add(camera);
 
     const renderer = new THREE.WebGLRenderer({ canvas });
