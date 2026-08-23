@@ -36,13 +36,9 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
     orbitProgressRef.current = orbitProgress;
   }, [orbitProgress]);
 
-  // While BigBang's cloud fully covers this canvas, it was still rendering
-  // every frame underneath - competing with BigBang's own WebGL context for
-  // the GPU right when BigBang most needs a smooth framerate. Skipping the
-  // render call (not the whole loop, so camera/orbit state stays in sync)
-  // until BigBang settles fixes that; `rendering` flips true right then, so
-  // Universe is already live (not a frozen frame) once BigBang's cloud
-  // thins enough to show it through.
+  // `rendering` gates the actual render call (not the whole loop, so
+  // camera/orbit state keeps advancing regardless) - lets a caller hold off
+  // showing this canvas without pausing its state.
   const renderingRef = useRef(rendering);
   useEffect(() => {
     renderingRef.current = rendering;
@@ -59,10 +55,6 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
     const sizes = { width: window.innerWidth, height: window.innerHeight };
 
     const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 10000);
-    // Matches BigBang's camera position ((0,0,8), see BigBang.jsx) so the
-    // handoff between the two (independent WebGL contexts, briefly visible
-    // together while the cloud thins) reads as one continuous shot instead
-    // of a cut to a different vantage point.
     camera.position.set(0, 0, 8);
     scene.add(camera);
 
@@ -97,11 +89,10 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
 
     const timer = new THREE.Timer();
     let animFrame;
-    // Universe mounts (and this timer starts) well before it's ever
-    // actually rendered - BigBang plays out first. Stars' staggered
-    // ignition flash (see stars.js) needs to count from when rendering
-    // actually starts, not from mount, or they'd all have already ignited,
-    // unseen, during BigBang's sequence.
+    // Stars' staggered ignition flash (see stars.js) counts from when
+    // rendering actually starts rather than from mount, in case a caller
+    // ever holds `rendering` false for a while first - so they always get
+    // to play out on-screen instead of finishing unseen beforehand.
     let renderStartTime = null;
 
     const tick = (timestamp) => {
@@ -144,9 +135,6 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
       <div className={styles.sticky}>
         <canvas ref={canvasRef} className={styles.webgl} />
 
-        {/* Held back until BigBang's cloud has actually finished dissipating
-            (not just "settled") - otherwise this reveal flourish plays
-            while the cloud is still visibly fading in front of it. */}
         {showOverlays && <ShootingStarIntro orbitProgress={orbitProgress} />}
 
         {showOverlays && <CaptionGravity orbitProgress={orbitProgress} captions={ORBIT_CAPTIONS} />}
