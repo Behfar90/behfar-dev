@@ -20,6 +20,24 @@ const SECTION_REFS = {
   contact: 'contactWrapperRef',
 };
 
+// Where a nav jump to `section` should land, in scrollY terms. Universe and
+// Contact each land at their own wrapper's offsetTop - the very start of
+// their pinned range is already their intended entry point. Projects is
+// different: its layers/constellations are a scroll-driven build-up (see
+// useProjectsSceneAnimation), so landing at *its* offsetTop drops the user
+// into the scene before anything has assembled. Landing instead at the
+// furthest scrollY still inside Projects' pin - contactWrapperRef's own
+// offsetTop minus one viewport height, i.e. the last frame before Contact's
+// sticky panel takes over - guarantees the fully-settled view instead.
+function getTargetScrollY(section, wrapperRefs) {
+  if (section === 'projects') {
+    const contactTop = wrapperRefs.contactWrapperRef.current?.offsetTop;
+    if (contactTop != null) return contactTop - window.innerHeight;
+  }
+  const refName = SECTION_REFS[section];
+  return wrapperRefs[refName]?.current?.offsetTop;
+}
+
 // Drives the nav's fade-to-a-scene transition. None of the three scenes
 // have (or need) a pause/resume mechanism - each is purely a function of
 // scroll position, and the existing position: sticky layout already means
@@ -45,10 +63,9 @@ export default function useSceneTransition({
     if (phase === 'out') {
       document.body.style.overflow = 'hidden';
       const timer = setTimeout(() => {
-        const refName = SECTION_REFS[targetSectionRef.current];
-        const wrapper = wrapperRefs[refName]?.current;
-        if (wrapper) {
-          window.scrollTo({ top: wrapper.offsetTop, behavior: 'auto' });
+        const top = getTargetScrollY(targetSectionRef.current, wrapperRefs);
+        if (top != null) {
+          window.scrollTo({ top, behavior: 'auto' });
         }
         setPhase('in');
       }, FADE_OUT_MS + FADE_HOLD_MS);
