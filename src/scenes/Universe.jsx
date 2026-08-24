@@ -17,14 +17,17 @@ const FULL_SPIN = Math.PI;
 const LOOK_RANGE = 1.5;
 const LOOK_EASE = 0.03;
 
-// The camera starts pulled back and panned off its resting angle, then
-// eases into place across SUBTITLE_STORY_END (see universeTiming.js) - a
-// "swooping in and settling" arrival that pairs with the subtitle's own
-// dissolve/gather, and hands off to captions/orbit spin only once it's
-// done, so the intro reads as one settling-into-place beat instead of
-// three unrelated things moving at once - see captionProgress below.
-const INTRO_RADIUS_SCALE = 1.35;
-const INTRO_THETA_OFFSET = -Math.PI / 9;
+// The camera starts pulled well back out into space and panned off its
+// resting angle, then eases into place across SUBTITLE_STORY_END (see
+// universeTiming.js) - a "swooping in and settling" arrival that pairs
+// with the subtitle's own dissolve/gather. Past that point the camera's
+// distance/angle-from-rest are both fully settled - it only spins in
+// place (see orbitTarget's spinT branch below) for the rest of the
+// scroll, which is when captions take over - so the intro reads as one
+// settling-into-place beat instead of three unrelated things moving at
+// once - see captionProgress below.
+const INTRO_RADIUS_SCALE = 1.6;
+const INTRO_THETA_OFFSET = -Math.PI / 6;
 
 // Placeholder copy - just trying out the crossfade-on-orbit-progress idea for
 // now, wording isn't final.
