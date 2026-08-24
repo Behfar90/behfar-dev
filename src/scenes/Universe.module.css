@@ -1,8 +1,12 @@
 /* Provides the scroll distance the orbit maps its progress onto; a plain
-   block, no special positioning needed. */
+   block, no special positioning needed. Sized to 360vh (rather than the
+   sticky viewport's plain 300vh) so that once SUBTITLE_STORY_END's share
+   of it is set aside for the camera-arrival/subtitle beat, each of the 4
+   captions afterward gets the same physical scroll distance as that beat
+   did - see universeTiming.js for the full derivation. */
 .orbitWrapper {
   position: relative;
-  height: 300vh;
+  height: 360vh;
 }
 
 /* Pinned via native CSS sticky for as long as .orbitWrapper is scrolling

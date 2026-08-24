@@ -257,7 +257,8 @@ const TextReveal = forwardRef((_, ref) => {
     const text = 'Behfar Behzad';
     const subtitle = 'A Passionate Software Developer';
     // What the subtitle puffs away into and is replaced by, once scrolled
-    // well past it - see SUBTITLE_GATHER_ANGLE/SUBTITLE_PARTICLE_RANGE.
+    // well past it - see SUBTITLE_GATHER_ANGLE and the OUTGOING_FRACTION-
+    // based timing below.
     const secondSubtitle = 'Who thinks FrontEnd First';
     // Brightened version of the shooting-star particles' gold (shaders/particles.js)
     const subtitleColor = '#eeba7b';
@@ -459,10 +460,10 @@ const TextReveal = forwardRef((_, ref) => {
       }
     },
     // Drives the subtitle's scroll-triggered dissolve: `textT` fades the
-    // subtitle glyphs out (quick - see SUBTITLE_TEXT_DISSOLVE_RANGE),
-    // `travelT` separately drives the puff particles' flight and fade
-    // (slow - see SUBTITLE_PARTICLE_RANGE), so the dust keeps drifting off
-    // screen well after the text itself is gone.
+    // subtitle glyphs out (quick - see TEXT_DISSOLVE_FRACTION), `travelT`
+    // separately drives the puff particles' flight and fade over the full
+    // outgoing half (see OUTGOING_FRACTION), so the dust keeps drifting
+    // off screen well after the text itself is gone.
     updateDissolve: (textT, travelT) => {
       if (materialRef.current) {
         materialRef.current.uniforms.uSubtitleFade.value = textT;
@@ -472,10 +473,11 @@ const TextReveal = forwardRef((_, ref) => {
       }
     },
     // Drives the replacement subtitle's arrival, once the original has
-    // fully dissolved (see SUBTITLE_GATHER_START/END): `t` is 0 (still
-    // scattered off-frame) to 1 (fully gathered and handed off to the
-    // crisp text). The gather particles fade in early then back out late
-    // as the crisp text takes over, so `t` alone drives both.
+    // fully dissolved (see the gatherStart/gatherEnd window below, the
+    // incoming half): `t` is 0 (still scattered off-frame) to 1 (fully
+    // gathered and handed off to the crisp text). The gather particles
+    // fade in early then back out late as the crisp text takes over, so
+    // `t` alone drives both.
     updateGather: (t) => {
       if (gatherMaterialRef.current) {
         gatherMaterialRef.current.uniforms.uProgress.value = t;
@@ -562,9 +564,12 @@ let hasPlayed = false;
 // can't drift out of lockstep with the camera's own arrival and the
 // captions' start, which both hand off at the same boundary. These
 // fractions are of `storyEnd` itself, not of the full 0-1 orbitProgress
-// range.
-const TEXT_DISSOLVE_FRACTION = 1 / 6;
-const PARTICLE_FRACTION = 2 / 3;
+// range. The outgoing and incoming dust each get an equal half of
+// storyEnd, so the subtitle takes exactly as long to fall apart as its
+// replacement takes to arrive; the text fade is a quick sub-phase nested
+// inside the outgoing half, not a separate top-level one.
+const OUTGOING_FRACTION = 1 / 2;
+const TEXT_DISSOLVE_FRACTION = OUTGOING_FRACTION / 4;
 
 const Scene = ({ orbitProgress = 0, storyEnd = SUBTITLE_STORY_END }) => {
   const { size, camera } = useThree();
@@ -675,7 +680,7 @@ const Scene = ({ orbitProgress = 0, storyEnd = SUBTITLE_STORY_END }) => {
   // reveal effect above re-applies `updateProgress` on `size` too.
   useEffect(() => {
     const textDissolveRange = storyEnd * TEXT_DISSOLVE_FRACTION;
-    const particleRange = storyEnd * PARTICLE_FRACTION;
+    const particleRange = storyEnd * OUTGOING_FRACTION;
     const gatherStart = particleRange;
     const gatherEnd = storyEnd;
 
