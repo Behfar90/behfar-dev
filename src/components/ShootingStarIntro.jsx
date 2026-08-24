@@ -653,9 +653,30 @@ let hasPlayed = false;
 // it's the last chapter, one dissolve-out) per entry in SUBTITLE_CHAPTERS -
 // so adding a chapter narrows every beat rather than pushing storyEnd (and
 // so the captions' start) later. Within an "outgoing" beat, the text fades
-// over just its first quarter while its dust keeps drifting for the whole
-// beat.
+// over just its first quarter (of that beat's own motion - see HOLD_RATIO)
+// while its dust keeps drifting for the whole motion portion.
 const TEXT_FADE_RATIO = 1 / 4;
+// Fraction of a "settling" beat - the first subtitle's dissolve, and each
+// chapter's gather-in - spent sitting fully visible and readable rather
+// than moving, so there's time to actually read it without needing to
+// stop scrolling. The first subtitle is already visible when scrolling
+// starts, so its dissolve holds *before* moving; a chapter only becomes
+// visible once gathered, so its gather-in holds *after*. Dissolve-out
+// beats get no hold of their own - the reading time already happened
+// during the gather-in beat right before them. This reuses each beat's
+// existing width rather than widening storyEnd, so it doesn't touch the
+// camera's own pace or the captions' start time.
+const HOLD_RATIO = 0.35;
+
+// Remaps a beat's raw local progress (0-1, uniform across the whole beat)
+// into motion progress (0-1): if `holdFirst`, stays at 0 through the first
+// `holdRatio` of the beat before starting to move; otherwise reaches 1
+// after only `1 - holdRatio` of the beat and then holds there.
+function withHold(raw, holdRatio, holdFirst) {
+  return holdFirst
+    ? clamp01((raw - holdRatio) / (1 - holdRatio))
+    : clamp01(raw / (1 - holdRatio));
+}
 
 const Scene = ({ orbitProgress = 0, storyEnd = SUBTITLE_STORY_END }) => {
   const { size, camera } = useThree();
@@ -768,20 +789,25 @@ const Scene = ({ orbitProgress = 0, storyEnd = SUBTITLE_STORY_END }) => {
   useEffect(() => {
     const beatCount = 2 * SUBTITLE_CHAPTERS.length;
     const beatWidth = storyEnd / beatCount;
-    const textFadeWidth = beatWidth * TEXT_FADE_RATIO;
     const beatT = (k) => clamp01((orbitProgress - k * beatWidth) / beatWidth);
-    const textFadeT = (k) => clamp01((orbitProgress - k * beatWidth) / textFadeWidth);
+    // Fraction of *motion* progress (post-hold), not of the whole beat, so
+    // the text still fades quickly relative to however much of the beat is
+    // actually spent moving.
+    const textFadeT = (motionT) => clamp01(motionT / TEXT_FADE_RATIO);
 
-    textRef.current?.updateDissolve(textFadeT(0), beatT(0));
+    const dissolveMotionT = withHold(beatT(0), HOLD_RATIO, true);
+    textRef.current?.updateDissolve(textFadeT(dissolveMotionT), dissolveMotionT);
 
     SUBTITLE_CHAPTERS.forEach((_, i) => {
       const inBeat = 1 + 2 * i;
       const hasOutgoing = i < SUBTITLE_CHAPTERS.length - 1;
       const outBeat = inBeat + 1;
-      const gatherT = beatT(inBeat);
-      const textT = hasOutgoing ? textFadeT(outBeat) : 0;
-      const travelT = hasOutgoing ? beatT(outBeat) : 0;
-      textRef.current?.updateChapter(i, gatherT, textT, travelT);
+      const gatherT = withHold(beatT(inBeat), HOLD_RATIO, false);
+      // Dissolve-out beats get no hold of their own (see HOLD_RATIO), so
+      // their motion is just the beat's raw progress.
+      const outMotionT = hasOutgoing ? beatT(outBeat) : 0;
+      const textT = hasOutgoing ? textFadeT(outMotionT) : 0;
+      textRef.current?.updateChapter(i, gatherT, textT, outMotionT);
     });
   }, [orbitProgress, size, storyEnd]);
 

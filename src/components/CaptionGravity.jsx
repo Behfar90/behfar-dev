@@ -10,10 +10,12 @@ const COLOR = '#eeba7b';
 
 // Within a caption's own scroll segment (localT 0-1): below HOLD_START the
 // letters are still flying in from center, above HOLD_END they're being
-// sucked back into center, and in between the caption just sits still and
-// readable.
-const HOLD_START = 0.5;
-const HOLD_END = 0.5;
+// sucked back into center, and in between (a genuine 35%-wide window, not
+// the instant HOLD_START === HOLD_END used to leave) the caption just sits
+// still and readable - long enough to read it without needing to stop
+// scrolling.
+const HOLD_START = 0.325;
+const HOLD_END = 0.675;
 // Fraction of a fly-in/out phase a single letter's own motion takes - less
 // than 1 so letters' individual windows overlap rather than all moving in
 // lockstep.
