@@ -4,7 +4,10 @@ import Universe from './scenes/Universe';
 import Projects from './scenes/Projects';
 import ContactMe from './scenes/ContactMe';
 import ScrollIdleHint from './components/ScrollIdleHint';
+import SceneNav from './components/SceneNav';
+import SceneTransitionOverlay from './components/SceneTransitionOverlay';
 import useScrollJourney from './hooks/useScrollJourney';
+import useSceneTransition from './hooks/useSceneTransition';
 
 // Small deliberate pause before Universe's reveal flourish
 // (ShootingStarIntro/CaptionGravity) fires, so the stars actually get a
@@ -14,10 +17,28 @@ const OVERLAY_REVEAL_DELAY_MS = 1500;
 
 function App() {
   const [showOverlays, setShowOverlays] = useState(false);
-  const { universeWrapperRef, orbitProgress } = useScrollJourney();
+  const {
+    universeWrapperRef,
+    projectsWrapperRef,
+    contactWrapperRef,
+    orbitProgress,
+    activeSection,
+  } = useScrollJourney();
   // Mirrors Projects' own Hint visibility, so ScrollIdleHint can yield its
   // shared fixed slot for exactly as long as that one occupies it.
   const [suppressIdleHint, setSuppressIdleHint] = useState(false);
+  // Bumped right as a nav-driven scene jump starts, so ProjectLens (whose
+  // own overlay isn't scoped to Projects' scroll range) doesn't get left
+  // floating, stale, over whichever scene the user jumps to - see
+  // Projects.jsx's closeLensToken prop.
+  const [closeLensToken, setCloseLensToken] = useState(0);
+  const { overlayVisible, navigateTo } = useSceneTransition({
+    activeSection,
+    universeWrapperRef,
+    projectsWrapperRef,
+    contactWrapperRef,
+    onBeforeJump: () => setCloseLensToken((token) => token + 1),
+  });
 
   // ShootingStarIntro's TextReveal only requests these fonts once it
   // mounts - firing the request here instead, as early as page load, gives
@@ -34,19 +55,27 @@ function App() {
 
   return (
     <div className={styles.app}>
+      <SceneNav activeSection={activeSection} onNavigate={navigateTo} />
+
       <Universe
         wrapperRef={universeWrapperRef}
         orbitProgress={orbitProgress}
         rendering
         showOverlays={showOverlays}
       />
-      <Projects onHintActiveChange={setSuppressIdleHint} />
-      <ContactMe />
+      <div ref={projectsWrapperRef}>
+        <Projects onHintActiveChange={setSuppressIdleHint} closeLensToken={closeLensToken} />
+      </div>
+      <div ref={contactWrapperRef}>
+        <ContactMe />
+      </div>
       {/* `key` forces a remount (and so a fresh idle countdown) on every
           suppress/unsuppress transition - otherwise leaving Projects'
           hint range could reveal this immediately, using up idle time
           that accrued while it was suppressed and invisible. */}
       <ScrollIdleHint key={String(suppressIdleHint)} suppressed={suppressIdleHint} />
+
+      <SceneTransitionOverlay visible={overlayVisible} />
     </div>
   );
 }

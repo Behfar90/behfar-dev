@@ -1,0 +1,162 @@
+/* Fixed (not CSS `position: sticky`) - the nav needs to stay put across
+   three independently long, separately-scrolling scenes, not just within
+   one containing block. z-index clears ProjectLens's 1000 (the previous
+   highest in the app) and SceneTransitionOverlay's 1500, so the nav stays
+   visible/operable through the whole fade transition. */
+.nav {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 2000;
+  font-family:
+    'Audiowide',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    'Roboto',
+    sans-serif;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem;
+  border-radius: 999px;
+  background: rgba(8, 12, 22, 0.85);
+  box-shadow: 0 0 0 1px rgba(210, 225, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.navItem {
+  padding: 0.5rem 0.9rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(230, 238, 255, 0.65);
+  font: inherit;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.navItem:hover,
+.navItem:focus-visible {
+  color: rgba(230, 238, 255, 0.95);
+}
+
+/* Repeats the active color under :hover/:focus-visible rather than relying
+   on source order alone - .navItem:focus-visible above has two class-level
+   selectors (specificity 0,2,0), higher than .navItem--active's one (0,1,0),
+   so without this the "you are here" gold would silently lose to the
+   generic focus color the instant a user clicks or tabs onto the active
+   item - exactly when they're most likely to be looking right at it. */
+.navItem--active,
+.navItem--active:hover,
+.navItem--active:focus-visible {
+  color: #eeba7b;
+  background: rgba(238, 186, 123, 0.12);
+}
+
+/* Hidden on desktop - only the mobile dropdown trigger below uses this. */
+.menuButton {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  border-radius: 50%;
+  background: rgba(8, 12, 22, 0.85);
+  box-shadow: 0 0 0 1px rgba(210, 225, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: rgba(230, 238, 255, 0.85);
+  cursor: pointer;
+}
+
+.menuButton:hover,
+.menuButton:focus-visible {
+  color: #fff;
+}
+
+/* Anchored panel, not a full-screen takeover - navigating without needing
+   to scroll doesn't require covering the whole viewport. Stays mounted at
+   opacity 0/pointer-events: none while closed (same reasoning as
+   ProjectLens.module.css's .overlay) so the open/close transition can
+   actually play both directions. */
+.dropdown {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .row {
+    display: none;
+  }
+
+  .menuButton {
+    display: flex;
+  }
+
+  .dropdown {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    min-width: 10rem;
+    padding: 0.5rem;
+    border-radius: 1rem;
+    background: rgba(8, 12, 22, 0.92);
+    box-shadow: 0 0 0 1px rgba(210, 225, 255, 0.15);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    opacity: 0;
+    transform: translateY(-6px);
+    pointer-events: none;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .dropdown--open {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .dropdownItem {
+    padding: 0.6rem 0.8rem;
+    border: none;
+    border-radius: 0.6rem;
+    background: transparent;
+    color: rgba(230, 238, 255, 0.75);
+    font: inherit;
+    font-size: 0.85rem;
+    letter-spacing: 0.03em;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .dropdownItem:hover,
+  .dropdownItem:focus-visible {
+    background: rgba(230, 238, 255, 0.08);
+  }
+
+  .dropdownItem.navItem--active {
+    color: #eeba7b;
+    background: rgba(238, 186, 123, 0.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navItem,
+  .dropdown {
+    transition-duration: 0.01ms;
+  }
+}

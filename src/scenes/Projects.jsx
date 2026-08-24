@@ -15,7 +15,11 @@ import styles from './Projects.module.css';
 // ScrollIdleHint suppressed - see ScrollIdleHint's `suppressed` prop.
 // Defaulted to a no-op so Projects still works standalone (tests,
 // Storybook-style usage) without a parent wiring it up.
-export default function Projects({ onHintActiveChange = () => {} }) {
+// `closeLensToken` closes ProjectLens whenever it changes (see the effect
+// below) - App bumps it right as a nav-driven scene jump starts, since
+// ProjectLens's own overlay isn't scoped to this scene's scroll range and
+// would otherwise float, stale, over whichever scene the user jumps to.
+export default function Projects({ onHintActiveChange = () => {}, closeLensToken = 0 }) {
   const wrapperRef = useProjectsSceneAnimation();
   // Forwarded to TerrainLayers/MoonPhase so the effects below can watch the
   // actual figure/moon elements, not a computed scroll-progress stand-in.
@@ -72,6 +76,16 @@ export default function Projects({ onHintActiveChange = () => {} }) {
   useEffect(() => {
     onHintActiveChange(inHintRange);
   }, [inHintRange, onHintActiveChange]);
+
+  // Setting this to null when it's already null is a harmless no-op
+  // re-render, so this doesn't need a "was it actually open" guard, and
+  // deliberately skips the initial-mount case (closeLensToken starts at 0
+  // and nothing has bumped it yet, so this simply reaffirms the already-null
+  // default).
+  useEffect(() => {
+    setOpenProjectId(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [closeLensToken]);
 
   const handleSelect = (id, originPoint, triggerEl) => {
     setOpenProjectId(id);
