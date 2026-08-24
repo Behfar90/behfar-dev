@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { createStars, updateStars } from '../utils/scenes/stars';
 import { createGalaxies } from '../utils/scenes/galaxies';
 import { createNebulas, updateNebulas } from '../utils/scenes/nebulas';
+import { SUBTITLE_STORY_END } from '../utils/scenes/universeTiming';
+import { lerp, smoothstep, clamp01 } from '../utils/math';
 import ShootingStarIntro from '../components/ShootingStarIntro';
 import CaptionGravity from '../components/CaptionGravity';
 import styles from './Universe.module.css';
@@ -14,6 +16,15 @@ const ORBIT_EASE = 0.05;
 const FULL_SPIN = Math.PI;
 const LOOK_RANGE = 1.5;
 const LOOK_EASE = 0.03;
+
+// The camera starts pulled back and panned off its resting angle, then
+// eases into place across SUBTITLE_STORY_END (see universeTiming.js) - a
+// "swooping in and settling" arrival that pairs with the subtitle's own
+// dissolve/gather, and hands off to captions/orbit spin only once it's
+// done, so the intro reads as one settling-into-place beat instead of
+// three unrelated things moving at once - see captionProgress below.
+const INTRO_RADIUS_SCALE = 1.35;
+const INTRO_THETA_OFFSET = -Math.PI / 9;
 
 // Placeholder copy - just trying out the crossfade-on-orbit-progress idea for
 // now, wording isn't final.
@@ -65,7 +76,29 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
     const radius = Math.hypot(camera.position.x, camera.position.z);
     const height = camera.position.y;
     const baseTheta = Math.atan2(camera.position.x, camera.position.z);
-    let theta = baseTheta + orbitProgressRef.current * FULL_SPIN;
+
+    // Below SUBTITLE_STORY_END, the camera arrives - easing in from a wider,
+    // off-angle intro pose to its resting orbit position. Past it, it does
+    // its original spin, just re-based onto the remaining scroll range. The
+    // two branches agree exactly at p = SUBTITLE_STORY_END, so there's no
+    // snap at the handoff in either scroll direction.
+    const orbitTarget = (p) => {
+      if (p <= SUBTITLE_STORY_END) {
+        const arriveT = smoothstep(0, 1, p / SUBTITLE_STORY_END);
+        return {
+          radius: lerp(radius * INTRO_RADIUS_SCALE, radius, arriveT),
+          theta: lerp(baseTheta + INTRO_THETA_OFFSET, baseTheta, arriveT),
+        };
+      }
+      const spinT = (p - SUBTITLE_STORY_END) / (1 - SUBTITLE_STORY_END);
+      return { radius, theta: baseTheta + spinT * FULL_SPIN };
+    };
+
+    // Seeded from the initial orbitProgress (rather than the intro pose
+    // outright) so a mid-scroll mount doesn't pop in from off-angle.
+    const initialTarget = orbitTarget(orbitProgressRef.current);
+    let currentRadius = initialTarget.radius;
+    let currentTheta = initialTarget.theta;
 
     // Camera stays put but turns to face wherever the pointer is
     const mouse = { x: 0, y: 0 };
@@ -105,10 +138,11 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
       updateStars(stars, elapsedTime, sinceReveal);
       updateNebulas(nebulas, elapsedTime);
 
-      const targetTheta = baseTheta + orbitProgressRef.current * FULL_SPIN;
-      theta += (targetTheta - theta) * ORBIT_EASE;
-      camera.position.x = Math.sin(theta) * radius;
-      camera.position.z = Math.cos(theta) * radius;
+      const target = orbitTarget(orbitProgressRef.current);
+      currentRadius += (target.radius - currentRadius) * ORBIT_EASE;
+      currentTheta += (target.theta - currentTheta) * ORBIT_EASE;
+      camera.position.x = Math.sin(currentTheta) * currentRadius;
+      camera.position.z = Math.cos(currentTheta) * currentRadius;
       camera.position.y = height;
 
       lookTarget.x += (mouse.x * LOOK_RANGE - lookTarget.x) * LOOK_EASE;
@@ -130,14 +164,22 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
     };
   }, []);
 
+  // Captions don't start until the camera's arrival + subtitle story (see
+  // SUBTITLE_STORY_END) is done - re-based onto the remaining scroll range,
+  // same as orbitTarget's spinT above, so the two hand off at the same
+  // instant.
+  const captionProgress = clamp01((orbitProgress - SUBTITLE_STORY_END) / (1 - SUBTITLE_STORY_END));
+
   return (
     <div ref={wrapperRef} className={styles.orbitWrapper}>
       <div className={styles.sticky}>
         <canvas ref={canvasRef} className={styles.webgl} />
 
-        {showOverlays && <ShootingStarIntro orbitProgress={orbitProgress} />}
+        {showOverlays && (
+          <ShootingStarIntro orbitProgress={orbitProgress} storyEnd={SUBTITLE_STORY_END} />
+        )}
 
-        {showOverlays && <CaptionGravity orbitProgress={orbitProgress} captions={ORBIT_CAPTIONS} />}
+        {showOverlays && <CaptionGravity orbitProgress={captionProgress} captions={ORBIT_CAPTIONS} />}
       </div>
     </div>
   );
