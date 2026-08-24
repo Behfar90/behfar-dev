@@ -127,11 +127,139 @@ uniform float uProgress;
 uniform float uStartX;
 uniform float uRatio;
 uniform float alpha;
+// Masks out the subtitle's rows of the combined texture (vUv.y below this
+// threshold) as it dissolves into particles on scroll - see uSubtitleFade.
+uniform float uSubtitleVMax;
+uniform float uSubtitleFade;
 varying vec2 vUv;
 void main(){
   vec4 textureColor = texture2D(map, vUv);
   float angle = uRatio / 3.;
   float isShow = step(1., 1. - vUv.x + (uProgress / uStartX * 0.5 + 0.5) - abs(vUv.y - 0.5) / angle);
-  gl_FragColor = vec4(textureColor.rgb, textureColor.a * alpha * isShow);
+  float inSubtitle = step(vUv.y, uSubtitleVMax);
+  float dissolveMask = 1. - inSubtitle * uSubtitleFade;
+  gl_FragColor = vec4(textureColor.rgb, textureColor.a * alpha * isShow * dissolveMask);
+}
+`;
+
+// A plain, un-wiped reveal for the subtitle's replacement text - the gather
+// particles (see gatherVertexShader) carry the transition visually, so this
+// just needs a straight fade via uReveal (0 hidden, 1 fully shown).
+export const plainTextFragmentShader = `
+precision highp float;
+uniform sampler2D map;
+uniform float alpha;
+uniform float uReveal;
+varying vec2 vUv;
+void main(){
+  vec4 textureColor = texture2D(map, vUv);
+  gl_FragColor = vec4(textureColor.rgb, textureColor.a * alpha * uReveal);
+}
+`;
+
+// Drives the subtitle's "puff of shooting-star dust" dissolve: each particle
+// starts pinned at the glyph pixel it was sampled from (position) and, as
+// uProgress (0-1, driven by scroll - and mapped from a much wider slice of
+// scroll than the text fade itself, so the flight reads as gradual rather
+// than a quick puff) advances, drifts up and to the right - the direction
+// the shooting-star sweep and camera's own orbit already read as "forward"
+// - drifting far enough to exit the frame, only fading out well into that
+// flight rather than immediately. Staggered per-particle by aRandom so they
+// don't all move in lockstep.
+export const puffVertexShader = `
+precision highp float;
+attribute vec3 position;
+attribute vec2 aDir;
+attribute float aRandom;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+uniform float uProgress;
+uniform float uDistance;
+uniform float uPixelRatio;
+uniform float uSize;
+uniform float uMinSize;
+varying float vAlpha;
+varying float vRandom;
+
+float easeInCubic(float t) {
+  return t * t * t;
+}
+
+void main () {
+  float t = clamp(uProgress, 0.0, 1.0);
+  float start = aRandom * 0.3;
+  float local = clamp((t - start) / (1.0 - start), 0.0, 1.0);
+  float travel = easeInCubic(local);
+
+  vec3 pos = position;
+  pos.xy += aDir * uDistance * travel * mix(0.7, 1.3, aRandom);
+
+  // Full brightness through the first stretch of the flight, then a long,
+  // gradual fade as it exits - not a fade centered on the puff's origin.
+  vAlpha = smoothstep(0.0, 0.08, local) * (1.0 - smoothstep(0.45, 1.0, local));
+  vRandom = aRandom;
+
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+  gl_PointSize = (uSize * mix(0.7, 1.3, aRandom) * (1.0 - 0.3 * travel) + uMinSize) * uPixelRatio;
+}
+`;
+
+export const puffFragmentShader = `
+precision highp float;
+varying float vAlpha;
+varying float vRandom;
+const vec3 baseColor = vec3(170., 133., 88.) / 255.;
+void main(){
+  vec2 p = gl_PointCoord * 2. - 1.;
+  float len = length(p);
+  float shape = smoothstep(1., 0., len);
+  if (shape <= 0.) discard;
+  float flicker = mix(0.6, 1., vRandom);
+  gl_FragColor = vec4(baseColor * flicker, shape * vAlpha);
+}
+`;
+
+// Runs puffVertexShader's story backwards: each particle starts far off in
+// the up-left direction (aDir) and settles onto its target glyph pixel
+// (position) as uProgress advances - the replacement subtitle's dust
+// arriving, rather than the old one's leaving. Fades in as it approaches,
+// then fades back out right at the end as the crisp replacement text (see
+// plainTextFragmentShader/uReveal) takes over, so the two never have to
+// look right at the same time. Shares puffFragmentShader for its actual
+// per-point shading, since that part - a soft gold dot - is identical.
+export const gatherVertexShader = `
+precision highp float;
+attribute vec3 position;
+attribute vec2 aDir;
+attribute float aRandom;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+uniform float uProgress;
+uniform float uDistance;
+uniform float uPixelRatio;
+uniform float uSize;
+uniform float uMinSize;
+varying float vAlpha;
+varying float vRandom;
+
+float easeOutCubic(float t) {
+  float f = t - 1.0;
+  return f * f * f + 1.0;
+}
+
+void main () {
+  float t = clamp(uProgress, 0.0, 1.0);
+  float start = aRandom * 0.3;
+  float local = clamp((t - start) / (1.0 - start), 0.0, 1.0);
+  float settle = easeOutCubic(local);
+
+  vec3 pos = position;
+  pos.xy += aDir * uDistance * (1.0 - settle) * mix(0.7, 1.3, aRandom);
+
+  vAlpha = smoothstep(0.0, 0.35, local) - smoothstep(0.75, 1.0, local);
+  vRandom = aRandom;
+
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+  gl_PointSize = (uSize * mix(0.7, 1.3, aRandom) * (0.7 + 0.3 * settle) + uMinSize) * uPixelRatio;
 }
 `;
