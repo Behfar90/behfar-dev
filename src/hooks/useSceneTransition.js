@@ -20,19 +20,25 @@ const SECTION_REFS = {
   contact: 'contactWrapperRef',
 };
 
-// Where a nav jump to `section` should land, in scrollY terms. Universe and
-// Contact each land at their own wrapper's offsetTop - the very start of
-// their pinned range is already their intended entry point. Projects is
-// different: its layers/constellations are a scroll-driven build-up (see
-// useProjectsSceneAnimation), so landing at *its* offsetTop drops the user
-// into the scene before anything has assembled. Landing instead at the
-// furthest scrollY still inside Projects' pin - contactWrapperRef's own
-// offsetTop minus one viewport height, i.e. the last frame before Contact's
-// sticky panel takes over - guarantees the fully-settled view instead.
+// Where a nav jump to `section` should land, in scrollY terms. Universe
+// lands at its own wrapper's offsetTop - the very start of its pinned range
+// is already its intended entry point. Projects and Contact are both
+// different, for the same underlying reason: landing at *their* offsetTop
+// drops the user at the very top of that scene rather than its settled
+// end state (Projects' layers/constellations are a scroll-driven build-up -
+// see useProjectsSceneAnimation - and Contact is the last scene on the
+// page, so "arriving" at it should mean the bottom of the document, not
+// just its own top edge). Both instead target the furthest scrollY that's
+// still meaningfully "that scene": Projects lands one viewport short of
+// Contact's own offsetTop (the last frame before Contact's sticky panel
+// takes over); Contact lands at the document's actual maximum scrollY.
 function getTargetScrollY(section, wrapperRefs) {
   if (section === 'projects') {
     const contactTop = wrapperRefs.contactWrapperRef.current?.offsetTop;
     if (contactTop != null) return contactTop - window.innerHeight;
+  }
+  if (section === 'contact') {
+    return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
   }
   const refName = SECTION_REFS[section];
   return wrapperRefs[refName]?.current?.offsetTop;
