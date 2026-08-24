@@ -39,18 +39,25 @@ const SUBTITLE_TARGET_PARTICLES = 220;
 // Puff particles drift up-and-to-the-right (matching the camera's own
 // anti-clockwise orbit) rather than scattering isotropically - this is the
 // center angle, in radians measured counter-clockwise from +x (screen
-// right), with a per-particle spread either side of it. The replacement
+// right), with a per-particle spread either side of it. Every later
 // subtitle's gather particles use the mirror image of this angle (up-left),
 // sharing the same spread, so the two read as one coherent sweep.
 const SUBTITLE_PUFF_ANGLE = Math.PI / 5;
 const SUBTITLE_PUFF_ANGLE_SPREAD = Math.PI / 6;
 const SUBTITLE_GATHER_ANGLE = Math.PI - SUBTITLE_PUFF_ANGLE;
 
+// The first subtitle ("A Passionate Software Developer") is baked into the
+// title canvas below and revealed by the initial shooting-star sweep.
+// Every subtitle after that is one of these - each arrives via gather-dust
+// converging into it and, except the last, later leaves the same way the
+// first one does, via puff-dust - see the beat-based timing in Scene.
+const SUBTITLE_CHAPTERS = ['Who thinks FrontEnd First', 'And does FullStack when Gravity calls'];
+
 // Fits `text` under `maxCssSize` (CSS px) so it's no wider than
-// `maxDeviceWidth` (device px) - shared by the subtitle and its
-// replacement, which are sized independently since they're different
-// lengths. Returns the chosen CSS-px font size plus the resulting
-// device-px width, both needed to lay the text out on a canvas.
+// `maxDeviceWidth` (device px) - shared by every subtitle, which are sized
+// independently since they're different lengths. Returns the chosen
+// CSS-px font size plus the resulting device-px width, both needed to lay
+// the text out on a canvas.
 function fitSubtitleFont(measureCtx, text, family, maxCssSize, maxDeviceWidth, pixelRatio) {
   measureCtx.font = `${maxCssSize * pixelRatio}px ${family}`;
   const widthAtMax = measureCtx.measureText(text).width;
@@ -64,8 +71,8 @@ function fitSubtitleFont(measureCtx, text, family, maxCssSize, maxDeviceWidth, p
 // down to roughly `targetCount` points, so a whole word becomes a
 // manageable handful of particle seeds instead of one per pixel. Returns
 // flat [x0, y0, x1, y1, ...] pairs in that ImageData's own pixel space
-// (row 0 = its own top) - shared by the subtitle's outgoing dust and its
-// replacement's incoming dust, which scan different canvases/regions.
+// (row 0 = its own top) - shared by every subtitle's outgoing and incoming
+// dust, which each scan their own canvas.
 function scanGlyphPixels(imageData, targetCount) {
   const candidates = [];
   for (let y = 0; y < imageData.height; y += SUBTITLE_SCAN_STRIDE) {
@@ -217,9 +224,208 @@ const ShootingStar = forwardRef((_, ref) => {
   );
 });
 
+// One subtitle after the first: gathers in from up-left dust and, unless
+// `hasOutgoing` is false (the last chapter), later dissolves away into
+// up-right dust of its own - the same pair of effects the very first
+// subtitle uses, just packaged so N of these can be strung together.
+// `update(gatherT, textT, travelT)` drives all of it from one call: the
+// combined on-screen visibility is "how gathered in" times "how not yet
+// dissolved", so it's correct at every point in either transition without
+// the two callers needing to coordinate.
+const SubtitleChapter = forwardRef(({ text, fontFamily, size, gl, y, hasOutgoing }, ref) => {
+  const materialRef = useRef();
+  const gatherMaterialRef = useRef();
+  const puffMaterialRef = useRef();
+
+  const {
+    texture,
+    planeWidth,
+    planeHeight,
+    gatherSeeds,
+    gatherDirs,
+    gatherRandoms,
+    puffSeeds,
+    puffDirs,
+    puffRandoms,
+  } = useMemo(() => {
+    const pixelRatio = window.devicePixelRatio;
+    const subtitleColor = '#eeba7b';
+    const maxContentWidth = size.width * 0.9 * pixelRatio;
+    const maxSubtitleFontSize = 27;
+
+    const measureCanvas = document.createElement('canvas');
+    const measureCtx = measureCanvas.getContext('2d');
+    const { fontSize, width: widthPx } = fitSubtitleFont(
+      measureCtx,
+      text,
+      fontFamily,
+      maxSubtitleFontSize,
+      maxContentWidth,
+      pixelRatio,
+    );
+    const heightPx = fontSize * 1.6 * pixelRatio;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = widthPx;
+    canvas.height = heightPx;
+    const ctx = canvas.getContext('2d');
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `${fontSize * pixelRatio}px ${fontFamily}`;
+    ctx.fillStyle = subtitleColor;
+    ctx.fillText(text, widthPx / 2, heightPx / 2);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.minFilter = THREE.LinearFilter;
+
+    const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const points = scanGlyphPixels(image, SUBTITLE_TARGET_PARTICLES);
+
+    const gSeeds = [];
+    const gDirs = [];
+    const gRandoms = [];
+    const pSeeds = [];
+    const pDirs = [];
+    const pRandoms = [];
+    for (let i = 0; i < points.length / 2; i++) {
+      const px = points[i * 2];
+      const py = points[i * 2 + 1];
+      const localX = (px - canvas.width / 2) / pixelRatio;
+      const localY = (canvas.height / 2 - py) / pixelRatio;
+
+      const gAngle = SUBTITLE_GATHER_ANGLE + (Math.random() - 0.5) * SUBTITLE_PUFF_ANGLE_SPREAD;
+      gSeeds.push(localX, localY, 0);
+      gDirs.push(Math.cos(gAngle), Math.sin(gAngle));
+      gRandoms.push(Math.random());
+
+      if (hasOutgoing) {
+        const pAngle = SUBTITLE_PUFF_ANGLE + (Math.random() - 0.5) * SUBTITLE_PUFF_ANGLE_SPREAD;
+        pSeeds.push(localX, localY, 0);
+        pDirs.push(Math.cos(pAngle), Math.sin(pAngle));
+        pRandoms.push(Math.random());
+      }
+    }
+
+    return {
+      texture: tex,
+      planeWidth: canvas.width / pixelRatio,
+      planeHeight: canvas.height / pixelRatio,
+      gatherSeeds: new Float32Array(gSeeds),
+      gatherDirs: new Float32Array(gDirs),
+      gatherRandoms: new Float32Array(gRandoms),
+      puffSeeds: new Float32Array(pSeeds),
+      puffDirs: new Float32Array(pDirs),
+      puffRandoms: new Float32Array(pRandoms),
+    };
+  }, [text, fontFamily, size.width, hasOutgoing]);
+
+  const textUniforms = useMemo(
+    () => ({
+      map: { value: texture },
+      alpha: { value: 0.8 },
+      uReveal: { value: 0 },
+    }),
+    [texture],
+  );
+
+  // Long enough that particles launched from/converging toward near
+  // screen-center fully cross the frame along their diagonal rather than
+  // fading while still on-screen.
+  const dustDistance = Math.hypot(size.width, size.height);
+  const gatherUniforms = useMemo(
+    () => ({
+      uProgress: { value: 0 },
+      uDistance: { value: dustDistance },
+      uPixelRatio: { value: gl.getPixelRatio() },
+      uSize: { value: 6.5 },
+      uMinSize: { value: 2.2 },
+    }),
+    [gl, dustDistance],
+  );
+  const puffUniforms = useMemo(
+    () => ({
+      uProgress: { value: 0 },
+      uDistance: { value: dustDistance },
+      uPixelRatio: { value: gl.getPixelRatio() },
+      uSize: { value: 6.5 },
+      uMinSize: { value: 2.2 },
+    }),
+    [gl, dustDistance],
+  );
+
+  useImperativeHandle(ref, () => ({
+    update: (gatherT, textT, travelT) => {
+      if (gatherMaterialRef.current) {
+        gatherMaterialRef.current.uniforms.uProgress.value = gatherT;
+      }
+      if (puffMaterialRef.current) {
+        puffMaterialRef.current.uniforms.uProgress.value = travelT;
+      }
+      if (materialRef.current) {
+        materialRef.current.uniforms.uReveal.value = smoothstep(0.6, 1, gatherT) * (1 - textT);
+      }
+    },
+  }));
+
+  return (
+    <>
+      <mesh position={[0, y, 0.1]} frustumCulled={false}>
+        <planeGeometry args={[planeWidth, planeHeight]} />
+        <rawShaderMaterial
+          ref={materialRef}
+          uniforms={textUniforms}
+          vertexShader={textVertexShader}
+          fragmentShader={plainTextFragmentShader}
+          transparent
+        />
+      </mesh>
+
+      {gatherSeeds.length > 0 && (
+        <points position={[0, y, 0.15]} frustumCulled={false}>
+          <bufferGeometry>
+            <bufferAttribute attach="attributes-position" args={[gatherSeeds, 3]} />
+            <bufferAttribute attach="attributes-aDir" args={[gatherDirs, 2]} />
+            <bufferAttribute attach="attributes-aRandom" args={[gatherRandoms, 1]} />
+          </bufferGeometry>
+          <rawShaderMaterial
+            ref={gatherMaterialRef}
+            uniforms={gatherUniforms}
+            vertexShader={gatherVertexShader}
+            fragmentShader={puffFragmentShader}
+            transparent
+            depthTest={false}
+            blending={THREE.AdditiveBlending}
+          />
+        </points>
+      )}
+
+      {hasOutgoing && puffSeeds.length > 0 && (
+        <points position={[0, y, 0.15]} frustumCulled={false}>
+          <bufferGeometry>
+            <bufferAttribute attach="attributes-position" args={[puffSeeds, 3]} />
+            <bufferAttribute attach="attributes-aDir" args={[puffDirs, 2]} />
+            <bufferAttribute attach="attributes-aRandom" args={[puffRandoms, 1]} />
+          </bufferGeometry>
+          <rawShaderMaterial
+            ref={puffMaterialRef}
+            uniforms={puffUniforms}
+            vertexShader={puffVertexShader}
+            fragmentShader={puffFragmentShader}
+            transparent
+            depthTest={false}
+            blending={THREE.AdditiveBlending}
+          />
+        </points>
+      )}
+    </>
+  );
+});
+
 const TextReveal = forwardRef((_, ref) => {
   const { size, gl } = useThree();
   const materialRef = useRef();
+  const puffMaterialRef = useRef();
+  const chapterRefs = useRef([]);
   // Starts with the fallback; swaps to the custom face once it's actually
   // loaded, triggering a clean re-draw of the canvas via the memo below
   // instead of mutating an existing texture out from under Three.
@@ -237,169 +443,98 @@ const TextReveal = forwardRef((_, ref) => {
       .catch(() => {});
   }, []);
 
-  const {
-    texture,
-    planeWidth,
-    planeHeight,
-    subtitleVMax,
-    puffSeeds,
-    puffDirs,
-    puffRandoms,
-    secondTexture,
-    secondPlaneWidth,
-    secondPlaneHeight,
-    secondSubtitleY,
-    gatherSeeds,
-    gatherDirs,
-    gatherRandoms,
-  } = useMemo(() => {
-    // Custom name replacement here
-    const text = 'Behfar Behzad';
-    const subtitle = 'A Passionate Software Developer';
-    // What the subtitle puffs away into and is replaced by, once scrolled
-    // well past it - see SUBTITLE_GATHER_ANGLE and the OUTGOING_FRACTION-
-    // based timing below.
-    const secondSubtitle = 'Who thinks FrontEnd First';
-    // Brightened version of the shooting-star particles' gold (shaders/particles.js)
-    const subtitleColor = '#eeba7b';
-    const isMobile = size.width < 768;
-    const letterSpacing = isMobile ? 0.1 : 0.18;
-    const pixelRatio = window.devicePixelRatio;
+  const { texture, planeWidth, planeHeight, subtitleVMax, puffSeeds, puffDirs, puffRandoms, secondSubtitleY } =
+    useMemo(() => {
+      // Custom name replacement here
+      const text = 'Behfar Behzad';
+      const subtitle = 'A Passionate Software Developer';
+      // Brightened version of the shooting-star particles' gold (shaders/particles.js)
+      const subtitleColor = '#eeba7b';
+      const isMobile = size.width < 768;
+      const letterSpacing = isMobile ? 0.1 : 0.18;
+      const pixelRatio = window.devicePixelRatio;
 
-    // Cap both strings' rendered width to a share of the viewport so the
-    // wipe-reveal shader's uStartX (size.width/2 - planeWidth/2, see
-    // ShootingStarIntro below) never goes negative - a negative uStartX
-    // flips the sign of the reveal progress term and the text never shows.
-    const maxContentWidth = size.width * 0.9 * pixelRatio;
-    const maxFontSize = 50;
-    const maxSubtitleFontSize = 27;
+      // Cap both strings' rendered width to a share of the viewport so the
+      // wipe-reveal shader's uStartX (size.width/2 - planeWidth/2, see
+      // ShootingStarIntro below) never goes negative - a negative uStartX
+      // flips the sign of the reveal progress term and the text never shows.
+      const maxContentWidth = size.width * 0.9 * pixelRatio;
+      const maxFontSize = 50;
+      const maxSubtitleFontSize = 27;
 
-    const nameCharFactor = text.length + letterSpacing * (text.length - 1);
-    const fontSize = Math.min(maxFontSize, maxContentWidth / pixelRatio / nameCharFactor);
-    const nameWidth = fontSize * nameCharFactor * pixelRatio;
-    const nameHeight = fontSize * 1.2 * pixelRatio;
+      const nameCharFactor = text.length + letterSpacing * (text.length - 1);
+      const fontSize = Math.min(maxFontSize, maxContentWidth / pixelRatio / nameCharFactor);
+      const nameWidth = fontSize * nameCharFactor * pixelRatio;
+      const nameHeight = fontSize * 1.2 * pixelRatio;
 
-    const canvas = document.createElement('canvas');
-    // measureText only needs a context, not the final canvas size - resizing
-    // the canvas below would otherwise wipe out any font set before it.
-    const measureCtx = canvas.getContext('2d');
-    const { fontSize: subtitleFontSize, width: subtitleWidth } = fitSubtitleFont(
-      measureCtx,
-      subtitle,
-      subtitleFontFamily,
-      maxSubtitleFontSize,
-      maxContentWidth,
-      pixelRatio,
-    );
-    const subtitleHeight = subtitleFontSize * 1.6 * pixelRatio;
-
-    const width = Math.max(nameWidth, subtitleWidth);
-    const height = nameHeight + subtitleHeight;
-
-    canvas.width = width;
-    canvas.height = height;
-
-    const ctx = canvas.getContext('2d');
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    ctx.font = `${fontSize * pixelRatio}px ${fontFamily}`;
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(text, width / 2, nameHeight / 2);
-
-    ctx.font = `${subtitleFontSize * pixelRatio}px ${subtitleFontFamily}`;
-    ctx.fillStyle = subtitleColor;
-    ctx.fillText(subtitle, width / 2, nameHeight + subtitleHeight / 2);
-
-    const tex = new THREE.CanvasTexture(canvas);
-    tex.minFilter = THREE.LinearFilter;
-
-    // Seed the puff particles from the subtitle's own drawn pixels, so the
-    // dust cloud that scatters on scroll roughly traces the glyphs it came
-    // from rather than a generic rectangle. Scanned in canvas pixel space,
-    // then converted below to the same local plane coordinates the mesh
-    // itself uses (it's centered at the origin, so canvas center = world 0).
-    const subtitleRow = Math.round(nameHeight);
-    const subtitleImage = ctx.getImageData(0, subtitleRow, width, height - subtitleRow);
-    const subtitlePoints = scanGlyphPixels(subtitleImage, SUBTITLE_TARGET_PARTICLES);
-    const seeds = [];
-    const dirs = [];
-    const randoms = [];
-    for (let i = 0; i < subtitlePoints.length / 2; i++) {
-      const px = subtitlePoints[i * 2];
-      const py = subtitleRow + subtitlePoints[i * 2 + 1];
-      seeds.push((px - width / 2) / pixelRatio, (height / 2 - py) / pixelRatio, 0);
-      const angle = SUBTITLE_PUFF_ANGLE + (Math.random() - 0.5) * SUBTITLE_PUFF_ANGLE_SPREAD;
-      dirs.push(Math.cos(angle), Math.sin(angle));
-      randoms.push(Math.random());
-    }
-
-    // The replacement subtitle gets its own small canvas/texture/mesh - it
-    // doesn't need to share the combined one above, just to sit in the same
-    // slot (nameCssHeight below the title - see secondSubtitleY, which
-    // matches how the original subtitle sits within the combined canvas).
-    const { fontSize: secondSubtitleFontSize, width: secondSubtitleWidthPx } = fitSubtitleFont(
-      measureCtx,
-      secondSubtitle,
-      subtitleFontFamily,
-      maxSubtitleFontSize,
-      maxContentWidth,
-      pixelRatio,
-    );
-    const secondSubtitleHeightPx = secondSubtitleFontSize * 1.6 * pixelRatio;
-
-    const secondCanvas = document.createElement('canvas');
-    secondCanvas.width = secondSubtitleWidthPx;
-    secondCanvas.height = secondSubtitleHeightPx;
-    const secondCtx = secondCanvas.getContext('2d');
-    secondCtx.textAlign = 'center';
-    secondCtx.textBaseline = 'middle';
-    secondCtx.font = `${secondSubtitleFontSize * pixelRatio}px ${subtitleFontFamily}`;
-    secondCtx.fillStyle = subtitleColor;
-    secondCtx.fillText(secondSubtitle, secondSubtitleWidthPx / 2, secondSubtitleHeightPx / 2);
-
-    const secondTex = new THREE.CanvasTexture(secondCanvas);
-    secondTex.minFilter = THREE.LinearFilter;
-
-    // Seed the gather particles from the replacement text's own drawn
-    // pixels too - this time as the targets they converge onto, arriving
-    // from the mirror-image (up-left) direction of the original subtitle's
-    // departure.
-    const secondImage = secondCtx.getImageData(0, 0, secondCanvas.width, secondCanvas.height);
-    const secondPoints = scanGlyphPixels(secondImage, SUBTITLE_TARGET_PARTICLES);
-    const gSeeds = [];
-    const gDirs = [];
-    const gRandoms = [];
-    for (let i = 0; i < secondPoints.length / 2; i++) {
-      const px = secondPoints[i * 2];
-      const py = secondPoints[i * 2 + 1];
-      gSeeds.push(
-        (px - secondCanvas.width / 2) / pixelRatio,
-        (secondCanvas.height / 2 - py) / pixelRatio,
-        0,
+      const canvas = document.createElement('canvas');
+      // measureText only needs a context, not the final canvas size - resizing
+      // the canvas below would otherwise wipe out any font set before it.
+      const measureCtx = canvas.getContext('2d');
+      const { fontSize: subtitleFontSize, width: subtitleWidth } = fitSubtitleFont(
+        measureCtx,
+        subtitle,
+        subtitleFontFamily,
+        maxSubtitleFontSize,
+        maxContentWidth,
+        pixelRatio,
       );
-      const angle = SUBTITLE_GATHER_ANGLE + (Math.random() - 0.5) * SUBTITLE_PUFF_ANGLE_SPREAD;
-      gDirs.push(Math.cos(angle), Math.sin(angle));
-      gRandoms.push(Math.random());
-    }
+      const subtitleHeight = subtitleFontSize * 1.6 * pixelRatio;
 
-    return {
-      texture: tex,
-      planeWidth: width / pixelRatio,
-      planeHeight: height / pixelRatio,
-      subtitleVMax: 1 - nameHeight / height,
-      puffSeeds: new Float32Array(seeds),
-      puffDirs: new Float32Array(dirs),
-      puffRandoms: new Float32Array(randoms),
-      secondTexture: secondTex,
-      secondPlaneWidth: secondCanvas.width / pixelRatio,
-      secondPlaneHeight: secondCanvas.height / pixelRatio,
-      secondSubtitleY: -(nameHeight / pixelRatio) / 2,
-      gatherSeeds: new Float32Array(gSeeds),
-      gatherDirs: new Float32Array(gDirs),
-      gatherRandoms: new Float32Array(gRandoms),
-    };
-  }, [size.width, fontFamily, subtitleFontFamily]);
+      const width = Math.max(nameWidth, subtitleWidth);
+      const height = nameHeight + subtitleHeight;
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      ctx.font = `${fontSize * pixelRatio}px ${fontFamily}`;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(text, width / 2, nameHeight / 2);
+
+      ctx.font = `${subtitleFontSize * pixelRatio}px ${subtitleFontFamily}`;
+      ctx.fillStyle = subtitleColor;
+      ctx.fillText(subtitle, width / 2, nameHeight + subtitleHeight / 2);
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.minFilter = THREE.LinearFilter;
+
+      // Seed the puff particles from the subtitle's own drawn pixels, so the
+      // dust cloud that scatters on scroll roughly traces the glyphs it came
+      // from rather than a generic rectangle. Scanned in canvas pixel space,
+      // then converted below to the same local plane coordinates the mesh
+      // itself uses (it's centered at the origin, so canvas center = world 0).
+      const subtitleRow = Math.round(nameHeight);
+      const subtitleImage = ctx.getImageData(0, subtitleRow, width, height - subtitleRow);
+      const subtitlePoints = scanGlyphPixels(subtitleImage, SUBTITLE_TARGET_PARTICLES);
+      const seeds = [];
+      const dirs = [];
+      const randoms = [];
+      for (let i = 0; i < subtitlePoints.length / 2; i++) {
+        const px = subtitlePoints[i * 2];
+        const py = subtitleRow + subtitlePoints[i * 2 + 1];
+        seeds.push((px - width / 2) / pixelRatio, (height / 2 - py) / pixelRatio, 0);
+        const angle = SUBTITLE_PUFF_ANGLE + (Math.random() - 0.5) * SUBTITLE_PUFF_ANGLE_SPREAD;
+        dirs.push(Math.cos(angle), Math.sin(angle));
+        randoms.push(Math.random());
+      }
+
+      return {
+        texture: tex,
+        planeWidth: width / pixelRatio,
+        planeHeight: height / pixelRatio,
+        subtitleVMax: 1 - nameHeight / height,
+        puffSeeds: new Float32Array(seeds),
+        puffDirs: new Float32Array(dirs),
+        puffRandoms: new Float32Array(randoms),
+        // Every later subtitle sits in this same slot (nameCssHeight below
+        // the title), replacing the one before it in place.
+        secondSubtitleY: -(nameHeight / pixelRatio) / 2,
+      };
+    }, [size.width, fontFamily, subtitleFontFamily]);
 
   const uniforms = useMemo(
     () => ({
@@ -414,7 +549,6 @@ const TextReveal = forwardRef((_, ref) => {
     [texture, size.width, planeWidth, planeHeight, subtitleVMax],
   );
 
-  const puffMaterialRef = useRef();
   const puffUniforms = useMemo(
     () => ({
       uProgress: { value: 0 },
@@ -429,41 +563,16 @@ const TextReveal = forwardRef((_, ref) => {
     [gl, size.width, size.height],
   );
 
-  const secondMaterialRef = useRef();
-  const secondUniforms = useMemo(
-    () => ({
-      map: { value: secondTexture },
-      alpha: { value: 0.8 },
-      uReveal: { value: 0 },
-    }),
-    [secondTexture],
-  );
-
-  const gatherMaterialRef = useRef();
-  const gatherUniforms = useMemo(
-    () => ({
-      uProgress: { value: 0 },
-      // Same reasoning as puffUniforms.uDistance, mirrored: far enough that
-      // particles start off-frame to the upper-left.
-      uDistance: { value: Math.hypot(size.width, size.height) },
-      uPixelRatio: { value: gl.getPixelRatio() },
-      uSize: { value: 6.5 },
-      uMinSize: { value: 2.2 },
-    }),
-    [gl, size.width, size.height],
-  );
-
   useImperativeHandle(ref, () => ({
     updateProgress: (p) => {
       if (materialRef.current) {
         materialRef.current.uniforms.uProgress.value = p;
       }
     },
-    // Drives the subtitle's scroll-triggered dissolve: `textT` fades the
-    // subtitle glyphs out (quick - see TEXT_DISSOLVE_FRACTION), `travelT`
-    // separately drives the puff particles' flight and fade over the full
-    // outgoing half (see OUTGOING_FRACTION), so the dust keeps drifting
-    // off screen well after the text itself is gone.
+    // Drives the first subtitle's scroll-triggered dissolve: `textT` fades
+    // the glyphs out (quick), `travelT` separately drives the puff
+    // particles' flight and fade over the full outgoing beat, so the dust
+    // keeps drifting off screen well after the text itself is gone.
     updateDissolve: (textT, travelT) => {
       if (materialRef.current) {
         materialRef.current.uniforms.uSubtitleFade.value = textT;
@@ -472,19 +581,10 @@ const TextReveal = forwardRef((_, ref) => {
         puffMaterialRef.current.uniforms.uProgress.value = travelT;
       }
     },
-    // Drives the replacement subtitle's arrival, once the original has
-    // fully dissolved (see the gatherStart/gatherEnd window below, the
-    // incoming half): `t` is 0 (still scattered off-frame) to 1 (fully
-    // gathered and handed off to the crisp text). The gather particles
-    // fade in early then back out late as the crisp text takes over, so
-    // `t` alone drives both.
-    updateGather: (t) => {
-      if (gatherMaterialRef.current) {
-        gatherMaterialRef.current.uniforms.uProgress.value = t;
-      }
-      if (secondMaterialRef.current) {
-        secondMaterialRef.current.uniforms.uReveal.value = smoothstep(0.6, 1, t);
-      }
+    // Drives one later subtitle's own gather-in/dissolve-out - see
+    // SubtitleChapter.update for what each argument does.
+    updateChapter: (index, gatherT, textT, travelT) => {
+      chapterRefs.current[index]?.update(gatherT, textT, travelT);
     },
   }));
 
@@ -520,35 +620,20 @@ const TextReveal = forwardRef((_, ref) => {
         </points>
       )}
 
-      <mesh position={[0, secondSubtitleY, 0.1]} frustumCulled={false}>
-        <planeGeometry args={[secondPlaneWidth, secondPlaneHeight]} />
-        <rawShaderMaterial
-          ref={secondMaterialRef}
-          uniforms={secondUniforms}
-          vertexShader={textVertexShader}
-          fragmentShader={plainTextFragmentShader}
-          transparent
+      {SUBTITLE_CHAPTERS.map((chapterText, i) => (
+        <SubtitleChapter
+          key={chapterText}
+          ref={(el) => {
+            chapterRefs.current[i] = el;
+          }}
+          text={chapterText}
+          fontFamily={subtitleFontFamily}
+          size={size}
+          gl={gl}
+          y={secondSubtitleY}
+          hasOutgoing={i < SUBTITLE_CHAPTERS.length - 1}
         />
-      </mesh>
-
-      {gatherSeeds.length > 0 && (
-        <points position={[0, secondSubtitleY, 0.15]} frustumCulled={false}>
-          <bufferGeometry>
-            <bufferAttribute attach="attributes-position" args={[gatherSeeds, 3]} />
-            <bufferAttribute attach="attributes-aDir" args={[gatherDirs, 2]} />
-            <bufferAttribute attach="attributes-aRandom" args={[gatherRandoms, 1]} />
-          </bufferGeometry>
-          <rawShaderMaterial
-            ref={gatherMaterialRef}
-            uniforms={gatherUniforms}
-            vertexShader={gatherVertexShader}
-            fragmentShader={puffFragmentShader}
-            transparent
-            depthTest={false}
-            blending={THREE.AdditiveBlending}
-          />
-        </points>
-      )}
+      ))}
     </>
   );
 });
@@ -558,18 +643,19 @@ const TextReveal = forwardRef((_, ref) => {
 // decorative flourish and leaves the already-revealed text untouched.
 let hasPlayed = false;
 
-// The whole subtitle story (fade -> outgoing dust -> incoming dust -> crisp
-// replacement) is scaled to fit within the `storyEnd` prop - a fraction of
-// Universe's orbit scroll range, imported from universeTiming.js so this
-// can't drift out of lockstep with the camera's own arrival and the
-// captions' start, which both hand off at the same boundary. These
-// fractions are of `storyEnd` itself, not of the full 0-1 orbitProgress
-// range. The outgoing and incoming dust each get an equal half of
-// storyEnd, so the subtitle takes exactly as long to fall apart as its
-// replacement takes to arrive; the text fade is a quick sub-phase nested
-// inside the outgoing half, not a separate top-level one.
-const OUTGOING_FRACTION = 1 / 2;
-const TEXT_DISSOLVE_FRACTION = OUTGOING_FRACTION / 4;
+// The whole multi-subtitle story - the first subtitle's own dissolve, then
+// each later chapter's gather-in and (except the last) dissolve-out - is
+// scaled to fit within the `storyEnd` prop, a fraction of Universe's orbit
+// scroll range imported from universeTiming.js so this can't drift out of
+// lockstep with the camera's own arrival and the captions' start, which
+// both hand off at the same boundary. It's split into equal-width beats:
+// one for the first subtitle's dissolve, then one gather-in (and, unless
+// it's the last chapter, one dissolve-out) per entry in SUBTITLE_CHAPTERS -
+// so adding a chapter narrows every beat rather than pushing storyEnd (and
+// so the captions' start) later. Within an "outgoing" beat, the text fades
+// over just its first quarter while its dust keeps drifting for the whole
+// beat.
+const TEXT_FADE_RATIO = 1 / 4;
 
 const Scene = ({ orbitProgress = 0, storyEnd = SUBTITLE_STORY_END }) => {
   const { size, camera } = useThree();
@@ -671,24 +757,32 @@ const Scene = ({ orbitProgress = 0, storyEnd = SUBTITLE_STORY_END }) => {
     return () => tl.kill();
   }, [orbitProgress, playSweep]);
 
-  // Scatters the subtitle into puff particles as the user scrolls, and
-  // pulls it back together if they scroll back up - driven directly by
-  // orbitProgress rather than a one-shot animation, matching how the rest
-  // of Universe maps scroll position straight to visual state. Also
-  // re-applied on `size` changes, since TextReveal's material (and so its
-  // uSubtitleFade uniform) is rebuilt on resize - same reason the sweep
-  // reveal effect above re-applies `updateProgress` on `size` too.
+  // Steps the whole subtitle story - dissolve, then each chapter's
+  // gather-in/dissolve-out - through its equal-width beats as the user
+  // scrolls, and pulls it back together if they scroll back up - driven
+  // directly by orbitProgress rather than a one-shot animation, matching
+  // how the rest of Universe maps scroll position straight to visual
+  // state. Also re-applied on `size` changes, since TextReveal's
+  // materials are rebuilt on resize - same reason the sweep reveal effect
+  // above re-applies `updateProgress` on `size` too.
   useEffect(() => {
-    const textDissolveRange = storyEnd * TEXT_DISSOLVE_FRACTION;
-    const particleRange = storyEnd * OUTGOING_FRACTION;
-    const gatherStart = particleRange;
-    const gatherEnd = storyEnd;
+    const beatCount = 2 * SUBTITLE_CHAPTERS.length;
+    const beatWidth = storyEnd / beatCount;
+    const textFadeWidth = beatWidth * TEXT_FADE_RATIO;
+    const beatT = (k) => clamp01((orbitProgress - k * beatWidth) / beatWidth);
+    const textFadeT = (k) => clamp01((orbitProgress - k * beatWidth) / textFadeWidth);
 
-    const textT = clamp01(orbitProgress / textDissolveRange);
-    const travelT = clamp01(orbitProgress / particleRange);
-    const gatherT = clamp01((orbitProgress - gatherStart) / (gatherEnd - gatherStart));
-    textRef.current?.updateDissolve(textT, travelT);
-    textRef.current?.updateGather(gatherT);
+    textRef.current?.updateDissolve(textFadeT(0), beatT(0));
+
+    SUBTITLE_CHAPTERS.forEach((_, i) => {
+      const inBeat = 1 + 2 * i;
+      const hasOutgoing = i < SUBTITLE_CHAPTERS.length - 1;
+      const outBeat = inBeat + 1;
+      const gatherT = beatT(inBeat);
+      const textT = hasOutgoing ? textFadeT(outBeat) : 0;
+      const travelT = hasOutgoing ? beatT(outBeat) : 0;
+      textRef.current?.updateChapter(i, gatherT, textT, travelT);
+    });
   }, [orbitProgress, size, storyEnd]);
 
   return (
