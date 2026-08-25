@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Menu, X } from 'lucide-react';
+import useScrollIdle from '../hooks/useScrollIdle';
 import styles from './SceneNav.module.css';
 
 const SECTIONS = [
@@ -20,6 +21,11 @@ const SECTIONS = [
 export default function SceneNav({ activeSection, onNavigate, visible = true }) {
   const [isOpen, setIsOpen] = useState(false);
   const menuButtonRef = useRef(null);
+  // Desktop row only dims mid-scroll (not the mobile hamburger - see
+  // .navContent's CSS) so it competes less with whatever's animating
+  // underneath while the user is actively looking at scene content rather
+  // than the nav.
+  const { isIdle } = useScrollIdle(150);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -57,7 +63,11 @@ export default function SceneNav({ activeSection, onNavigate, visible = true }) 
       className={`${styles.nav}${visible ? ` ${styles['nav--visible']}` : ''}`}
       aria-label="Scene navigation"
     >
-      <div className={styles.row}>{items(styles.navItem)}</div>
+      <div
+        className={`${styles.navContent}${!isIdle ? ` ${styles['navContent--dimmed']}` : ''}`}
+      >
+        <div className={styles.row}>{items(styles.navItem)}</div>
+      </div>
 
       <button
         ref={menuButtonRef}

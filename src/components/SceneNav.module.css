@@ -32,6 +32,28 @@
   pointer-events: auto;
 }
 
+/* Wraps just .row (not .menuButton/.dropdown) so the desktop three-button
+   row can dim independently while scrolling - see SceneNav.jsx's
+   useScrollIdle call. A separate element (not another modifier on .nav
+   itself) specifically so this transition can run its own short duration,
+   independent of .nav's `transition: opacity 1.2s ease` above, which is
+   tuned for the one-time reveal-in fade and would feel laggy reused here. */
+.navContent {
+  transition: opacity 0.2s ease;
+}
+
+.navContent--dimmed {
+  opacity: 0.35;
+}
+
+/* Full opacity the instant the pointer is actually on/near the nav, even
+   mid-scroll - dimming shouldn't fight with someone actually about to use
+   it. */
+.navContent--dimmed:hover,
+.navContent--dimmed:focus-within {
+  opacity: 1;
+}
+
 .row {
   display: flex;
   align-items: center;
@@ -178,6 +200,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .nav,
+  .navContent,
   .navItem,
   .dropdown {
     transition-duration: 0.01ms;
