@@ -93,6 +93,15 @@
   margin-top: 1.5rem;
 }
 
+/* Hidden above the mobile breakpoint - .resumeRail carries the résumé
+   download there instead (see the media query below). Compound selector,
+   not just .resumeRowIcon alone: .railLink's own `display: flex` is
+   defined later in this file, so on equal specificity it would otherwise
+   win the cascade by source order and show this above the breakpoint too. */
+.railLink.resumeRowIcon {
+  display: none;
+}
+
 /* Vertical rail, pinned to the section's own right edge and vertically
    centered - `position: absolute` against .section (not `fixed` against
    the viewport), so it's part of this scene only, not a page-wide
@@ -218,24 +227,16 @@
 }
 
 @media (max-width: 700px) {
-  /* No room for a side rail on a narrow screen - drops to a horizontal row
-     anchored near the bottom of the scene instead of clinging to a
-     now-meaningless "edge". Positioned (not static-in-flow) so it sits low
-     on the page above .dateline with a fixed safe gap, rather than
-     directly under .content wherever that happens to end. */
+  /* The edge rail's own fixed-position fallback used to drop to a
+     horizontal pill pinned near the bottom of the scene - it collided
+     with ScrollIdleHint, which occupies that same fixed slot. Hidden here
+     in favor of .resumeRowIcon, which folds the download into the
+     already in-flow .contactRow instead. */
   .resumeRail {
-    bottom: 4.5rem;
-    right: auto;
-    left: 50%;
-    top: auto;
-    width: auto;
-    transform: translateX(-50%);
-    flex-direction: row;
+    display: none;
   }
 
-  /* The vertical rotation only makes sense pinned to a side edge - back to
-     upright for the horizontal bottom row below. */
-  .resumeLink {
-    transform: none;
+  .railLink.resumeRowIcon {
+    display: flex;
   }
 }

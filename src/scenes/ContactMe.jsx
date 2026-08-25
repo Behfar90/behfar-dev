@@ -82,13 +82,29 @@ export default function ContactMe() {
           >
             <LinkedinIcon size={20} />
           </a>
+          {/* Mobile-only stand-in for .resumeRail below (hidden at this
+              breakpoint - see its media query) - that rail's own mobile
+              fallback used to drop to a horizontal pill pinned near the
+              bottom of the scene, which collided with ScrollIdleHint's
+              fixed position there. Folding it into this row instead keeps
+              it in normal flow, nowhere near that fixed-position hint. */}
+          <a
+            className={`${styles.railLink} ${styles.resumeRowIcon}`}
+            href="/resume.pdf"
+            download
+            title="Download Résumé"
+            aria-label="Download Résumé"
+          >
+            <FileDown size={20} strokeWidth={1.5} />
+          </a>
         </div>
       </div>
 
       {/* A separate, secondary action from "get in touch" above - kept off
           to the side in the old social rail's slot (icon-only, same as the
           rail items it replaced there) rather than competing with the
-          actual contact CTAs for the centered column's attention. */}
+          actual contact CTAs for the centered column's attention. Hidden
+          on mobile (see media query) in favor of .resumeRowIcon above. */}
       <div className={styles.resumeRail}>
         <a className={styles.resumeLink} href="/resume.pdf" download>
           <FileDown size={18} strokeWidth={1.5} />
