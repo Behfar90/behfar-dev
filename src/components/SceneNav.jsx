@@ -12,7 +12,12 @@ const SECTIONS = [
 // once - a CSS media query decides which is visible, so there's a single
 // source of truth for the click handlers rather than duplicating them per
 // breakpoint. `activeSection` drives the "you are here" styling in both.
-export default function SceneNav({ activeSection, onNavigate }) {
+// `visible` (default true, so the nav still works standalone without a
+// parent wiring it up) fades the whole thing in rather than having it
+// mounted, fully opaque, from the very first frame - App passes its
+// `showOverlays` flag so the nav appears alongside the rest of Universe's
+// reveal, once the stars/galaxies have actually had a moment to ignite.
+export default function SceneNav({ activeSection, onNavigate, visible = true }) {
   const [isOpen, setIsOpen] = useState(false);
   const menuButtonRef = useRef(null);
 
@@ -48,7 +53,10 @@ export default function SceneNav({ activeSection, onNavigate }) {
     ));
 
   return (
-    <nav className={styles.nav} aria-label="Scene navigation">
+    <nav
+      className={`${styles.nav}${visible ? ` ${styles['nav--visible']}` : ''}`}
+      aria-label="Scene navigation"
+    >
       <div className={styles.row}>{items(styles.navItem)}</div>
 
       <button

@@ -24,6 +24,55 @@
       gtag('config', 'G-KBC5VR1B2F');
     </script>
     <meta charset="utf-8" />
+    <!-- Starts fetching these the instant the browser sees this <head>,
+         well before the app's CSS/JS bundle is even fetched - by the time
+         any text actually needs to render in these fonts, they're already
+         loaded, so @font-face's `swap` below rarely if ever has to fall
+         back and visibly swap later. Audiowide in particular is on screen
+         (SceneNav) from the very first frame, so this is what actually
+         prevents that flash - font-display alone can't, since it only
+         controls what happens *after* a font starts loading, not when that
+         starts. Must exactly match the @font-face src hrefs below - the
+         browser only treats a preload as satisfying a later font request
+         if the URLs match byte for byte. -->
+    <link
+      rel="preload"
+      href="%PUBLIC_URL%/fonts/Audiowide-Regular.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="%PUBLIC_URL%/fonts/Monoton-Regular.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin="anonymous"
+    />
+    <!-- Declared here rather than in src/index.css on purpose: this file is
+         copied as-is (only %PUBLIC_URL% gets substituted), while anything
+         src/index.css references via url() gets pulled into webpack's
+         asset pipeline and re-emitted under a content-hashed
+         static/media/ filename - which would silently stop matching the
+         preload hrefs above (those can only point at this stable,
+         unprocessed public/ path), making the preload pointless. -->
+    <style>
+      @font-face {
+        font-family: 'Monoton';
+        src: url('%PUBLIC_URL%/fonts/Monoton-Regular.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: 'Audiowide';
+        src: url('%PUBLIC_URL%/fonts/Audiowide-Regular.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+    </style>
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />

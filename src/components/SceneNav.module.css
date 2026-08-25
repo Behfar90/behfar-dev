@@ -15,6 +15,18 @@
     'Segoe UI',
     'Roboto',
     sans-serif;
+  /* Mounted from the start but invisible/inert until `visible` - fades in
+     alongside the rest of Universe's reveal (see App.jsx's showOverlays)
+     rather than sitting there, fully opaque, before the stars/galaxies
+     have had their own moment to ignite. */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.2s ease;
+}
+
+.nav--visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .row {
@@ -22,11 +34,6 @@
   align-items: center;
   gap: 0.25rem;
   padding: 0.4rem;
-  border-radius: 999px;
-  background: rgba(8, 12, 22, 0.85);
-  box-shadow: 0 0 0 1px rgba(210, 225, 255, 0.15);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 .navItem {
@@ -34,11 +41,14 @@
   border: none;
   border-radius: 999px;
   background: transparent;
-  color: rgba(230, 238, 255, 0.65);
+  color: rgba(230, 238, 255, 0.75);
   font: inherit;
   font-size: 0.75rem;
   letter-spacing: 0.04em;
   cursor: pointer;
+  text-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.85),
+    0 0 10px rgba(0, 0, 0, 0.6);
   transition:
     color 0.2s ease,
     background 0.2s ease;
@@ -54,15 +64,20 @@
    selectors (specificity 0,2,0), higher than .navItem--active's one (0,1,0),
    so without this the "you are here" gold would silently lose to the
    generic focus color the instant a user clicks or tabs onto the active
-   item - exactly when they're most likely to be looking right at it. */
+   item - exactly when they're most likely to be looking right at it. No
+   background pill (the nav has none to match) - the gold color plus
+   underline alone carry "you are here" against any scene backdrop. */
 .navItem--active,
 .navItem--active:hover,
 .navItem--active:focus-visible {
   color: #eeba7b;
-  background: rgba(238, 186, 123, 0.12);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
-/* Hidden on desktop - only the mobile dropdown trigger below uses this. */
+/* Hidden on desktop - only the mobile dropdown trigger below uses this. No
+   background - just the icon, drop-shadowed the same way .navItem's text
+   is, for legibility against any scene backdrop. */
 .menuButton {
   display: none;
   align-items: center;
@@ -71,12 +86,10 @@
   height: 2.5rem;
   border: none;
   border-radius: 50%;
-  background: rgba(8, 12, 22, 0.85);
-  box-shadow: 0 0 0 1px rgba(210, 225, 255, 0.15);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: transparent;
   color: rgba(230, 238, 255, 0.85);
   cursor: pointer;
+  filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 10px rgba(0, 0, 0, 0.6));
 }
 
 .menuButton:hover,
@@ -155,6 +168,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .nav,
   .navItem,
   .dropdown {
     transition-duration: 0.01ms;

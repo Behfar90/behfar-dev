@@ -1,18 +1,5 @@
-@font-face {
-  font-family: 'Monoton';
-  src: url('../public/fonts/Monoton-Regular.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Audiowide';
-  src: url('../public/fonts/Audiowide-Regular.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+/* The Monoton/Audiowide @font-face rules live in public/index.html, not
+   here - see that file's <style> block for why. */
 
 /* Reserves the scrollbar's track permanently, whether or not it's actually
    showing at a given moment (e.g. while ProjectLens locks body scroll via

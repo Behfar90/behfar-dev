@@ -17,6 +17,17 @@ const OVERLAY_REVEAL_DELAY_MS = 1500;
 
 function App() {
   const [showOverlays, setShowOverlays] = useState(false);
+  // Gates SceneNav's own reveal alongside showOverlays below - preload +
+  // font-display: swap (see public/index.html) makes a wrong-font flash on
+  // SceneNav very unlikely, but isn't a hard guarantee (preload is a
+  // priority hint, not a promise - a slow enough connection can still lose
+  // the race against first paint). This is the actual guarantee: SceneNav
+  // simply doesn't render until Audiowide is confirmed loaded, so there's
+  // no fallback-font frame for it to ever paint in the first place. Starts
+  // `true` if the browser doesn't support the Font Loading API at all
+  // (missing document.fonts) - degrades to the old CSS-only swap behavior
+  // rather than never showing the nav.
+  const [audiowideReady, setAudiowideReady] = useState(!('fonts' in document));
   const {
     universeWrapperRef,
     projectsWrapperRef,
@@ -45,7 +56,14 @@ function App() {
   // them more time to be ready before that text actually needs them.
   useEffect(() => {
     document.fonts.load('1em Monoton').catch(() => {});
-    document.fonts.load('1em Audiowide').catch(() => {});
+    if (!('fonts' in document)) return;
+    document.fonts
+      .load('1em Audiowide')
+      .catch(() => {})
+      // Reveal SceneNav either way - a font that failed to load isn't
+      // going to start loading by waiting longer, so there's nothing left
+      // to gate on; the CSS fallback stack takes over as normal.
+      .finally(() => setAudiowideReady(true));
   }, []);
 
   useEffect(() => {
@@ -55,7 +73,11 @@ function App() {
 
   return (
     <div className={styles.app}>
-      <SceneNav activeSection={activeSection} onNavigate={navigateTo} />
+      <SceneNav
+        visible={showOverlays && audiowideReady}
+        activeSection={activeSection}
+        onNavigate={navigateTo}
+      />
 
       <Universe
         wrapperRef={universeWrapperRef}
