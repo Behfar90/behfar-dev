@@ -22,3 +22,6 @@ how_to.md
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Claude Code local settings (session-local, machine-specific)
+.claude/settings.local.json
