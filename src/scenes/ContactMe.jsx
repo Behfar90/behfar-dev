@@ -39,53 +39,60 @@ export default function ContactMe() {
         <h2 className={styles.heading}>Get In Touch</h2>
         <p className={styles.text}>Have a project in mind or just want to say hi?</p>
 
+        {/* Moved in from the old .socialRail - these are the actual "get in
+            touch" actions, so they belong directly under the heading/text
+            that invites them, not the résumé download (see .resumeRail
+            below). Icon-only (labels would crowd this narrow a row),
+            title/aria-label carry the same info a visible label would. */}
+        <div className={styles.contactRow}>
+          <div className={styles.railItem}>
+            <button
+              type="button"
+              className={`${styles.railLink}${copied ? ` ${styles.copied}` : ''}`}
+              onClick={handleCopyEmail}
+              title={EMAIL}
+              aria-label={copied ? 'Email address copied' : `Copy email address ${EMAIL}`}
+            >
+              <Mail size={20} strokeWidth={1.5} />
+            </button>
+            <span
+              className={`${styles.copiedLabel}${copied ? ` ${styles['copiedLabel--visible']}` : ''}`}
+              aria-hidden="true"
+            >
+              Copied!
+            </span>
+          </div>
+          <a
+            className={styles.railLink}
+            href="https://github.com/behfar90"
+            target="_blank"
+            rel="noreferrer"
+            title="GitHub"
+            aria-label="GitHub"
+          >
+            <GithubIcon size={20} />
+          </a>
+          <a
+            className={styles.railLink}
+            href="https://www.linkedin.com/in/behfarbehzad"
+            target="_blank"
+            rel="noreferrer"
+            title="LinkedIn"
+            aria-label="LinkedIn"
+          >
+            <LinkedinIcon size={20} />
+          </a>
+        </div>
+      </div>
+
+      {/* A separate, secondary action from "get in touch" above - kept off
+          to the side in the old social rail's slot (icon-only, same as the
+          rail items it replaced there) rather than competing with the
+          actual contact CTAs for the centered column's attention. */}
+      <div className={styles.resumeRail}>
         <a className={styles.resumeLink} href="/resume.pdf" download>
           <FileDown size={18} strokeWidth={1.5} />
           Download Résumé
-        </a>
-      </div>
-
-      {/* Option 4: social links pulled out of the text flow into a slim
-          rail along the edge - icon-only (labels would crowd this narrow a
-          space), title/aria-label carry the same info a visible label
-          would. */}
-      <div className={styles.socialRail}>
-        <div className={styles.railItem}>
-          <button
-            type="button"
-            className={`${styles.railLink}${copied ? ` ${styles.copied}` : ''}`}
-            onClick={handleCopyEmail}
-            title={EMAIL}
-            aria-label={copied ? 'Email address copied' : `Copy email address ${EMAIL}`}
-          >
-            <Mail size={20} strokeWidth={1.5} />
-          </button>
-          <span
-            className={`${styles.copiedLabel}${copied ? ` ${styles['copiedLabel--visible']}` : ''}`}
-            aria-hidden="true"
-          >
-            Copied!
-          </span>
-        </div>
-        <a
-          className={styles.railLink}
-          href="https://github.com/behfar90"
-          target="_blank"
-          rel="noreferrer"
-          title="GitHub"
-          aria-label="GitHub"
-        >
-          <GithubIcon size={20} />
-        </a>
-        <a
-          className={styles.railLink}
-          href="https://www.linkedin.com/in/behfarbehzad"
-          target="_blank"
-          rel="noreferrer"
-          title="LinkedIn"
-          aria-label="LinkedIn"
-        >
-          <LinkedinIcon size={20} />
         </a>
       </div>
 

@@ -1,7 +1,9 @@
 /* Option 2 + 4 combined: centered stack with the portrait as a dim
-   full-bleed backdrop (option 2), Email/GitHub/LinkedIn pulled out of the
-   text flow into .socialRail - a slim rail along the right edge (option 4,
-   kept exactly as it was, including its mobile fallback below). */
+   full-bleed backdrop (option 2); Email/GitHub/LinkedIn live inline in
+   .content as .contactRow (the actual "get in touch" actions, directly
+   under the heading/text inviting them), while the résumé download - a
+   separate, secondary action - keeps the slim edge-rail treatment (option
+   4) in .resumeRail, including its mobile fallback below. */
 .section {
   position: relative;
   min-height: 100vh;
@@ -11,11 +13,11 @@
   background: #000;
   color: #fff;
   padding: 2rem;
-  /* Only matters below 700px, where .socialRail switches from
+  /* Only matters below 700px, where .resumeRail switches from
      position: absolute to a normal in-flow flex item (see that media
      query) - without wrap it'd squeeze onto the same row as .content
      instead of dropping to its own line beneath it. No effect above
-     700px, where .socialRail stays out of flow and .content is the only
+     700px, where .resumeRail stays out of flow and .content is the only
      flex item. */
   flex-wrap: wrap;
 }
@@ -79,11 +81,49 @@
   opacity: 0.8;
 }
 
+/* Horizontal row, inline in .content under the heading/text - these are
+   the actual "get in touch" actions, so they sit directly beneath the
+   copy that invites them rather than off in the edge rail. */
+.contactRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+/* Vertical rail, pinned to the section's own right edge and vertically
+   centered - `position: absolute` against .section (not `fixed` against
+   the viewport), so it's part of this scene only, not a page-wide
+   persistent sidebar. Holds only the résumé download now - a secondary
+   action kept out of the primary contact column instead of competing
+   with it. `width` is deliberately set to .resumeLink's *rotated* footprint
+   (its own pre-rotation height, not width) rather than left to shrink-to-fit:
+   `right`/`transform: translateY(-50%)` below position this box's own
+   (unrotated) layout edges - a transform is purely visual and doesn't
+   change what CSS positioning sees - so if this box were left as wide as
+   the pill's unrotated content, the pill would rotate around a center
+   point 1.5rem *plus half that width* from the edge, landing the rotated
+   pill visibly adrift of the edge instead of flush against it. Narrowing
+   the box to the rotated width first, then letting align-items: center
+   center the (now much wider than its box) pill on that same axis, moves
+   the anchor point to where the rotated pill's edge actually needs to be. */
+.resumeRail {
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 2.5rem;
+  gap: 1.5rem;
+}
+
 .resumeLink {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 1.5rem;
   padding: 0.55rem 1.1rem;
   border: 1px solid rgba(238, 186, 123, 0.4);
   border-radius: 999px;
@@ -91,6 +131,10 @@
   font-size: 0.9rem;
   letter-spacing: 0.03em;
   text-decoration: none;
+  white-space: nowrap;
+  /* Rotated to stand vertically along the rail - see .resumeRail's `width`
+     comment for why the rail itself has to be narrowed to match. */
+  transform: rotate(90deg);
   transition:
     border-color 0.2s ease,
     background 0.2s ease;
@@ -100,21 +144,6 @@
 .resumeLink:focus-visible {
   border-color: rgba(238, 186, 123, 0.85);
   background: rgba(238, 186, 123, 0.08);
-}
-
-/* Vertical rail, pinned to the section's own right edge and vertically
-   centered - `position: absolute` against .section (not `fixed` against
-   the viewport), so it's part of this scene only, not a page-wide
-   persistent sidebar. */
-.socialRail {
-  position: absolute;
-  right: 1.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
 }
 
 .railLink {
@@ -155,12 +184,14 @@
    title/aria-label remained, which sighted mouse/touch users won't see).
    This restores it as a small floating label instead of adding a
    permanently-visible text row that would break the rail's icon-only
-   rhythm. */
+   rhythm. Centered above the icon (not left-of-icon) since .contactRow is
+   a horizontal row at every width - left-of-icon would get clipped by the
+   screen edge or overlap the GitHub icon next to it. */
 .copiedLabel {
   position: absolute;
-  right: calc(100% + 0.75rem);
-  top: 50%;
-  transform: translateY(-50%) translateX(4px);
+  left: 50%;
+  bottom: calc(100% + 0.5rem);
+  transform: translateX(-50%) translateY(4px);
   margin: 0;
   white-space: nowrap;
   color: #eeba7b;
@@ -182,7 +213,7 @@
 
 .copiedLabel--visible {
   opacity: 1;
-  transform: translateY(-50%) translateX(0);
+  transform: translateX(-50%) translateY(0);
 }
 
 @media (max-width: 700px) {
@@ -191,27 +222,19 @@
      now-meaningless "edge". Positioned (not static-in-flow) so it sits low
      on the page above .dateline with a fixed safe gap, rather than
      directly under .content wherever that happens to end. */
-  .socialRail {
+  .resumeRail {
     bottom: 4.5rem;
     right: auto;
     left: 50%;
     top: auto;
+    width: auto;
     transform: translateX(-50%);
     flex-direction: row;
   }
 
-  /* Left-of-icon placement only works in a vertical rail with open space
-     to the left - in the horizontal row it'd get clipped by the screen
-     edge or overlap the GitHub/LinkedIn icons, so flip it above instead. */
-  .copiedLabel {
-    right: auto;
-    left: 50%;
-    top: auto;
-    bottom: calc(100% + 0.5rem);
-    transform: translateX(-50%) translateY(4px);
-  }
-
-  .copiedLabel--visible {
-    transform: translateX(-50%) translateY(0);
+  /* The vertical rotation only makes sense pinned to a side edge - back to
+     upright for the horizontal bottom row below. */
+  .resumeLink {
+    transform: none;
   }
 }
