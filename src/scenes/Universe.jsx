@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { createStars, updateStars } from '../utils/scenes/stars';
 import { createGalaxies, updateOriginGalaxyFade } from '../utils/scenes/galaxies';
 import { createNebulas, updateNebulas } from '../utils/scenes/nebulas';
+import { createSmoke, updateSmoke } from '../utils/scenes/smoke';
 import { SUBTITLE_STORY_END, PLUNGE_START } from '../utils/scenes/universeTiming';
 import { lerp, smoothstep, clamp01 } from '../utils/math';
 import ShootingStarIntro from '../components/ShootingStarIntro';
@@ -44,9 +45,10 @@ const PLUNGE_RADIUS_SCALE = 0.08;
 // Cubic ease-in, not smoothstep's symmetric ease-in-*out* - the plunge
 // should keep accelerating all the way to riseEnd, not decelerate
 // approaching it. Shared between orbitTarget's own radius collapse below
-// and tick()'s separately-computed plungeT (drives the galaxy fade) so the
-// camera and the dissolving galaxy accelerate in lockstep instead of
-// drifting apart on two different curves.
+// and tick()'s separately-computed plungeT (galaxy fade, smoke opacity) so
+// the whole Act II sequence - camera, dissolving galaxy, engulfing smoke -
+// accelerates in lockstep instead of drifting apart on two different
+// curves.
 const easeInCubic = (t) => t * t * t;
 
 // Placeholder copy - just trying out the crossfade-on-orbit-progress idea for
@@ -85,6 +87,7 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
     const stars = createStars(scene);
     const { originGalaxy } = createGalaxies(scene);
     const nebulas = createNebulas(scene);
+    const smoke = createSmoke(scene);
 
     const sizes = { width: window.innerWidth, height: window.innerHeight };
 
@@ -179,6 +182,33 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
         clamp01((orbitProgressRef.current - PLUNGE_START) / (1 - PLUNGE_START)),
       );
       updateOriginGalaxyFade(originGalaxy, plungeT);
+
+      // orbitProgress (and so plungeT above) is pinned at exactly 1 for the
+      // entire "fall" phase - the fixed one-viewport-height of scroll
+      // position: sticky takes to slide this canvas fully away, *after*
+      // orbitProgress has already maxed out (see useScrollJourney.js's
+      // formula, which only measures against scrollableDistance, never
+      // this trailing distance) - so it can't by itself express "we're now
+      // partway through the fall." Computed directly here, the same way
+      // PlungeAtmosphere.jsx computes its own landmarks from this same
+      // wrapperRef, rather than reading a value back from that component
+      // (a getComputedStyle call every frame) - a few lines of arithmetic
+      // is cheaper than a new kind of cross-component coupling.
+      let fallT = 0;
+      const wrapperEl = wrapperRef.current;
+      if (wrapperEl) {
+        const fallEndY = wrapperEl.offsetTop + wrapperEl.offsetHeight;
+        const riseEndY = fallEndY - window.innerHeight;
+        fallT = clamp01((window.scrollY - riseEndY) / (fallEndY - riseEndY));
+      }
+      // One continuous expression, no branching at the rise/fall seam:
+      // fallT is 0 for the entire rise (reduces to plungeT, the fade-in),
+      // and plungeT is pinned at 1 for the entire fall (reduces to the
+      // fade-out curve). Resolved by 30% through the fall, matching
+      // PlungeAtmosphere.jsx's blackout ramp-up window exactly - a clean
+      // handoff from smoke to solid blackout, not a race between the two.
+      const smokeOpacity = plungeT * (1 - smoothstep(0, 0.3, fallT));
+      updateSmoke(smoke, elapsedTime, smokeOpacity);
 
       const target = orbitTarget(orbitProgressRef.current);
       currentRadius += (target.radius - currentRadius) * ORBIT_EASE;
