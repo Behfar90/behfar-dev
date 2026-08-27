@@ -1,23 +1,7 @@
 import React, { useId } from 'react';
 import styles from './MoonPhase.module.css';
 
-/**
- * MoonPhase Component
- *
- * SVG masking math and noise filters adapted from:
- * - https://stackoverflow.com/questions/16664244/draw-a-crescent-moon-using-svg-in-html
- * - https://css-tricks.com/adding-shadows-to-svg-icons-with-css-and-svg-filters/
-
-/**
- * MoonPhase Component
- * @param {number} phase - A value from 0 (New Moon) to 1.0 (Next New Moon). 0.5 is Full Moon.
- * @param {number|string} size - The width and height of the SVG.
- * @param {string} className - Optional extra class (e.g. positioning styles from a parent scene).
- * @param {object} moonRef - Optional ref applied to the root <svg>, so a
- * parent (Projects) can watch it with an IntersectionObserver.
- */
 export default function MoonPhase({ phase = 0.5, size = 150, className, moonRef }) {
-  // Generate unique IDs for SVG filters to allow multiple moons on one page
   const id = useId();
   const noiseId = `${id}-noise`;
   const shadowId = `${id}-shadow`;
@@ -27,12 +11,9 @@ export default function MoonPhase({ phase = 0.5, size = 150, className, moonRef 
   let maskContent = null;
   let scaleX = 1;
 
-  // Calculate the mask shapes based on the current phase
   if (phase === 0.5) {
-    // Full moon - fully visible
     maskContent = <rect x="-6" y="-6" width="12" height="12" fill="white" />;
   } else if (phase <= 0.25 || phase >= 0.75) {
-    // Crescent Moon
     const phasex = phase <= 0.25 ? phase : 1 - phase;
     const cx = (18 * phasex) / (1.01 - 4 * phasex);
     const r = cx + 6 / (Math.pow(cx, 1.25) / 6 + 1.2);
@@ -45,7 +26,6 @@ export default function MoonPhase({ phase = 0.5, size = 150, className, moonRef 
       </>
     );
   } else {
-    // Gibbous Moon
     const phasex = phase <= 0.5 ? 0.5 - phase : phase - 0.5;
     const cx = (18 * phasex) / (1.01 - 4 * phasex);
     const r = cx + 6 / (Math.pow(cx, 1.25) / 6 + 1);

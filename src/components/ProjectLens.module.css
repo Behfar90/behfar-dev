@@ -1,14 +1,3 @@
-/* Full-viewport dimmer behind the lens - `backdrop-filter` blurs whatever
-   scene is live underneath (no snapshotting needed), `background` is the
-   dark tint on top of that blur. Click-outside-to-close: the overlay itself
-   carries the onClose handler, the lens below stops that click from
-   bubbling back up to it.
-   Stays mounted at opacity 0/pointer-events: none while closed rather than
-   unmounting instantly, so ProjectLens can hold the last project's content
-   through the closing animation (see its onTransitionEnd) - and that
-   transition's duration must match .lens's transform below, since
-   onTransitionEnd only listens for *this* element's own opacity transition
-   to know the whole close animation (backdrop fade + lens shrink) is done. */
 .overlay {
   position: fixed;
   inset: 0;
@@ -16,11 +5,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Darker and a touch more blurred than before - deliberately so, now that
-     .lens's own interior is brighter: without a clear dark/light split
-     between "the dimmed sky" and "the lit view", the lens doesn't read as
-     the focused thing you're looking through, it just reads as a slightly
-     different patch of the same dark scene. */
   background: rgba(0, 0, 6, 0.88);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -34,25 +18,6 @@
   pointer-events: auto;
 }
 
-/* A true circle (equal width/height) that scales with the smaller viewport
-   dimension via vmin, capped at 640px so it doesn't balloon on ultrawide/4K
-   screens. The layered box-shadows build a metal eyepiece ring - two hard
-   rings plus a soft outer glow - without needing border-image gradients,
-   which don't play well with border-radius: 50%.
-   The interior gradient is deliberately brighter than the dimmed, blurred
-   sky behind the overlay (see .overlay's own comment) - a lighter, richer
-   navy rather than the near-black it used to share with the backdrop, so
-   the lens itself reads as the lit, focused view rather than just a darker
-   patch of the same night sky. The glow ring picks up the same blue so the
-   light appears to originate from inside the lens, not painted onto its rim.
-   The iris itself: closed, .lens sits scaled down and translated to
-   --origin-x/-y (the clicked constellation's viewport position, set inline
-   by ProjectLens) instead of its natural centered flex position; .open
-   animates that back to identity (translate(0,0) scale(1)), i.e. centered
-   and full-size. `50vw`/`50vh` fallbacks mean it degrades to a plain
-   grow-from-center if origin was never set. Closing reverses the same
-   transform, so the lens shrinks back toward the constellation it opened
-   from rather than just fading in place. */
 .lens {
   position: relative;
   width: min(70vmin, 640px);
@@ -74,12 +39,6 @@
     0 0 110px rgba(130, 170, 255, 0.28);
   transform: translate(calc(var(--origin-x, 50vw) - 50vw), calc(var(--origin-y, 50vh) - 50vh))
     scale(0.1);
-  /* Deliberately NOT the more common easeOutExpo-ish (0.22,1,0.36,1) curve -
-     that one front-loads ~58% of the visual motion into the first 16% of
-     the duration, which at 400ms is fast enough that the eye reads it as
-     "appears near center" rather than "travels from the click point". This
-     easeOutSine-ish curve spreads it much more evenly (~25% visual progress
-     at 16% time) so the grow-from-origin motion is actually visible. */
   transition: transform 0.4s cubic-bezier(0.61, 1, 0.88, 1);
 }
 
@@ -87,9 +46,6 @@
   transform: translate(0, 0) scale(1);
 }
 
-/* Rangefinder-style reticle - faint crosshair ticks plus a hairline ring
-   just inside the frame. Decorative only (aria-hidden in the JSX), so a
-   plain SVG with no interaction is fine. */
 .reticle {
   position: absolute;
   inset: 0;
@@ -105,13 +61,6 @@
   stroke: rgba(200, 220, 255, 0.16);
 }
 
-/* The clicked constellation's own star pattern (ConstellationGlyph, shared
-   with Constellations.jsx - see that component), rendered as a static
-   background layer behind .content. `revealed` (passed to the glyph) forces
-   its normally hover-only lines/stars into their "shown" state, since
-   there's no hover here. Padded well inside the circle (unlike .reticle,
-   which goes edge to edge) so the shape doesn't compete with the frame's
-   own ring, and dimmed so .content's text stays the clear focal point. */
 .constellationBackdrop {
   position: absolute;
   inset: 14%;
@@ -125,9 +74,6 @@
   position: absolute;
   top: -6px;
   right: -6px;
-  /* Without this, .content (transparent but still hit-testable, and later
-     in DOM order so it paints/stacks above this by default) would swallow
-     clicks in the region where its inset:0 box overlaps this button. */
   z-index: 2;
   display: flex;
   align-items: center;
@@ -151,15 +97,6 @@
   box-shadow: 0 0 0 2px rgba(210, 225, 255, 0.4);
 }
 
-/* The "porthole" - percentage padding is always resolved against the
-   container's width (even top/bottom), which on a perfect circle keeps
-   text clear of the curve on every side without needing to shape text to
-   the radius itself. Scrolls internally if content runs long, since the
-   circle's own size is capped and can't grow to fit.
-   The blur is a "focus pull" - content starts soft and sharpens as the
-   lens finishes growing, mimicking an actual telescope settling into
-   focus. Scale isn't needed here on top of it: .lens's own transform
-   already scales this along with everything else inside it. */
 .content {
   position: absolute;
   inset: 0;
@@ -236,16 +173,6 @@
   text-underline-offset: 3px;
 }
 
-/* Drops the "travel from the click point" motion entirely - .lens stays at
-   its identity transform in both the closed and open state, so opening/
-   closing reads as a plain, near-instant fade (via .overlay's own opacity
-   transition, also shortened here) instead of anything growing or moving
-   across the screen. Durations use 0.01ms rather than 0s - some browsers
-   don't reliably fire transitionend for a genuinely 0s transition, and
-   ProjectLens's close logic (clearing displayedProject, returning focus)
-   depends on that event firing. Selectors are repeated at matching
-   specificity (rather than a single lower-specificity override) so this
-   actually wins over .overlay.open .lens/.content further up the file. */
 @media (prefers-reduced-motion: reduce) {
   .overlay {
     transition-duration: 0.01ms;

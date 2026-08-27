@@ -4,21 +4,11 @@ import * as THREE from 'three';
 import styles from './CaptionGravity.module.css';
 
 const CAMERA_Z = 2000;
-// Matches Universe's old `bottom: 12%` caption anchor.
 const BOTTOM_FRACTION = 0.12;
 const COLOR = '#eeba7b';
 
-// Within a caption's own scroll segment (localT 0-1): below HOLD_START the
-// letters are still flying in from center, above HOLD_END they're being
-// sucked back into center, and in between (a genuine 35%-wide window, not
-// the instant HOLD_START === HOLD_END used to leave) the caption just sits
-// still and readable - long enough to read it without needing to stop
-// scrolling.
 const HOLD_START = 0.325;
 const HOLD_END = 0.675;
-// Fraction of a fly-in/out phase a single letter's own motion takes - less
-// than 1 so letters' individual windows overlap rather than all moving in
-// lockstep.
 const PER_LETTER_SPAN = 0.5;
 const SPIN_TURNS = 3;
 
@@ -30,16 +20,11 @@ function easeOutQuad(t) {
   return 1 - (1 - t) * (1 - t);
 }
 
-// Maps a phase's overall progress `p` (0-1) to a letter's own 0-1 progress,
-// offset by its random `stagger` so letters don't move in left-to-right
-// order or in lockstep.
 function letterOwnT(p, stagger) {
   const start = stagger * (1 - PER_LETTER_SPAN);
   return Math.min(1, Math.max(0, (p - start) / PER_LETTER_SPAN));
 }
 
-// One caption's letters, laid out left-to-right like normal text, then
-// pulled toward (or released from) the screen's center based on `localT`.
 function CaptionLetters({ text, localT, fontFamily, size }) {
   const groupRef = useRef();
   const pixelRatio = window.devicePixelRatio || 1;
@@ -92,7 +77,6 @@ function CaptionLetters({ text, localT, fontFamily, size }) {
 
       const homeX = glyph.x - totalWidth / 2;
 
-      // 0 = sitting at its reading position, 1 = collapsed into the center.
       let collapse = 0;
       if (localT < HOLD_START) {
         const p = HOLD_START > 0 ? localT / HOLD_START : 1;
@@ -127,8 +111,6 @@ function CaptionLetters({ text, localT, fontFamily, size }) {
 function Scene({ orbitProgress, captions, fontFamily }) {
   const { size, camera } = useThree();
 
-  // Re-derive fov from live size (see ShootingStarIntro for the same
-  // calibration) so 1 world unit stays 1 css pixel across resizes.
   useLayoutEffect(() => {
     camera.fov = Math.atan(size.height / 2 / CAMERA_Z) * (180 / Math.PI) * 2;
     camera.updateProjectionMatrix();

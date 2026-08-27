@@ -1,8 +1,3 @@
-/* Scaled by --scene-scale (see useProjectsSceneAnimation's computeSceneScale,
-   and Constellations.module.css's .constellationRoot / TerrainLayers.module
-   .css's .figure for the same mechanism) so the moon shrinks/grows in
-   proportion with the constellations and the figure on any viewport instead
-   of staying a fixed size regardless of screen. */
 .moon {
   width: calc(var(--moon-size, 150px) * var(--scene-scale, 1));
   height: calc(var(--moon-size, 150px) * var(--scene-scale, 1));

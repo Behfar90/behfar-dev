@@ -4,12 +4,6 @@ import styles from './BackgroundStars.module.css';
 
 const COUNT = 250;
 
-// Adapted from a reference implementation that drove this off a Lenis
-// smooth-scroll instance's `scroll` event (which hands you {scroll,
-// velocity} directly). This project doesn't use Lenis - only Projects.jsx's
-// own rAF loop over raw `window.scrollY` - so velocity here is derived by
-// hand from consecutive scrollY reads, normalized to "px per ~16.7ms frame"
-// to land in the same ballpark Lenis's velocity would report.
 export default function BackgroundStars() {
   const containerRef = useRef(null);
 
@@ -25,7 +19,6 @@ export default function BackgroundStars() {
       const x = Math.random() * 100;
       const y = Math.random() * 100;
 
-      // 30% chance to be a completely static, distant star.
       const isStatic = Math.random() < 0.3;
       const depth = isStatic ? 0 : 0.2 + Math.random() * 0.6;
       const size = isStatic ? 1 + Math.random() : 1 + Math.random() * 2;

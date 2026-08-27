@@ -9,22 +9,9 @@ const SECTIONS = [
   { key: 'contact', label: 'Contact Me' },
 ];
 
-// Renders both the desktop button row and the mobile hamburger/dropdown at
-// once - a CSS media query decides which is visible, so there's a single
-// source of truth for the click handlers rather than duplicating them per
-// breakpoint. `activeSection` drives the "you are here" styling in both.
-// `visible` (default true, so the nav still works standalone without a
-// parent wiring it up) fades the whole thing in rather than having it
-// mounted, fully opaque, from the very first frame - App passes its
-// `showOverlays` flag so the nav appears alongside the rest of Universe's
-// reveal, once the stars/galaxies have actually had a moment to ignite.
 export default function SceneNav({ activeSection, onNavigate, visible = true }) {
   const [isOpen, setIsOpen] = useState(false);
   const menuButtonRef = useRef(null);
-  // Desktop row only dims mid-scroll (not the mobile hamburger - see
-  // .navContent's CSS) so it competes less with whatever's animating
-  // underneath while the user is actively looking at scene content rather
-  // than the nav.
   const { isIdle } = useScrollIdle(150);
 
   useEffect(() => {

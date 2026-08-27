@@ -1,10 +1,3 @@
-// Hand-rolled brand marks (not stroke icons like lucide-react's) - GitHub
-// and LinkedIn aren't available in lucide-react (it deliberately excludes
-// trademarked brand icons), and this site otherwise avoids pulling in a
-// whole icon-library dependency for just two marks. `size` mirrors
-// lucide-react's own prop name so usage reads consistently with the
-// Mail/FileDown icons alongside these in ContactMe.
-
 export function GithubIcon({ size = 24, className }) {
   return (
     <svg

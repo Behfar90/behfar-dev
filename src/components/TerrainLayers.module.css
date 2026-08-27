@@ -1,20 +1,3 @@
-/* Full-bleed terrain layers, sized against the real viewport (via .sticky,
-   Projects.module.css) - each SVG's own viewBox + preserveAspectRatio
-   ("xMidYMax slice", or "xMaxYMax slice" for the ridge layer - see
-   terrain-1-ridge.svg) handles the cover/crop-from-top behavior, scaling up
-   or down with the screen natively; here we only ever animate `transform`,
-   never top/height/margin. Height is a static value taller than the
-   container (never animated) so the parallax phase's upward drift (up to
-   21.1vh, see DRIFT_VH.fore in useProjectsSceneAnimation) has room to
-   consume without exposing the layer's own bottom edge. Expressed in vh
-   (not a fixed px) so the buffer scales with viewport height the same way
-   the drift it's covering for does.
-
-   `pointer-events: none` because these are plain <img> layers stacked
-   above the Constellations SVG (further back, z-index-wise, but earlier in
-   z-order doesn't stop an <img>'s full bounding box - transparent pixels
-   included - from swallowing hover/click before it reaches what's behind
-   it). None of these need to be interactive themselves. */
 .layer {
   position: absolute;
   top: 0;
@@ -40,21 +23,6 @@
   transform: translateY(var(--ns-mid-y, 0px));
 }
 
-/* Sits between mid and foreground so foreground grass passes in front of it.
-   `bottom`/`left` are static resting anchors (never animated) - plain
-   percentages of the real viewport (via .sticky), same as the moon/
-   constellations, rather than tied to any specific point in the terrain
-   artwork; all motion happens via `transform`.
-
-   `width` is scaled by `--ground-scale` (see useProjectsSceneAnimation's
-   computeGroundScale) - the same cover-style factor the terrain layers
-   themselves scale by (via their own SVG preserveAspectRatio "slice"), so
-   the figure grows/shrinks in proportion with the ground it's standing on
-   instead of drifting out of proportion with it. Deliberately *not*
-   `--scene-scale` (the moon/constellations' factor) - that one's tuned to
-   never let sky elements outgrow the viewport, which is the wrong goal
-   here and would size the figure against a different formula than its
-   surroundings. */
 .figure {
   position: absolute;
   bottom: 2%;

@@ -1,10 +1,5 @@
 import styles from './TerrainLayers.module.css';
 
-// Purely presentational - each layer's position comes from a --ns-{name}-y
-// custom property written by useProjectsSceneAnimation, so this component
-// has no logic of its own beyond applying the right class per <img>.
-// `figureRef` is forwarded onto the figure image so Projects can watch it
-// with an IntersectionObserver to drive its scroll-range hint.
 export default function TerrainLayers({ figureRef }) {
   return (
     <>

@@ -20,9 +20,6 @@
   opacity: 1;
 }
 
-/* Shorter when both lines are showing at once, so the pair reads as two
-   distinct marks flanking the icon rather than one bar that happens to have
-   a mouse in the middle. */
 .line--short {
   height: 6px;
 }

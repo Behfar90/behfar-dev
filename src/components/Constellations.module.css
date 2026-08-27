@@ -1,27 +1,5 @@
-/* Each constellation is its own standalone element now (see constellations.js
-   for why) - position comes from that data file via inline style, same as
-   MoonPhase; `transform` (the scroll-driven descent) is also set inline per
-   instance since each constellation reads a differently-named `--ns-{id}-y`
-   custom property. `overflow: visible` because the label sits outside the
-   nominal star bounding box.
-   Width/height are `--c-width`/`--c-height` (the data file's per-instance
-   px size) scaled by `--scene-scale` - a continuous factor (floored at
-   MIN_SCENE_SCALE, see useProjectsSceneAnimation's computeSceneScale)
-   shared with the moon (MoonPhase.module.css) and the figure
-   (TerrainLayers.module.css's .figure), shrinking/growing every one of them
-   together on any viewport short or narrow enough that the fixed reference
-   sizes would start feeling disproportionate (a 13" laptop's shallower
-   height, a phone's narrow width) - a single shared factor instead of each
-   element scaling independently and drifting out of proportion with the
-   others. Constellations are positioned by plain percentage of the real
-   viewport (not a fixed-size canvas), so they're always spread across the
-   full visible sky and never cropped off an edge. */
 .constellationRoot {
   position: absolute;
-  /* Above .moon's z-index (Projects.module.css) - constellations are the
-     interactive elements here, so even if positions are ever retuned close
-     enough to overlap, the moon (purely decorative) should never be able
-     to block one. */
   z-index: 2;
   width: calc(var(--c-width) * var(--scene-scale, 1));
   height: calc(var(--c-height) * var(--scene-scale, 1));
@@ -31,10 +9,6 @@
 
 .constellation {
   cursor: pointer;
-  /* Suppressed unconditionally, not just for :focus-visible - a mouse click
-     still gives the group plain :focus, and without this the browser's
-     default focus rectangle would flash around it on every click/tap. The
-     hitArea outline below is the keyboard-accessible replacement. */
   outline: none;
 }
 
@@ -44,41 +18,22 @@
   fill: rgba(255, 255, 255, 0.04);
 }
 
-/* Orion's tilt (`rotation` in constellations.js) - a plain CSS transform,
-   not a JS-computed SVG transform attribute, and scoped in Constellations.jsx
-   to a group that excludes the label, so the hover text never tilts.
-   `transform-box: view-box` pins the rotation origin to the constellation's
-   own viewBox center regardless of how far its mythIllustration image
-   extends beyond the viewBox's own bounds - without it, percentage-based
-   origins like `center` would default to the rotated group's own content
-   bounding box (dominated by that oversized image) instead. */
 .tilt {
   transform: rotate(12deg);
   transform-box: view-box;
   transform-origin: center;
 }
 
-/* Transparent hit area padded around each constellation's stars - without
-   it, hover/click only fires directly over a 3px-radius star or a
-   hairline-thin connecting line, which is unusably fiddly. `pointer-events:
-   all` is required because SVG shapes with a transparent fill are not
-   hit-tested by default (only their painted area is, unlike a plain HTML
-   element's box). */
 .hitArea {
   fill: transparent;
   pointer-events: all;
 }
 
-/* Always present (unlike .line/.label below, which only reveal on hover) -
-   the mythological figure is meant to read as a soft, ambient backdrop
-   behind the star pattern, not an interactive reveal. */
 .mythImage {
   opacity: 0.35;
   pointer-events: none;
 }
 
-/* Invisible by default - these are what "not connected by default" means:
-   the shape only reveals itself as a constellation on hover/tap. */
 .line {
   stroke: #fff;
   stroke-width: 1.5;
@@ -89,15 +44,6 @@
     filter 0.3s ease;
 }
 
-/* Close to a plain background star (no default glow) rather than the
-   always-on bright glow this used to have - just a touch brighter so
-   there's *something* to notice before hovering. Twinkles the same way
-   BackgroundStars' stars do, just a subtler swing and a higher floor - 20%
-   brighter and less shimmery, per-star delay/duration set inline (see
-   Constellations.jsx) so every star doesn't pulse in lockstep.
-   `transform-box`/`transform-origin` keep the scale() pulse centered on the
-   circle itself instead of the SVG viewport's origin - without it, a star
-   away from (0,0) visibly drifts as it "pulses" instead of growing in place. */
 .star {
   fill: #fff;
   filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.72));
@@ -131,13 +77,6 @@
   filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.6));
 }
 
-/* .revealed is the non-hover trigger for the same "shown" star glow - used
-   by ConstellationGlyph when rendered statically (e.g. inside ProjectLens,
-   which also passes showLines={false} - lines are never rendered there at
-   all, so there's no equivalent .revealed .line rule to pair with this).
-   It's applied to the same element .tilt would be (see
-   ConstellationGlyph.jsx), i.e. an ancestor of .star, so the descendant
-   selector below matches it exactly like :hover does. */
 .constellation:hover .star,
 .revealed .star {
   filter: drop-shadow(0 0 3px rgba(255, 255, 255, 1)) drop-shadow(0 0 9px rgba(150, 180, 255, 0.9));

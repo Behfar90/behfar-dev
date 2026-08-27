@@ -1,10 +1,3 @@
-/* Fixed (not CSS `position: sticky`) - the nav needs to stay put across
-   three independently long, separately-scrolling scenes, not just within
-   one containing block. z-index clears ProjectLens's 1000 (the previous
-   highest in the app) and SceneTransitionOverlay's 1500, so the nav stays
-   visible/operable through the whole fade transition. Top-center on
-   desktop; the mobile breakpoint below moves it back to top-right, since a
-   single hamburger button doesn't need (or read as well) dead-centered. */
 .nav {
   position: fixed;
   top: 1.5rem;
@@ -18,10 +11,6 @@
     'Segoe UI',
     'Roboto',
     sans-serif;
-  /* Mounted from the start but invisible/inert until `visible` - fades in
-     alongside the rest of Universe's reveal (see App.jsx's showOverlays)
-     rather than sitting there, fully opaque, before the stars/galaxies
-     have had their own moment to ignite. */
   opacity: 0;
   pointer-events: none;
   transition: opacity 1.2s ease;
@@ -32,12 +21,6 @@
   pointer-events: auto;
 }
 
-/* Wraps just .row (not .menuButton/.dropdown) so the desktop three-button
-   row can dim independently while scrolling - see SceneNav.jsx's
-   useScrollIdle call. A separate element (not another modifier on .nav
-   itself) specifically so this transition can run its own short duration,
-   independent of .nav's `transition: opacity 1.2s ease` above, which is
-   tuned for the one-time reveal-in fade and would feel laggy reused here. */
 .navContent {
   transition: opacity 0.2s ease;
 }
@@ -46,9 +29,6 @@
   opacity: 0.35;
 }
 
-/* Full opacity the instant the pointer is actually on/near the nav, even
-   mid-scroll - dimming shouldn't fight with someone actually about to use
-   it. */
 .navContent--dimmed:hover,
 .navContent--dimmed:focus-within {
   opacity: 1;
@@ -84,14 +64,6 @@
   color: rgba(230, 238, 255, 0.95);
 }
 
-/* Repeats the active color under :hover/:focus-visible rather than relying
-   on source order alone - .navItem:focus-visible above has two class-level
-   selectors (specificity 0,2,0), higher than .navItem--active's one (0,1,0),
-   so without this the "you are here" gold would silently lose to the
-   generic focus color the instant a user clicks or tabs onto the active
-   item - exactly when they're most likely to be looking right at it. No
-   background pill (the nav has none to match) - the gold color plus
-   underline alone carry "you are here" against any scene backdrop. */
 .navItem--active,
 .navItem--active:hover,
 .navItem--active:focus-visible {
@@ -100,9 +72,6 @@
   text-underline-offset: 4px;
 }
 
-/* Hidden on desktop - only the mobile dropdown trigger below uses this. No
-   background - just the icon, drop-shadowed the same way .navItem's text
-   is, for legibility against any scene backdrop. */
 .menuButton {
   display: none;
   align-items: center;
@@ -122,11 +91,6 @@
   color: #fff;
 }
 
-/* Anchored panel, not a full-screen takeover - navigating without needing
-   to scroll doesn't require covering the whole viewport. Stays mounted at
-   opacity 0/pointer-events: none while closed (same reasoning as
-   ProjectLens.module.css's .overlay) so the open/close transition can
-   actually play both directions. */
 .dropdown {
   display: none;
 }

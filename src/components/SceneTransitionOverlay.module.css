@@ -1,8 +1,3 @@
-/* Above ProjectLens (z-index 1000, the previous highest in the app) so it
-   fully covers a closing lens mid-fade; below SceneNav (2000) so the nav
-   stays visible/operable through the whole transition. Solid, not blurred -
-   unlike ProjectLens's translucent backdrop-blur-over-a-live-scene look,
-   this is meant to read as a full opaque blackout between scenes. */
 .overlay {
   position: fixed;
   inset: 0;

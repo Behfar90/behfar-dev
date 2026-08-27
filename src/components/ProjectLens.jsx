@@ -4,12 +4,6 @@ import ConstellationGlyph from './ConstellationGlyph';
 import { CONSTELLATIONS } from '../utils/scenes/constellations';
 import styles from './ProjectLens.module.css';
 
-// A constellation's authored viewBox (constellations.js) is sized to fit
-// its label too, which ProjectLens doesn't render (see ConstellationGlyph's
-// showLines={false} usage below) - reusing that viewBox here would center
-// the *label's* empty space, not the stars, leaving the star pattern
-// visibly off-center in the lens. This computes a tight box around just the
-// star positions instead, padded by 18% of their own span on each side.
 const starsViewBox = (stars) => {
   const xs = stars.map((s) => s.x);
   const ys = stars.map((s) => s.y);
@@ -24,21 +18,8 @@ const starsViewBox = (stars) => {
   return `${minX - padX} ${minY - padY} ${width + padX * 2} ${height + padY * 2}`;
 };
 
-// `project` is the source of truth for *which* project is open (or null for
-// closed), owned by Projects.jsx. `displayedProject` mirrors it but doesn't
-// clear immediately on close - it holds the last project's content through
-// the fade-out transition (see onTransitionEnd below) so the lens doesn't
-// just vanish mid-fade with blank content. `origin` (viewport coords of the
-// clicked/focused constellation) drives the iris animation - see .lens's
-// transform in the CSS module - growing the lens from that point and
-// shrinking back to it on close, rather than a flat crossfade.
 export default function ProjectLens({ project, origin, onClose, returnFocusRef }) {
   const [displayedProject, setDisplayedProject] = useState(null);
-  // Separate from `Boolean(project)` on purpose: the overlay <div> fully
-  // unmounts on close (see the early return below), so every open re-inserts
-  // a brand new DOM node. If `.open` were applied in the very same render
-  // that inserts it, the browser would never register a "before" state for
-  // the transition to animate from, and it'd just snap straight to open.
   const [isOpen, setIsOpen] = useState(false);
   const lensRef = useRef(null);
 
@@ -50,27 +31,10 @@ export default function ProjectLens({ project, origin, onClose, returnFocusRef }
     setDisplayedProject(project);
   }, [project]);
 
-  // Moves focus into the dialog as soon as it opens (WAI-ARIA modal
-  // practice - a keyboard/screen-reader user shouldn't be left focused on
-  // the now-inert constellation behind it), and back to whichever
-  // constellation triggered it once the closing animation actually
-  // finishes (see onTransitionEnd below) - not at click-time, since that's
-  // also what keeps that constellation's own hover/focus-visible label from
-  // flashing back on mid-shrink, while the lens still visually covers it.
   useLayoutEffect(() => {
     if (isOpen) lensRef.current?.focus();
   }, [isOpen]);
 
-  // Flips isOpen right after the closed-state DOM actually commits, forcing
-  // a synchronous reflow first (reading offsetHeight) so the browser has to
-  // resolve styles for that closed state before the very next line changes
-  // them - the standard way to guarantee a transition actually plays on a
-  // freshly-inserted element. Deliberately NOT requestAnimationFrame-based:
-  // this page keeps several other animations running continuously (the
-  // twinkling stars, the moon), and under load a couple of rAF callbacks can
-  // land 100ms+ apart, making the "grow" visibly stall before it starts.
-  // useLayoutEffect + forced reflow is synchronous, so it doesn't depend on
-  // frame timing at all.
   useLayoutEffect(() => {
     if (!displayedProject || !lensRef.current) return;
     // eslint-disable-next-line no-unused-expressions -- reflow, not a no-op
@@ -78,16 +42,6 @@ export default function ProjectLens({ project, origin, onClose, returnFocusRef }
     setIsOpen(true);
   }, [displayedProject]);
 
-  // Scroll lock + Esc-to-close + Tab focus-trap are active for the lens's
-  // full visible lifetime, including the closing fade (tied to
-  // displayedProject, not isOpen) - otherwise the background could start
-  // scrolling out (or receive focus) from under a still-fading-out lens.
-  // Overflow restores to '' rather than a captured "previous value" -
-  // nothing else in this app sets body.style.overflow inline, and
-  // capturing/restoring a snapshot is fragile here: onClose (or any other
-  // dependency) getting a new reference between renders would re-run this
-  // effect and re-capture 'hidden' as the "previous" value mid-lock,
-  // permanently stomping the real original value.
   useEffect(() => {
     if (!displayedProject) return undefined;
 
@@ -99,11 +53,6 @@ export default function ProjectLens({ project, origin, onClose, returnFocusRef }
         return;
       }
       if (event.key !== 'Tab' || !lensRef.current) return;
-      // Manual focus trap: the lens is the only "island" of focusable
-      // content while open (everything behind it is inert - see
-      // Projects.jsx), so Tab/Shift+Tab should cycle within it rather than
-      // running off into the browser chrome once past the last/first
-      // focusable descendant.
       const focusable = lensRef.current.querySelectorAll(
         'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
       );
@@ -128,9 +77,6 @@ export default function ProjectLens({ project, origin, onClose, returnFocusRef }
 
   if (!displayedProject) return null;
 
-  // Projects and constellations share the same `id` (see projects.js) - the
-  // join between "which constellation was clicked" and "which project this
-  // is" is the id itself, so no extra id needs to be threaded through props.
   const constellation = CONSTELLATIONS.find((c) => c.id === displayedProject.id);
 
   return (

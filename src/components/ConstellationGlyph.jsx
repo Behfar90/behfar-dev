@@ -2,23 +2,7 @@ import { useMemo } from 'react';
 import { randomTwinkleTiming } from '../utils/components/twinkle';
 import styles from './Constellations.module.css';
 
-// The star pattern only - lines + twinkling stars, no mythIllustration, no
-// hit area, no label - shared between Constellations.jsx (interactive,
-// hover-revealed, positioned in the sky) and ProjectLens (static, always
-// revealed, as a background inside the lens). Renders a bare <g>, not its
-// own <svg>/viewBox, so the caller controls the surrounding coordinate
-// space - Constellations.jsx embeds it directly inside its existing
-// per-constellation <svg viewBox>, ProjectLens wraps it in its own.
-//
-// Imports Constellations.module.css directly (not its own CSS module) so
-// .line/.star/.tilt/.revealed here are the exact same classes/animations
-// Constellations.jsx's hover states already target - a separate module
-// would hash to different class names and silently stop matching those
-// selectors.
 export default function ConstellationGlyph({ constellation, revealed = false, showLines = true }) {
-  // Computed fresh per mount (not shared with Constellations.jsx's own sky
-  // instance) - purely cosmetic per-star animation offset, doesn't need to
-  // match between the two views.
   const twinkleTimings = useMemo(
     () =>
       constellation.stars.map(() =>
