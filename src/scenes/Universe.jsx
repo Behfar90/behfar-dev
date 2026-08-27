@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { createStars, updateStars } from '../utils/scenes/stars';
-import { createGalaxies } from '../utils/scenes/galaxies';
+import { createGalaxies, updateOriginGalaxyFade } from '../utils/scenes/galaxies';
 import { createNebulas, updateNebulas } from '../utils/scenes/nebulas';
-import { SUBTITLE_STORY_END } from '../utils/scenes/universeTiming';
+import { SUBTITLE_STORY_END, PLUNGE_START } from '../utils/scenes/universeTiming';
 import { lerp, smoothstep, clamp01 } from '../utils/math';
 import ShootingStarIntro from '../components/ShootingStarIntro';
 import CaptionGravity from '../components/CaptionGravity';
@@ -22,12 +22,32 @@ const LOOK_EASE = 0.03;
 // universeTiming.js) - a "swooping in and settling" arrival that pairs
 // with the subtitle's own dissolve/gather. Past that point the camera's
 // distance/angle-from-rest are both fully settled - it only spins in
-// place (see orbitTarget's spinT branch below) for the rest of the
-// scroll, which is when captions take over - so the intro reads as one
-// settling-into-place beat instead of three unrelated things moving at
-// once - see captionProgress below.
+// place (see orbitTarget's spinT branch below) until PLUNGE_START, which
+// is when captions take over - so the intro reads as one settling-into-
+// place beat instead of three unrelated things moving at once - see
+// captionProgress below. Past PLUNGE_START, orbitTarget's third branch
+// takes over for Act II (see PLUNGE_RADIUS_SCALE below).
 const INTRO_RADIUS_SCALE = 1.6;
 const INTRO_THETA_OFFSET = -Math.PI / 6;
+
+// Act II, "the plunge": the spin freezes wherever it ended (a straight
+// fall reads cleaner than a spinning one, especially once the CSS-level
+// canvas scale/blur in PlungeAtmosphere.jsx layers on top) while radius
+// collapses hard toward the origin - the same point every star and
+// galaxy clusters around (stars.js distributes them 10-80 units out from
+// it) - so "falling toward a planet" is literally "flying toward the
+// middle of the scene." Kept well above the camera's own near-plane
+// (0.1) and away from radius = 0, which would make lookAt's direction
+// vector degenerate.
+const PLUNGE_RADIUS_SCALE = 0.08;
+
+// Cubic ease-in, not smoothstep's symmetric ease-in-*out* - the plunge
+// should keep accelerating all the way to riseEnd, not decelerate
+// approaching it. Shared between orbitTarget's own radius collapse below
+// and tick()'s separately-computed plungeT (drives the galaxy fade) so the
+// camera and the dissolving galaxy accelerate in lockstep instead of
+// drifting apart on two different curves.
+const easeInCubic = (t) => t * t * t;
 
 // Placeholder copy - just trying out the crossfade-on-orbit-progress idea for
 // now, wording isn't final.
@@ -63,7 +83,7 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
     const scene = new THREE.Scene();
 
     const stars = createStars(scene);
-    createGalaxies(scene);
+    const { originGalaxy } = createGalaxies(scene);
     const nebulas = createNebulas(scene);
 
     const sizes = { width: window.innerWidth, height: window.innerHeight };
@@ -80,11 +100,15 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
     const height = camera.position.y;
     const baseTheta = Math.atan2(camera.position.x, camera.position.z);
 
-    // Below SUBTITLE_STORY_END, the camera arrives - easing in from a wider,
-    // off-angle intro pose to its resting orbit position. Past it, it does
-    // its original spin, just re-based onto the remaining scroll range. The
-    // two branches agree exactly at p = SUBTITLE_STORY_END, so there's no
-    // snap at the handoff in either scroll direction.
+    // Three phases, each agreeing exactly with the next at its boundary (at
+    // p = SUBTITLE_STORY_END and p = PLUNGE_START) so there's no snap at
+    // either handoff in either scroll direction:
+    // 1. Below SUBTITLE_STORY_END - the camera arrives, easing in from a
+    //    wider, off-angle intro pose to its resting orbit position.
+    // 2. Up to PLUNGE_START - it spins in place at that resting radius,
+    //    re-based onto just this range (captions play out here).
+    // 3. Past PLUNGE_START - Act II: spin freezes, radius collapses toward
+    //    the origin (see PLUNGE_RADIUS_SCALE above).
     const orbitTarget = (p) => {
       if (p <= SUBTITLE_STORY_END) {
         const arriveT = smoothstep(0, 1, p / SUBTITLE_STORY_END);
@@ -93,8 +117,15 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
           theta: lerp(baseTheta + INTRO_THETA_OFFSET, baseTheta, arriveT),
         };
       }
-      const spinT = (p - SUBTITLE_STORY_END) / (1 - SUBTITLE_STORY_END);
-      return { radius, theta: baseTheta + spinT * FULL_SPIN };
+      if (p <= PLUNGE_START) {
+        const spinT = (p - SUBTITLE_STORY_END) / (PLUNGE_START - SUBTITLE_STORY_END);
+        return { radius, theta: baseTheta + spinT * FULL_SPIN };
+      }
+      const plungeT = easeInCubic(clamp01((p - PLUNGE_START) / (1 - PLUNGE_START)));
+      return {
+        radius: lerp(radius, radius * PLUNGE_RADIUS_SCALE, plungeT),
+        theta: baseTheta + FULL_SPIN,
+      };
     };
 
     // Seeded from the initial orbitProgress (rather than the intro pose
@@ -140,6 +171,14 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
       const sinceReveal = renderStartTime === null ? 0 : elapsedTime - renderStartTime;
       updateStars(stars, elapsedTime, sinceReveal);
       updateNebulas(nebulas, elapsedTime);
+      // Same expression orbitTarget's plunge branch uses internally -
+      // recomputed here (0 for the entire pre-plunge scroll, via clamp01)
+      // so the galaxy dissolving away can never drift out of sync with the
+      // radius collapse driving it.
+      const plungeT = easeInCubic(
+        clamp01((orbitProgressRef.current - PLUNGE_START) / (1 - PLUNGE_START)),
+      );
+      updateOriginGalaxyFade(originGalaxy, plungeT);
 
       const target = orbitTarget(orbitProgressRef.current);
       currentRadius += (target.radius - currentRadius) * ORBIT_EASE;
@@ -165,24 +204,46 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
       cancelAnimationFrame(animFrame);
       renderer.dispose();
     };
-  }, []);
+    // wrapperRef is a ref object (stable identity for the component's
+    // lifetime, same contract as the local refs above) - listed for
+    // exhaustive-deps, but including it can't cause this effect to re-run.
+  }, [wrapperRef]);
 
   // Captions don't start until the camera's arrival + subtitle story (see
-  // SUBTITLE_STORY_END) is done - re-based onto the remaining scroll range,
-  // same as orbitTarget's spinT above, so the two hand off at the same
-  // instant.
-  const captionProgress = clamp01((orbitProgress - SUBTITLE_STORY_END) / (1 - SUBTITLE_STORY_END));
+  // SUBTITLE_STORY_END) is done, and finish exactly as the plunge begins
+  // (PLUNGE_START) - re-based onto that range, same as orbitTarget's spinT
+  // above, so the two hand off at the same instant.
+  const captionProgress = clamp01(
+    (orbitProgress - SUBTITLE_STORY_END) / (PLUNGE_START - SUBTITLE_STORY_END),
+  );
+
+  // The name title and captions otherwise just sit there, unchanged, for
+  // the entire plunge - captionProgress clamps at 1 once PLUNGE_START is
+  // passed and never fades further. Fully gone by 30% of the way through
+  // the plunge (well before the close approach) rather than lingering the
+  // whole way, so they don't compete with it.
+  const plungeTextOpacity =
+    1 - smoothstep(PLUNGE_START, lerp(PLUNGE_START, 1, 0.3), orbitProgress);
 
   return (
     <div ref={wrapperRef} className={styles.orbitWrapper}>
       <div className={styles.sticky}>
         <canvas ref={canvasRef} className={styles.webgl} />
 
-        {showOverlays && (
-          <ShootingStarIntro orbitProgress={orbitProgress} storyEnd={SUBTITLE_STORY_END} />
-        )}
+        <div style={{ opacity: plungeTextOpacity }}>
+          {showOverlays && (
+            <ShootingStarIntro orbitProgress={orbitProgress} storyEnd={SUBTITLE_STORY_END} />
+          )}
 
-        {showOverlays && <CaptionGravity orbitProgress={captionProgress} captions={ORBIT_CAPTIONS} />}
+          {showOverlays && (
+            <CaptionGravity orbitProgress={captionProgress} captions={ORBIT_CAPTIONS} />
+          )}
+        </div>
+
+        {/* Scoped to this box, not the viewport - see the .blackout comment
+            in Universe.module.css for why it has to live here rather than
+            as a separate fixed overlay. */}
+        <div className={styles.blackout} aria-hidden="true" />
       </div>
     </div>
   );

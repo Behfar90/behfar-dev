@@ -6,6 +6,7 @@ import ContactMe from './scenes/ContactMe';
 import ScrollIdleHint from './components/ScrollIdleHint';
 import SceneNav from './components/SceneNav';
 import SceneTransitionOverlay from './components/SceneTransitionOverlay';
+import PlungeAtmosphere from './components/PlungeAtmosphere';
 import useScrollJourney from './hooks/useScrollJourney';
 import useSceneTransition from './hooks/useSceneTransition';
 
@@ -85,6 +86,7 @@ function App() {
         rendering
         showOverlays={showOverlays}
       />
+      <PlungeAtmosphere universeWrapperRef={universeWrapperRef} />
       <div ref={projectsWrapperRef}>
         <Projects onHintActiveChange={setSuppressIdleHint} closeLensToken={closeLensToken} />
       </div>

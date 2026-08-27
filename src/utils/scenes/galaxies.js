@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { smoothstep } from '../math';
 
 const GALAXY_PARAMS = {
   count: 10000,
@@ -60,13 +61,32 @@ function buildGalaxy(scene, { x, y, z }) {
     depthWrite: false,
     blending: THREE.AdditiveBlending,
     vertexColors: true,
+    // Off by default (no per-frame cost for the 9 galaxies nothing ever
+    // fades) - only the origin one gets its opacity actually driven, by
+    // updateOriginGalaxyFade below, but `transparent` has to be set here,
+    // at material-creation time, for a later opacity change to do anything.
+    transparent: true,
   });
 
   const points = new THREE.Points(geometry, material);
   points.position.set(x, y, z);
   scene.add(points);
+  return points;
 }
 
 export function createGalaxies(scene) {
-  GALAXY_CENTERS.forEach((center) => buildGalaxy(scene, center));
+  const points = GALAXY_CENTERS.map((center) => buildGalaxy(scene, center));
+  return { originGalaxy: points[0] };
+}
+
+// `plungeT` is the same 0-1 progress Universe.jsx's orbitTarget derives for
+// the plunge's radius collapse. This galaxy sits at the coordinate origin -
+// exactly where that collapse dives toward - and its PointsMaterial has no
+// texture map (unlike stars.js/nebulas.js), so individual points render as
+// flat squares that balloon into confusing shapes at extreme close range.
+// Fully transparent by the *halfway* point of the plunge, not the very end,
+// so it's safely gone well before the camera's closest approach rather than
+// racing it.
+export function updateOriginGalaxyFade(originGalaxy, plungeT) {
+  originGalaxy.material.opacity = 1 - smoothstep(0, 0.5, plungeT);
 }
