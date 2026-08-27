@@ -127,8 +127,6 @@ uniform float uProgress;
 uniform float uStartX;
 uniform float uRatio;
 uniform float alpha;
-// Masks out the subtitle's rows of the combined texture (vUv.y below this
-// threshold) as it dissolves into particles on scroll - see uSubtitleFade.
 uniform float uSubtitleVMax;
 uniform float uSubtitleFade;
 varying vec2 vUv;
@@ -142,9 +140,6 @@ void main(){
 }
 `;
 
-// A plain, un-wiped reveal for the subtitle's replacement text - the gather
-// particles (see gatherVertexShader) carry the transition visually, so this
-// just needs a straight fade via uReveal (0 hidden, 1 fully shown).
 export const plainTextFragmentShader = `
 precision highp float;
 uniform sampler2D map;
@@ -157,15 +152,6 @@ void main(){
 }
 `;
 
-// Drives the subtitle's "puff of shooting-star dust" dissolve: each particle
-// starts pinned at the glyph pixel it was sampled from (position) and, as
-// uProgress (0-1, driven by scroll - and mapped from a much wider slice of
-// scroll than the text fade itself, so the flight reads as gradual rather
-// than a quick puff) advances, drifts up and to the right - the direction
-// the shooting-star sweep and camera's own orbit already read as "forward"
-// - drifting far enough to exit the frame, only fading out well into that
-// flight rather than immediately. Staggered per-particle by aRandom so they
-// don't all move in lockstep.
 export const puffVertexShader = `
 precision highp float;
 attribute vec3 position;
@@ -194,8 +180,6 @@ void main () {
   vec3 pos = position;
   pos.xy += aDir * uDistance * travel * mix(0.7, 1.3, aRandom);
 
-  // Full brightness through the first stretch of the flight, then a long,
-  // gradual fade as it exits - not a fade centered on the puff's origin.
   vAlpha = smoothstep(0.0, 0.08, local) * (1.0 - smoothstep(0.45, 1.0, local));
   vRandom = aRandom;
 
@@ -219,14 +203,6 @@ void main(){
 }
 `;
 
-// Runs puffVertexShader's story backwards: each particle starts far off in
-// the up-left direction (aDir) and settles onto its target glyph pixel
-// (position) as uProgress advances - the replacement subtitle's dust
-// arriving, rather than the old one's leaving. Fades in as it approaches,
-// then fades back out right at the end as the crisp replacement text (see
-// plainTextFragmentShader/uReveal) takes over, so the two never have to
-// look right at the same time. Shares puffFragmentShader for its actual
-// per-point shading, since that part - a soft gold dot - is identical.
 export const gatherVertexShader = `
 precision highp float;
 attribute vec3 position;

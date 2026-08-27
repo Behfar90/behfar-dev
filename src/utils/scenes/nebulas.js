@@ -1,7 +1,5 @@
 import * as THREE from 'three';
 
-// Soft radial-gradient "puff" sprite, generated once and shared by every
-// nebula instance instead of loading an external texture asset.
 function createPuffTexture() {
   const size = 128;
   const canvas = document.createElement('canvas');
@@ -19,8 +17,6 @@ function createPuffTexture() {
   return texture;
 }
 
-// Small, sharp-cored sprite for the bright embedded stars scattered through
-// a couple of the reference photos.
 function createStarTexture() {
   const size = 64;
   const canvas = document.createElement('canvas');
@@ -88,8 +84,6 @@ function addEmbeddedStars(group, puffs, texture, color, count, radius) {
   }
 }
 
-// Bipolar "wing" cloud with a bright core, echoing the Lagoon Nebula's
-// hourglass lobes and white-core-into-magenta palette.
 function buildWingNebula(scene, texture, starTexture, center, radius, count) {
   const group = new THREE.Group();
   group.position.set(center.x, center.y, center.z);
@@ -101,7 +95,7 @@ function buildWingNebula(scene, texture, starTexture, center, radius, count) {
 
   for (let i = 0; i < count; i++) {
     const lobeSign = Math.random() < 0.5 ? 1 : -1;
-    const t = Math.random(); // 0 at the bright core, 1 at a lobe's tip
+    const t = Math.random();
     const height = lobeSign * Math.pow(t, 0.6) * radius;
     const spread = Math.sin(t * Math.PI * 0.85) * radius * 0.4;
     const angle = Math.random() * Math.PI * 2;
@@ -134,8 +128,6 @@ function buildWingNebula(scene, texture, starTexture, center, radius, count) {
   return puffs;
 }
 
-// Hollow shell with a dark cavity, echoing the Rosette Nebula's green outer
-// shell wrapping a red inner wall.
 function buildShellNebula(scene, texture, starTexture, center, radius, count) {
   const group = new THREE.Group();
   group.position.set(center.x, center.y, center.z);
@@ -146,7 +138,7 @@ function buildShellNebula(scene, texture, starTexture, center, radius, count) {
   const innerFrac = 0.45;
 
   for (let i = 0; i < count; i++) {
-    const t = Math.random(); // 0 at the shell's inner edge, 1 at its outer edge
+    const t = Math.random();
     const r = radius * (innerFrac + t * (1 - innerFrac));
     const theta = Math.random() * Math.PI * 2;
     const phi = Math.acos(2 * Math.random() - 1);
@@ -180,18 +172,11 @@ function buildShellNebula(scene, texture, starTexture, center, radius, count) {
   return puffs;
 }
 
-// Flattened ring with concentric color bands, echoing the Helix Nebula's
-// blue eye, gold ring and red halo.
 function buildRingNebula(scene, texture, center, radius, count) {
   const group = new THREE.Group();
   group.position.set(center.x, center.y, center.z);
   const puffs = [];
 
-  // A ring only reads as a ring face-on - side-on it collapses into a
-  // blob. The orbiting camera in Universe.jsx stays at a fixed height and
-  // always looks roughly toward the origin, so orient the ring's plane to
-  // face back that way (its normal points from `center` to the origin)
-  // instead of lying flat in world XZ, which the camera never looks down.
   const normal = new THREE.Vector3(center.x, center.y, center.z).normalize().negate();
   const arbitrary =
     Math.abs(normal.y) > 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
@@ -206,7 +191,7 @@ function buildRingNebula(scene, texture, center, radius, count) {
   const innerFrac = 0.35;
 
   for (let i = 0; i < count; i++) {
-    const t = Math.random(); // 0 at the ring's inner edge, 1 at its outer edge
+    const t = Math.random();
     const r = radius * (innerFrac + t * (1 - innerFrac));
     const angle = Math.random() * Math.PI * 2;
     const position = basisU
@@ -234,54 +219,19 @@ function buildRingNebula(scene, texture, center, radius, count) {
   return puffs;
 }
 
-// Fixed positions, well out past the galaxies (see galaxies.js's
-// GALAXY_CENTERS) so nothing overlaps a galaxy's footprint, and spaced well
-// apart from one another.
-//
-// Placement also accounts for the orbiting camera in Universe.jsx: it travels
-// along one semicircle (azimuth ~0-180deg, per its baseTheta/FULL_SPIN) while
-// always looking back across to the *opposite* semicircle (azimuth
-// ~180-360deg). A nebula sitting in the camera's own travel arc is mostly
-// looked away from; one placed in the look-at arc gets swept into view as
-// the camera orbits. Each of the three below sits at a different point along
-// that look-at arc, so they reveal in turn over the scroll instead of all
-// competing for the same moment.
-//
-// Originally a straight rigid rotation re-anchoring these to the camera's
-// current baseTheta (0deg, from its position at (0,0,8) - see Universe.jsx;
-// the camera used to start at (4,4,2), baseTheta ~63deg). That got each
-// nebula back into the correct arc, but left two problems a pure rotation
-// can't fix: the ring nebula, sitting right on the camera's initial look-at
-// azimuth, landed dead center on screen - directly behind
-// ShootingStarIntro's name reveal - and both the shell and wing nebulas'
-// azimuths were within ~15deg of a galaxy's (see galaxies.js's
-// GALAXY_CENTERS), close enough to visually overlap one from the camera.
-// Each was nudged along its arc into a gap between galaxy azimuths (kept at
-// its original radius from the origin, so reveal timing is unchanged); the
-// ring nebula was also lifted well above the camera's height so it clears
-// the (roughly vertically centered) text instead of sitting behind it.
 export function createNebulas(scene) {
   const texture = createPuffTexture();
   const starTexture = createStarTexture();
 
   return [
-    // ~320deg azimuth - only comes into view late in the orbit; nudged from
-    // ~332deg, which was ~8deg from the galaxy at galaxies.js's (-10,-20,28).
     ...buildWingNebula(scene, texture, starTexture, { x: -22.12, y: -34, z: 26.36 }, 6, 65),
-    // ~275deg azimuth - swept into view around the midpoint of the orbit;
-    // nudged from ~252deg, which was ~13deg from the galaxy at (-30,15,-18).
     ...buildShellNebula(scene, texture, starTexture, { x: -112.7, y: -18, z: 9.86 }, 7, 70),
-    // ~190deg azimuth, lifted to y=14 (well above the camera's own height of
-    // 0) - still in view right from orbitProgress 0, but above ShootingStarIntro's
-    // centered text instead of behind it.
     ...buildRingNebula(scene, texture, { x: -5.91, y: 14, z: -33.54 }, 5.5, 60),
   ];
 }
 
 export function updateNebulas(puffs, elapsedTime) {
   puffs.forEach(({ sprite, basePosition, driftPhase, driftSpeed, baseRotation, rotSpeed }) => {
-    // Sprites auto-billboard toward the camera; only a gentle vertical
-    // drift and in-plane spin are needed for the cloud to feel alive.
     sprite.position.y = basePosition.y + Math.sin(elapsedTime * driftSpeed + driftPhase) * 0.3;
     sprite.material.rotation = baseRotation + elapsedTime * rotSpeed;
   });

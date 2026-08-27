@@ -1,9 +1,3 @@
-// Content for the telescope-lens project viewer (see ProjectLens). Keyed by
-// the same `id` as CONSTELLATIONS in constellations.js - that's what joins a
-// clicked constellation to the project it opens, without coupling the two
-// data sets together. Hardcoded/curated by hand, not fetched, so keep
-// `description` short enough to read comfortably inside the lens circle
-// (it scrolls if it overflows, but that shouldn't be the common case).
 export const PROJECTS = [
   {
     id: 'cassiopeia',
