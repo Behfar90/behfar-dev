@@ -4,7 +4,7 @@ import useScrollIdle from '../hooks/useScrollIdle';
 import styles from './SceneNav.module.css';
 
 const SECTIONS = [
-  { key: 'universe', label: 'Universe' },
+  { key: 'universe', label: 'My Universe' },
   { key: 'projects', label: 'Projects' },
   { key: 'contact', label: 'Contact Me' },
 ];
