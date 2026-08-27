@@ -11,6 +11,7 @@
 # production
 /build
 how_to.md
+decisions.md
 
 # misc
 .DS_Store
