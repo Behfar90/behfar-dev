@@ -1,9 +1,3 @@
-/* Option 2 + 4 combined: centered stack with the portrait as a dim
-   full-bleed backdrop (option 2); Email/GitHub/LinkedIn live inline in
-   .content as .contactRow (the actual "get in touch" actions, directly
-   under the heading/text inviting them), while the résumé download - a
-   separate, secondary action - keeps the slim edge-rail treatment (option
-   4) in .resumeRail, including its mobile fallback below. */
 .section {
   position: relative;
   min-height: 100vh;
@@ -13,12 +7,6 @@
   background: #000;
   color: #fff;
   padding: 2rem;
-  /* Only matters below 700px, where .resumeRail switches from
-     position: absolute to a normal in-flow flex item (see that media
-     query) - without wrap it'd squeeze onto the same row as .content
-     instead of dropping to its own line beneath it. No effect above
-     700px, where .resumeRail stays out of flow and .content is the only
-     flex item. */
   flex-wrap: wrap;
 }
 
@@ -29,8 +17,6 @@
   transition: opacity 5s ease-in;
 }
 
-/* Dimmed, not fully opaque - reads as ambient backdrop behind the centered
-   content rather than a competing focal point. */
 .portrait--visible {
   opacity: 0.7;
 }
@@ -42,13 +28,6 @@
   text-align: center;
 }
 
-/* Reads like a letter's dateline (as in "Oslo, 2026") rather than a
-   copyright/availability line - the site's one recurring accent (gold
-   #eeba7b, Audiowide) already used for Universe's captions and the scroll
-   hints (Hint.module.css), reused here so this scene's new content matches
-   rather than introducing its own palette. Anchored to the scene's own
-   bottom-center like a closing signature, independent of the portrait/
-   content column layout above it. */
 .dateline {
   position: absolute;
   bottom: 1rem;
@@ -82,9 +61,6 @@
   opacity: 0.8;
 }
 
-/* Horizontal row, inline in .content under the heading/text - these are
-   the actual "get in touch" actions, so they sit directly beneath the
-   copy that invites them rather than off in the edge rail. */
 .contactRow {
   display: flex;
   align-items: center;
@@ -93,31 +69,10 @@
   margin-top: 1.5rem;
 }
 
-/* Hidden above the mobile breakpoint - .resumeRail carries the résumé
-   download there instead (see the media query below). Compound selector,
-   not just .resumeRowIcon alone: .railLink's own `display: flex` is
-   defined later in this file, so on equal specificity it would otherwise
-   win the cascade by source order and show this above the breakpoint too. */
 .railLink.resumeRowIcon {
   display: none;
 }
 
-/* Vertical rail, pinned to the section's own right edge and vertically
-   centered - `position: absolute` against .section (not `fixed` against
-   the viewport), so it's part of this scene only, not a page-wide
-   persistent sidebar. Holds only the résumé download now - a secondary
-   action kept out of the primary contact column instead of competing
-   with it. `width` is deliberately set to .resumeLink's *rotated* footprint
-   (its own pre-rotation height, not width) rather than left to shrink-to-fit:
-   `right`/`transform: translateY(-50%)` below position this box's own
-   (unrotated) layout edges - a transform is purely visual and doesn't
-   change what CSS positioning sees - so if this box were left as wide as
-   the pill's unrotated content, the pill would rotate around a center
-   point 1.5rem *plus half that width* from the edge, landing the rotated
-   pill visibly adrift of the edge instead of flush against it. Narrowing
-   the box to the rotated width first, then letting align-items: center
-   center the (now much wider than its box) pill on that same axis, moves
-   the anchor point to where the rotated pill's edge actually needs to be. */
 .resumeRail {
   position: absolute;
   right: 1.5rem;
@@ -142,8 +97,6 @@
   letter-spacing: 0.03em;
   text-decoration: none;
   white-space: nowrap;
-  /* Rotated to stand vertically along the rail - see .resumeRail's `width`
-     comment for why the rail itself has to be narrowed to match. */
   transform: rotate(90deg);
   transition:
     border-color 0.2s ease,
@@ -182,21 +135,11 @@
   color: #eeba7b;
 }
 
-/* Positioning context for .copiedLabel - only the email button needs one,
-   so this wraps just that rail item rather than every .railLink. */
 .railItem {
   position: relative;
   display: inline-flex;
 }
 
-/* The old text-link version of this button showed "Copied!" inline; once
-   the rail went icon-only that visible confirmation disappeared (only
-   title/aria-label remained, which sighted mouse/touch users won't see).
-   This restores it as a small floating label instead of adding a
-   permanently-visible text row that would break the rail's icon-only
-   rhythm. Centered above the icon (not left-of-icon) since .contactRow is
-   a horizontal row at every width - left-of-icon would get clipped by the
-   screen edge or overlap the GitHub icon next to it. */
 .copiedLabel {
   position: absolute;
   left: 50%;
@@ -227,11 +170,6 @@
 }
 
 @media (max-width: 700px) {
-  /* The edge rail's own fixed-position fallback used to drop to a
-     horizontal pill pinned near the bottom of the scene - it collided
-     with ScrollIdleHint, which occupies that same fixed slot. Hidden here
-     in favor of .resumeRowIcon, which folds the download into the
-     already in-flow .contactRow instead. */
   .resumeRail {
     display: none;
   }

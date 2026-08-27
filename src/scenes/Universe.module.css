@@ -1,18 +1,8 @@
-/* Provides the scroll distance the orbit maps its progress onto; a plain
-   block, no special positioning needed. Must equal universeTiming.js's
-   TOTAL_VH exactly - CSS can't import that file, so this is a hand-kept-in-
-   sync value, not an independent choice. 600vh = 240 (camera-arrival/
-   subtitle beat) + 120 (4 captions) + 240 (the Act II "plunge," four beats -
-   see Universe.jsx's orbitTarget) - see universeTiming.js for the full
-   derivation of each. */
 .orbitWrapper {
   position: relative;
   height: 600vh;
 }
 
-/* Pinned via native CSS sticky for as long as .orbitWrapper is scrolling
-   through view, then unpins and scrolls away like any normal element -
-   no JS-driven position toggling involved. */
 .sticky {
   position: sticky;
   top: 0;
@@ -25,28 +15,11 @@
   outline: none;
   width: 100%;
   height: 100%;
-  /* Defaulted via var(..., fallback) so this is a no-op until
-     PlungeAtmosphere.jsx's scrub actually starts moving these - the
-     "rushing past" half of Act II (see that file's own comment for why
-     the color-wash half lives there instead of here). */
   transform: scale(var(--plunge-scale, 1));
   filter: blur(var(--plunge-blur, 0px));
   will-change: transform, filter;
 }
 
-/* Plain black wash that ramps in and back out during Universe's own "fall"
-   (PlungeAtmosphere.jsx drives --plunge-blackout via scroll-linked GSAP,
-   scoped to this element only by virtue of CSS custom-property
-   inheritance - it doesn't care which element reads it). Deliberately
-   `position: absolute` within `.sticky`, NOT `position: fixed` over the
-   viewport - a fixed overlay can't tell Universe's own box apart from
-   whatever's visible below it, and during the fall, Projects' entrance is
-   already sliding into view in the same viewport (that's inherent to how
-   `.sticky` releases). An overlay scoped to `.sticky`'s own box instead
-   physically slides away together with the canvas as this container
-   un-pins, so it only ever darkens Universe, never bleeds onto Projects
-   underneath (a real bug: Projects' own entrance was visibly dimmed by
-   this same overlay when it was viewport-fixed). */
 .blackout {
   position: absolute;
   inset: 0;

@@ -3,9 +3,6 @@
   height: 250vh;
 }
 
-/* Pinned via native CSS sticky for as long as .wrapper is scrolling through
-   view, then unpins and scrolls away like any normal element - matches the
-   pattern in Universe.module.css. */
 .sticky {
   position: sticky;
   top: 0;
@@ -28,13 +25,6 @@
   pointer-events: none;
 }
 
-/* Top middle, leaning right - `left` is the moon's horizontal center (paired
-   with the translateX(-50%) below), placed left of where Ursa Minor sits in
-   Constellations' sky (that shape lives roughly in the 68-77% band there) so
-   the two don't overlap. Plain percentages of the real viewport are fine
-   here - the moon doesn't need to align with anything on the terrain, it
-   just needs to sit somewhere in the empty sky, spread across whatever the
-   real viewport actually is so it's never cropped off an edge. */
 .moon {
   position: absolute;
   top: 8%;
