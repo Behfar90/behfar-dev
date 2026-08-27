@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-// Small buffer near the top so "scroll up" clears as soon as there's
-// genuinely nothing left above, rather than lingering for a few pixels.
 const UP_EDGE_BUFFER = 20;
-// Larger buffer near the bottom - eases off "scroll down" a little before
-// the literal end of the page instead of nudging right up to the last pixel.
 const DOWN_EDGE_BUFFER = 200;
 
 const getScrollAvailability = () => {
@@ -16,11 +12,6 @@ const getScrollAvailability = () => {
   };
 };
 
-// True once `delay` ms have passed without a scroll event firing, provided
-// there's still room to scroll in at least one direction - starts counting
-// from mount too, so it also fires if the user never scrolls at all. Also
-// reports which direction(s) that room is in, so a hint can point the right
-// way instead of just nudging "scroll" blindly.
 export default function useScrollIdle(delay = 3000) {
   const [isIdle, setIsIdle] = useState(false);
   const [availability, setAvailability] = useState({ canScrollUp: false, canScrollDown: false });

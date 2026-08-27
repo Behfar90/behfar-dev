@@ -3,8 +3,6 @@ import * as THREE from 'three';
 
 const easeOutSine = (t, b, c, d) => c * Math.sin((t / d) * (Math.PI / 2)) + b;
 
-// Draws a fading pointer trail onto an offscreen canvas texture and exposes
-// the pointer handler that feeds it, for PortraitParticles' hit-plane.
 export default function usePortraitTailInteraction() {
   const tailRef = useRef({
     array: [],

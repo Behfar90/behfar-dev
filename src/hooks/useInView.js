@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 
-// Fires once, the first time the observed element scrolls into view, then
-// stays true regardless of further scrolling.
 export default function useInView(threshold = 0.1) {
   const ref = useRef(null);
   const [isVisible, setIsVisible] = useState(false);

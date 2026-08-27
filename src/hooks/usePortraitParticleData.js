@@ -1,7 +1,5 @@
 import { useMemo } from 'react';
 
-// Samples a loaded texture's image onto a small offscreen canvas and turns
-// each pixel above `threshold` into a particle offset, for PortraitParticles.
 export default function usePortraitParticleData(texture, threshold) {
   return useMemo(() => {
     if (!texture || !texture.image) return { visiblePoints: 0 };
