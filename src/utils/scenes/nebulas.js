@@ -172,6 +172,49 @@ function buildShellNebula(scene, texture, starTexture, center, radius, count) {
   return puffs;
 }
 
+function buildPillarsNebula(scene, texture, starTexture, center, radius, count) {
+  const group = new THREE.Group();
+  group.position.set(center.x, center.y, center.z);
+  const puffs = [];
+
+  const pillarBase = new THREE.Color('#4a2c14');
+  const pillarRim = new THREE.Color('#f2b25a');
+  const gasCore = new THREE.Color('#3fc1d9');
+  const gasEdge = new THREE.Color('#0b2e3d');
+  const warmFrac = 0.8;
+
+  for (let i = 0; i < count; i++) {
+    const position = randomInSphere(radius);
+    const t = position.length() / radius;
+    const color =
+      t < warmFrac
+        ? pillarBase.clone().lerp(pillarRim, t / warmFrac)
+        : gasCore.clone().lerp(gasEdge, (t - warmFrac) / (1 - warmFrac));
+
+    addPuff(
+      group,
+      puffs,
+      texture,
+      color,
+      THREE.MathUtils.randFloat(0.18, 0.38),
+      THREE.MathUtils.randFloat(2, 4.5),
+      position,
+    );
+  }
+
+  addEmbeddedStars(
+    group,
+    puffs,
+    starTexture,
+    new THREE.Color('#eaf4ff'),
+    Math.round(count * 0.1),
+    radius * 0.6,
+  );
+
+  scene.add(group);
+  return puffs;
+}
+
 function buildRingNebula(scene, texture, center, radius, count) {
   const group = new THREE.Group();
   group.position.set(center.x, center.y, center.z);
@@ -227,6 +270,7 @@ export function createNebulas(scene) {
     ...buildWingNebula(scene, texture, starTexture, { x: -22.12, y: -34, z: 26.36 }, 6, 65),
     ...buildShellNebula(scene, texture, starTexture, { x: -112.7, y: -18, z: 9.86 }, 7, 70),
     ...buildRingNebula(scene, texture, { x: -5.91, y: 14, z: -33.54 }, 5.5, 60),
+    ...buildPillarsNebula(scene, texture, starTexture, { x: -38, y: 6, z: -30 }, 6.5, 65),
   ];
 }
 
