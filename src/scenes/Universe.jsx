@@ -47,7 +47,7 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
     const scene = new THREE.Scene();
 
     const stars = createStars(scene);
-    const { originGalaxy } = createGalaxies(scene);
+    const { originGalaxy, gasPuffs } = createGalaxies(scene);
     const nebulas = createNebulas(scene);
     const smoke = createSmoke(scene);
 
@@ -120,6 +120,7 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
       const sinceReveal = renderStartTime === null ? 0 : elapsedTime - renderStartTime;
       updateStars(stars, elapsedTime, sinceReveal);
       updateNebulas(nebulas, elapsedTime);
+      updateNebulas(gasPuffs, elapsedTime);
       const plungeT = easeInCubic(
         clamp01((orbitProgressRef.current - PLUNGE_START) / (1 - PLUNGE_START)),
       );

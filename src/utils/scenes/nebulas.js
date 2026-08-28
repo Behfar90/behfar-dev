@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-function createPuffTexture() {
+export function createPuffTexture() {
   const size = 128;
   const canvas = document.createElement('canvas');
   canvas.width = size;
@@ -35,7 +35,7 @@ function createStarTexture() {
   return texture;
 }
 
-function addPuff(group, puffs, texture, color, opacity, scale, position) {
+export function addPuff(group, puffs, texture, color, opacity, scale, position) {
   const material = new THREE.SpriteMaterial({
     map: texture,
     color,
@@ -59,7 +59,7 @@ function addPuff(group, puffs, texture, color, opacity, scale, position) {
   });
 }
 
-function randomInSphere(radius) {
+export function randomInSphere(radius) {
   const theta = Math.random() * Math.PI * 2;
   const phi = Math.acos(2 * Math.random() - 1);
   const r = radius * Math.cbrt(Math.random());
