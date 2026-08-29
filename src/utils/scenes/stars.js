@@ -29,7 +29,7 @@ export function createStars(scene) {
   const igniteDelays = new Float32Array(COUNT);
 
   for (let i = 0; i < COUNT; i++) {
-    const r = 11 + Math.random() * 70;
+    const r = 12 + Math.random() * 70;
     const theta = Math.random() * Math.PI * 2;
     const phi = Math.acos(2 * Math.random() - 1);
     positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
