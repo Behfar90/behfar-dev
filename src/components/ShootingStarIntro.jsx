@@ -37,8 +37,8 @@ const SUBTITLE_PUFF_ANGLE_SPREAD = Math.PI / 6;
 const SUBTITLE_GATHER_ANGLE = Math.PI - SUBTITLE_PUFF_ANGLE;
 
 const SUBTITLE_CHAPTERS = [
-  'Who thinks FrontEnd First',
-  'And does FullStack when Gravity calls',
+  'Happiest when writing code and solving puzzles',
+  'Frontend first, Everything else when gravity calls',
 ];
 
 function fitSubtitleFont(measureCtx, text, family, maxCssSize, maxDeviceWidth, pixelRatio) {
@@ -416,7 +416,7 @@ const TextReveal = forwardRef((_, ref) => {
     secondSubtitleY,
   } = useMemo(() => {
     const text = 'Behfar Behzad';
-    const subtitle = 'A Passionate Software Developer';
+    const subtitle = 'A software developer who loves to build';
     const subtitleColor = '#eeba7b';
     const isMobile = size.width < 768;
     const letterSpacing = isMobile ? 0.1 : 0.18;
