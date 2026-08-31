@@ -166,8 +166,7 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
     (orbitProgress - SUBTITLE_STORY_END) / (PLUNGE_START - SUBTITLE_STORY_END),
   );
 
-  const plungeTextOpacity =
-    1 - smoothstep(PLUNGE_START, lerp(PLUNGE_START, 1, 0.3), orbitProgress);
+  const plungeTextOpacity = 1 - smoothstep(PLUNGE_START, lerp(PLUNGE_START, 1, 0.3), orbitProgress);
 
   return (
     <div ref={wrapperRef} className={styles.orbitWrapper}>

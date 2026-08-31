@@ -36,7 +36,10 @@ const SUBTITLE_PUFF_ANGLE = Math.PI / 5;
 const SUBTITLE_PUFF_ANGLE_SPREAD = Math.PI / 6;
 const SUBTITLE_GATHER_ANGLE = Math.PI - SUBTITLE_PUFF_ANGLE;
 
-const SUBTITLE_CHAPTERS = ['Who thinks FrontEnd First', 'And does FullStack when Gravity calls'];
+const SUBTITLE_CHAPTERS = [
+  'Who thinks FrontEnd First',
+  'And does FullStack when Gravity calls',
+];
 
 function fitSubtitleFont(measureCtx, text, family, maxCssSize, maxDeviceWidth, pixelRatio) {
   measureCtx.font = `${maxCssSize * pixelRatio}px ${family}`;
@@ -402,83 +405,91 @@ const TextReveal = forwardRef((_, ref) => {
       .catch(() => {});
   }, []);
 
-  const { texture, planeWidth, planeHeight, subtitleVMax, puffSeeds, puffDirs, puffRandoms, secondSubtitleY } =
-    useMemo(() => {
-      const text = 'Behfar Behzad';
-      const subtitle = 'A Passionate Software Developer';
-      const subtitleColor = '#eeba7b';
-      const isMobile = size.width < 768;
-      const letterSpacing = isMobile ? 0.1 : 0.18;
-      const pixelRatio = window.devicePixelRatio;
+  const {
+    texture,
+    planeWidth,
+    planeHeight,
+    subtitleVMax,
+    puffSeeds,
+    puffDirs,
+    puffRandoms,
+    secondSubtitleY,
+  } = useMemo(() => {
+    const text = 'Behfar Behzad';
+    const subtitle = 'A Passionate Software Developer';
+    const subtitleColor = '#eeba7b';
+    const isMobile = size.width < 768;
+    const letterSpacing = isMobile ? 0.1 : 0.18;
+    const pixelRatio = window.devicePixelRatio;
 
-      const maxContentWidth = size.width * 0.9 * pixelRatio;
-      const maxFontSize = 50;
-      const maxSubtitleFontSize = 27;
+    const maxContentWidth = size.width * 0.9 * pixelRatio;
+    const maxFontSize = 50;
+    const maxSubtitleFontSize = 27;
 
-      const nameCharFactor = text.length + letterSpacing * (text.length - 1);
-      const fontSize = Math.min(maxFontSize, maxContentWidth / pixelRatio / nameCharFactor);
-      const nameWidth = fontSize * nameCharFactor * pixelRatio;
-      const nameHeight = fontSize * 1.2 * pixelRatio;
+    const nameCharFactor = text.length + letterSpacing * (text.length - 1);
+    const fontSize = Math.min(maxFontSize, maxContentWidth / pixelRatio / nameCharFactor);
+    const nameWidth = fontSize * nameCharFactor * pixelRatio;
+    const nameHeight = fontSize * 1.2 * pixelRatio;
 
-      const canvas = document.createElement('canvas');
-      const measureCtx = canvas.getContext('2d');
-      const { fontSize: subtitleFontSize, width: subtitleWidth } = fitSubtitleFont(
-        measureCtx,
-        subtitle,
-        subtitleFontFamily,
-        maxSubtitleFontSize,
-        maxContentWidth,
-        pixelRatio,
-      );
-      const subtitleHeight = subtitleFontSize * 1.6 * pixelRatio;
+    const canvas = document.createElement('canvas');
+    const measureCtx = canvas.getContext('2d');
+    const { fontSize: subtitleFontSize, width: subtitleWidth } = fitSubtitleFont(
+      measureCtx,
+      subtitle,
+      subtitleFontFamily,
+      maxSubtitleFontSize,
+      maxContentWidth,
+      pixelRatio,
+    );
+    const subtitleHeight = subtitleFontSize * 1.6 * pixelRatio;
 
-      const width = Math.max(nameWidth, subtitleWidth);
-      const height = nameHeight + subtitleHeight;
+    const width = Math.max(nameWidth, subtitleWidth);
+    const height = nameHeight + subtitleHeight;
 
-      canvas.width = width;
-      canvas.height = height;
+    canvas.width = width;
+    canvas.height = height;
 
-      const ctx = canvas.getContext('2d');
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+    const ctx = canvas.getContext('2d');
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
 
-      ctx.font = `${fontSize * pixelRatio}px ${fontFamily}`;
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(text, width / 2, nameHeight / 2);
+    ctx.font = `${fontSize * pixelRatio}px ${fontFamily}`;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(text, width / 2, nameHeight / 2);
 
-      ctx.font = `${subtitleFontSize * pixelRatio}px ${subtitleFontFamily}`;
-      ctx.fillStyle = subtitleColor;
-      ctx.fillText(subtitle, width / 2, nameHeight + subtitleHeight / 2);
+    ctx.font = `${subtitleFontSize * pixelRatio}px ${subtitleFontFamily}`;
+    ctx.fillStyle = subtitleColor;
+    ctx.fillText(subtitle, width / 2, nameHeight + subtitleHeight / 2);
 
-      const tex = new THREE.CanvasTexture(canvas);
-      tex.minFilter = THREE.LinearFilter;
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.minFilter = THREE.LinearFilter;
 
-      const subtitleRow = Math.round(nameHeight);
-      const subtitleImage = ctx.getImageData(0, subtitleRow, width, height - subtitleRow);
-      const subtitlePoints = scanGlyphPixels(subtitleImage, SUBTITLE_TARGET_PARTICLES);
-      const seeds = [];
-      const dirs = [];
-      const randoms = [];
-      for (let i = 0; i < subtitlePoints.length / 2; i++) {
-        const px = subtitlePoints[i * 2];
-        const py = subtitleRow + subtitlePoints[i * 2 + 1];
-        seeds.push((px - width / 2) / pixelRatio, (height / 2 - py) / pixelRatio, 0);
-        const angle = SUBTITLE_PUFF_ANGLE + (Math.random() - 0.5) * SUBTITLE_PUFF_ANGLE_SPREAD;
-        dirs.push(Math.cos(angle), Math.sin(angle));
-        randoms.push(Math.random());
-      }
+    const subtitleRow = Math.round(nameHeight);
+    const subtitleImage = ctx.getImageData(0, subtitleRow, width, height - subtitleRow);
+    const subtitlePoints = scanGlyphPixels(subtitleImage, SUBTITLE_TARGET_PARTICLES);
+    const seeds = [];
+    const dirs = [];
+    const randoms = [];
+    for (let i = 0; i < subtitlePoints.length / 2; i++) {
+      const px = subtitlePoints[i * 2];
+      const py = subtitleRow + subtitlePoints[i * 2 + 1];
+      seeds.push((px - width / 2) / pixelRatio, (height / 2 - py) / pixelRatio, 0);
+      const angle = SUBTITLE_PUFF_ANGLE + (Math.random() - 0.5) * SUBTITLE_PUFF_ANGLE_SPREAD;
+      dirs.push(Math.cos(angle), Math.sin(angle));
+      randoms.push(Math.random());
+    }
 
-      return {
-        texture: tex,
-        planeWidth: width / pixelRatio,
-        planeHeight: height / pixelRatio,
-        subtitleVMax: 1 - nameHeight / height,
-        puffSeeds: new Float32Array(seeds),
-        puffDirs: new Float32Array(dirs),
-        puffRandoms: new Float32Array(randoms),
-        secondSubtitleY: -(nameHeight / pixelRatio) / 2,
-      };
-    }, [size.width, fontFamily, subtitleFontFamily]);
+    return {
+      texture: tex,
+      planeWidth: width / pixelRatio,
+      planeHeight: height / pixelRatio,
+      subtitleVMax: 1 - nameHeight / height,
+      puffSeeds: new Float32Array(seeds),
+      puffDirs: new Float32Array(dirs),
+      puffRandoms: new Float32Array(randoms),
+      secondSubtitleY: -(nameHeight / pixelRatio) / 2,
+    };
+  }, [size.width, fontFamily, subtitleFontFamily]);
 
   const uniforms = useMemo(
     () => ({
@@ -579,9 +590,7 @@ const TEXT_FADE_RATIO = 1 / 4;
 const HOLD_RATIO = 0.35;
 
 function withHold(raw, holdRatio, holdFirst) {
-  return holdFirst
-    ? clamp01((raw - holdRatio) / (1 - holdRatio))
-    : clamp01(raw / (1 - holdRatio));
+  return holdFirst ? clamp01((raw - holdRatio) / (1 - holdRatio)) : clamp01(raw / (1 - holdRatio));
 }
 
 const Scene = ({ orbitProgress = 0, storyEnd = SUBTITLE_STORY_END }) => {
