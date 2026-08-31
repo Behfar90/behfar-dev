@@ -23,10 +23,10 @@ const PLUNGE_RADIUS_SCALE = 0.08;
 const easeInCubic = (t) => t * t * t;
 
 const ORBIT_CAPTIONS = [
-  'Keep scrolling…',
-  'Detail-obsessed. Motion-driven.',
-  '5+ years building for the web',
-  "Here's what I've built ↓",
+  'I count milliseconds recreationally',
+  'Design systems to shaders',
+  'Performance is a feature, not a fix',
+  'Scroll for some of my highlighted works ↓',
 ];
 
 export default function Universe({ wrapperRef, rendering, showOverlays, orbitProgress = 0 }) {
