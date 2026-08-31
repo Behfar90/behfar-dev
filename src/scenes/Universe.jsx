@@ -46,8 +46,10 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
     const canvas = canvasRef.current;
     const scene = new THREE.Scene();
 
+    const isMobile = window.innerWidth < window.innerHeight;
+
     const stars = createStars(scene);
-    const { originGalaxy, gasPuffs } = createGalaxies(scene);
+    const { originGalaxy, gasPuffs } = createGalaxies(scene, { isMobile });
     const nebulas = createNebulas(scene);
     const smoke = createSmoke(scene);
 

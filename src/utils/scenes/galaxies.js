@@ -23,10 +23,11 @@ const GALAXY_CENTERS = [
     x: 29,
     y: 9,
     z: -4,
+    mobile: { x: 2, y: 6, z: 0 },
     insideColor: '#ffb08a',
     outsideColor: '#7a3a8f',
   },
-  { x: 16, y: -9, z: 0 },
+  { x: 16, y: -9, z: 0, mobile: { x: -1, y: -9, z: -3 } },
   { x: 18, y: 10, z: 20 },
   { x: -18, y: -8, z: -22 },
   {
@@ -71,9 +72,9 @@ const GALAXY_CENTERS = [
   },
 ];
 
-function buildGalaxy(scene, center) {
+function buildGalaxy(scene, center, isMobile) {
   const { count, size, radius, branches, spin, randomnessPower } = GALAXY_PARAMS;
-  const { x, y, z } = center;
+  const { x, y, z } = isMobile && center.mobile ? center.mobile : center;
   const insideColor = center.insideColor || DEFAULT_INSIDE_COLOR;
   const outsideColor = center.outsideColor || DEFAULT_OUTSIDE_COLOR;
 
@@ -144,9 +145,9 @@ function addGalaxyGas(scene, texture, center, coreColor, edgeColor) {
   return puffs;
 }
 
-export function createGalaxies(scene) {
+export function createGalaxies(scene, { isMobile = false } = {}) {
   const gasTexture = createPuffTexture();
-  const points = GALAXY_CENTERS.map((center) => buildGalaxy(scene, center));
+  const points = GALAXY_CENTERS.map((center) => buildGalaxy(scene, center, isMobile));
   const gasPuffs = GALAXY_CENTERS.flatMap((center) =>
     center.gas ? addGalaxyGas(scene, gasTexture, center, center.gas.core, center.gas.edge) : [],
   );
