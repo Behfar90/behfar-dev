@@ -192,18 +192,17 @@
   color: rgba(200, 220, 255, 0.85);
 }
 
-.links {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.75rem;
-}
-
-.link {
+.descriptionLink {
   color: #fff;
-  font-size: 0.85rem;
   text-decoration: underline;
   text-underline-offset: 3px;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.descriptionLink:hover,
+.descriptionLink:focus-visible {
+  color: rgba(200, 220, 255, 1);
 }
 
 @media (max-width: 768px) {

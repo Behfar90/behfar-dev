@@ -9,7 +9,9 @@ export const PROJECTS = [
     description:
       'Frontend developer for a Web-Components-in-core design system unifying multiple brands under one accessible UI layer — versioned packages, WCAG 2.1 governance, built with designers in Figma.',
     tags: ['React', 'Web Components', 'Stencil', 'Figma', 'WCAG 2.1'],
-    links: ['https://form.lyse.com/1871d97fb/p/85d5d2-form-design-system'],
+    links: [
+      { url: 'https://form.lyse.com/1871d97fb/p/85d5d2-form-design-system', label: 'Learn more' },
+    ],
   },
   {
     id: 'ursa-minor',
@@ -33,7 +35,9 @@ export const PROJECTS = [
     description:
       'Modernized a legacy React codebase — class components to hooks — then hunted performance bottlenecks with profiling and memoization, cutting re-renders by roughly 40%.',
     tags: ['React', 'Performance', 'Profiling'],
-    links: ['https://sportradar.com/media-tech/data-content/radar-360/'],
+    links: [
+      { url: 'https://sportradar.com/media-tech/data-content/radar-360/', label: 'Learn more' },
+    ],
   },
   {
     id: 'orion',

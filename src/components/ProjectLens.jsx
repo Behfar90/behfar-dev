@@ -129,7 +129,21 @@ export default function ProjectLens({ project, origin, onClose, returnFocusRef }
           <p id="project-lens-summary" className={styles.summary}>
             {displayedProject.summary}
           </p>
-          <p className={styles.description}>{displayedProject.description}</p>
+          <p className={styles.description}>
+            {displayedProject.description}
+            {displayedProject.links.map((link) => (
+              <a
+                key={link.url}
+                href={link.url}
+                target="_blank"
+                rel="noreferrer"
+                className={styles.descriptionLink}
+              >
+                {' '}
+                {link.label}
+              </a>
+            ))}
+          </p>
           {displayedProject.tags.length > 0 && (
             <ul className={styles.tags}>
               {displayedProject.tags.map((tag) => (
@@ -138,15 +152,6 @@ export default function ProjectLens({ project, origin, onClose, returnFocusRef }
                 </li>
               ))}
             </ul>
-          )}
-          {displayedProject.links.length > 0 && (
-            <div className={styles.links}>
-              {displayedProject.links.map((link) => (
-                <a key={link.url} href={link.url} className={styles.link}>
-                  {link.label}
-                </a>
-              ))}
-            </div>
           )}
         </div>
 
