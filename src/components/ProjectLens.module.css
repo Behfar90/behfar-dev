@@ -218,6 +218,27 @@
     -webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
     mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
   }
+
+  .tags {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 0.15rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, black 6%, black 94%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, black 6%, black 94%, transparent 100%);
+  }
+
+  .tags::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tag {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
