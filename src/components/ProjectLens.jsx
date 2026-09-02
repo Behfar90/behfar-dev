@@ -149,6 +149,22 @@ export default function ProjectLens({ project, origin, onClose, returnFocusRef }
             </div>
           )}
         </div>
+
+        {displayedProject.logo && (
+          <a
+            href={displayedProject.website}
+            target="_blank"
+            rel="noreferrer"
+            className={styles.logoLink}
+            aria-label={displayedProject.company}
+          >
+            <img
+              src={displayedProject.logo}
+              alt={displayedProject.company}
+              className={`${styles.logo}${displayedProject.noLogoFilter ? ` ${styles.logoNoFilter}` : ''}`}
+            />
+          </a>
+        )}
       </div>
     </div>
   );
