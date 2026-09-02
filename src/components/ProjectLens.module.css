@@ -238,6 +238,12 @@
     flex-shrink: 0;
     white-space: nowrap;
   }
+
+  .logoLink {
+    width: 28%;
+    height: 9%;
+    min-height: 32px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
