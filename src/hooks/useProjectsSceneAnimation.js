@@ -76,15 +76,20 @@ const cubicOut = (t) => 1 - (1 - t) ** 3;
 const SCENE_SCALE_REFERENCE_WIDTH = 1512;
 const SCENE_SCALE_REFERENCE_HEIGHT = 900;
 const MIN_SCENE_SCALE = 0.55;
+const PORTRAIT_SCENE_SCALE_REFERENCE_WIDTH = 950;
 
-const computeSceneScale = () =>
-  Math.max(
+const computeSceneScale = () => {
+  if (window.innerWidth < window.innerHeight) {
+    return Math.min(1, Math.max(MIN_SCENE_SCALE, window.innerWidth / PORTRAIT_SCENE_SCALE_REFERENCE_WIDTH));
+  }
+  return Math.max(
     MIN_SCENE_SCALE,
     Math.min(
       window.innerWidth / SCENE_SCALE_REFERENCE_WIDTH,
       window.innerHeight / SCENE_SCALE_REFERENCE_HEIGHT,
     ),
   );
+};
 
 const computeGroundScale = () =>
   Math.max(
