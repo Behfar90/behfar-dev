@@ -4,6 +4,7 @@ export const CONSTELLATIONS = [
     name: 'Design System - Lyse',
     viewBox: '0 0 170 109',
     position: { top: '8%', left: '16%' },
+    mobile: { top: '5%', left: '4%' },
     size: { width: 210, height: 135 },
     mythIllustration: { url: '/png/cassiopeia.png', x: -15, y: -30, width: 200, height: 200 },
     stars: [
@@ -26,6 +27,7 @@ export const CONSTELLATIONS = [
     name: 'Pit Stop - Equinor',
     viewBox: '0 0 135 195',
     position: { top: '6%', left: '70%' },
+    mobile: { top: '20%', left: '62%' },
     size: { width: 162, height: 234 },
     mythIllustration: { url: '/png/ursa-minor.png', x: -26.9, y: -17.9, width: 221, height: 221 },
     stars: [
@@ -53,6 +55,7 @@ export const CONSTELLATIONS = [
     name: 'Sports Analytics - Sportradar',
     viewBox: '0 0 220 175',
     position: { top: '47%', left: '68%' },
+    mobile: { top: '55%', left: '55%' },
     size: { width: 275, height: 219 },
     mythIllustration: { url: '/png/ursa-major.png', x: -37, y: -89.6, width: 273.3, height: 273.3 },
     stars: [
@@ -80,6 +83,7 @@ export const CONSTELLATIONS = [
     name: 'Calendar - Time and Date',
     viewBox: '0 0 130 210',
     position: { top: '36%', left: '20%' },
+    mobile: { top: '25%', left: '15%' },
     size: { width: 150, height: 242 },
     rotation: 12,
     mythIllustration: { url: '/png/orion.png', x: -155, y: 1, width: 393, height: 229 },
@@ -118,6 +122,7 @@ export const CONSTELLATIONS = [
     name: 'This Website',
     viewBox: '0 0 160 165',
     position: { top: '36%', left: '46%' },
+    mobile: { top: '39%', left: '35%' },
     size: { width: 184, height: 190 },
     mythIllustration: { url: '/png/scorpius.png', x: -20, y: -10, width: 200, height: 200 },
     stars: [

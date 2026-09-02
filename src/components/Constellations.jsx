@@ -1,8 +1,19 @@
+import { useEffect, useState } from 'react';
 import ConstellationGlyph from './ConstellationGlyph';
 import { CONSTELLATIONS } from '../utils/scenes/constellations';
 import styles from './Constellations.module.css';
 
 export default function Constellations({ onSelect }) {
+  const [isPortrait, setIsPortrait] = useState(
+    () => window.innerWidth < window.innerHeight,
+  );
+
+  useEffect(() => {
+    const updateOrientation = () => setIsPortrait(window.innerWidth < window.innerHeight);
+    window.addEventListener('resize', updateOrientation);
+    return () => window.removeEventListener('resize', updateOrientation);
+  }, []);
+
   const select = (event, id) => {
     const rect = event.currentTarget.getBoundingClientRect();
     onSelect(
@@ -32,14 +43,16 @@ export default function Constellations({ onSelect }) {
           height: Math.max(...ys) - Math.min(...ys) + pad * 2,
         };
 
+        const pos = isPortrait && c.mobile ? c.mobile : c.position;
+
         return (
           <svg
             key={c.id}
             className={styles.constellationRoot}
             viewBox={c.viewBox}
             style={{
-              top: c.position.top,
-              left: c.position.left,
+              top: pos.top,
+              left: pos.left,
               '--c-width': `${c.size.width}px`,
               '--c-height': `${c.size.height}px`,
               transform: `translateY(var(--ns-${c.id}-y, 0px))`,
