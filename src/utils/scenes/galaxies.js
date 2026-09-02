@@ -20,14 +20,14 @@ const GAS_COUNT = 40;
 const GALAXY_CENTERS = [
   { x: 0, y: 0, z: 0 },
   {
-    x: 29,
-    y: 9,
-    z: -4,
+    x: 2,
+    y: 6,
+    z: 0,
     mobile: { x: 2, y: 6, z: 0 },
     insideColor: '#ffb08a',
     outsideColor: '#7a3a8f',
   },
-  { x: 16, y: -9, z: 0, mobile: { x: -1, y: -9, z: -3 } },
+  { x: 18, y: -9, z: 0, mobile: { x: -1, y: -9, z: -3 } },
   { x: 18, y: 10, z: 20 },
   { x: -18, y: -8, z: -22 },
   {

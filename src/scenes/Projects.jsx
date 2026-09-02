@@ -76,7 +76,7 @@ export default function Projects({ onHintActiveChange = () => {}, closeLensToken
       />
       <Hint visible={showHint}>
         <Telescope size={26} strokeWidth={1.5} />
-        Trace the stars to find my highlighted work
+        Pick a constellation
       </Hint>
     </div>
   );
