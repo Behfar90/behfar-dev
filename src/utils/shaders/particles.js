@@ -19,6 +19,9 @@ export const particlesVertexShader = `
     varying vec2 vPUv;
     varying vec2 vUv;
 
+    // 2D simplex noise (mod289/permute/snoise below).
+    // Author: Ian McEwan, Ashima Arts. Copyright (C) 2011 Ashima Arts.
+    // Distributed under the MIT License. https://github.com/ashima/webgl-noise
     vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
     vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
     vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
