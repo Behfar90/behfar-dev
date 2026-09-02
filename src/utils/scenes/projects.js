@@ -58,7 +58,7 @@ export const PROJECTS = [
     summary: "The universe you're standing in right now.",
     description:
       'Built with React, Three.js, and WebGL — custom GLSL shaders, hand-rolled scroll and mouse-driven camera work, tuned to hold 60fps in the browser.',
-    tags: ['React', 'Three.js', 'WebGL', 'GLSL'],
+    tags: ['React', 'Three.js', 'WebGL', 'GLSL', 'GSAP'],
     links: [],
   },
 ];
