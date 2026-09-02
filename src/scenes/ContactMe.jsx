@@ -29,8 +29,8 @@ export default function ContactMe() {
     <section ref={sectionRef} className={styles.section}>
       <div className={portraitClass}>{isVisible && <PortraitParticles />}</div>
       <div className={styles.content}>
-        <h2 className={styles.heading}>Get In Touch</h2>
-        <p className={styles.text}>Have a project in mind or just want to say hi?</p>
+        <h2 className={styles.heading}>Let's Orbit Together</h2>
+        <p className={styles.text}>If something here pulled you in, don't hesitate to say hi.</p>
 
         <div className={styles.contactRow}>
           <div className={styles.railItem}>
