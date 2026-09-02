@@ -143,8 +143,8 @@
 .copiedLabel {
   position: absolute;
   left: 50%;
-  bottom: calc(100% + 0.5rem);
-  transform: translateX(-50%) translateY(4px);
+  top: calc(100% + 0.5rem);
+  transform: translateX(-50%) translateY(-4px);
   margin: 0;
   white-space: nowrap;
   color: #eeba7b;
