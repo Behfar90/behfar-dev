@@ -1,7 +1,7 @@
 export const CONSTELLATIONS = [
   {
     id: 'cassiopeia',
-    name: 'Cassiopeia',
+    name: 'Design System - Lyse',
     viewBox: '0 0 170 109',
     position: { top: '8%', left: '16%' },
     size: { width: 210, height: 135 },
@@ -23,7 +23,7 @@ export const CONSTELLATIONS = [
   },
   {
     id: 'ursa-minor',
-    name: 'Ursa Minor',
+    name: 'Pit Stop - Equinor',
     viewBox: '0 0 135 195',
     position: { top: '6%', left: '70%' },
     size: { width: 162, height: 234 },
@@ -50,7 +50,7 @@ export const CONSTELLATIONS = [
   },
   {
     id: 'ursa-major',
-    name: 'Ursa Major',
+    name: 'Sports Analytics - Sportradar',
     viewBox: '0 0 220 175',
     position: { top: '47%', left: '68%' },
     size: { width: 275, height: 219 },
@@ -77,7 +77,7 @@ export const CONSTELLATIONS = [
   },
   {
     id: 'orion',
-    name: 'Orion',
+    name: 'Calendar - Time and Date',
     viewBox: '0 0 130 210',
     position: { top: '36%', left: '20%' },
     size: { width: 150, height: 242 },
@@ -115,7 +115,7 @@ export const CONSTELLATIONS = [
   },
   {
     id: 'scorpius',
-    name: 'Scorpius',
+    name: 'This Website',
     viewBox: '0 0 160 165',
     position: { top: '36%', left: '46%' },
     size: { width: 184, height: 190 },
