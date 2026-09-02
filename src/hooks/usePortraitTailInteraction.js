@@ -65,7 +65,7 @@ export default function usePortraitTailInteraction() {
     tailTexture.needsUpdate = true;
   };
 
-  const handlePointerMove = (e, meshRef) => {
+  const handlePointerMove = (e) => {
     const uv = e.uv;
     let force = 0;
     const last = tailRef.current.array[tailRef.current.array.length - 1];
@@ -75,11 +75,6 @@ export default function usePortraitTailInteraction() {
       force = Math.min((dx * dx + dy * dy) * 10000, 1);
     }
     tailRef.current.array.push({ x: uv.x, y: uv.y, age: 0, force });
-
-    if (meshRef.current) {
-      meshRef.current.rotation.y = e.pointer.x / 8;
-      meshRef.current.rotation.x = -e.pointer.y / 8;
-    }
   };
 
   return { tailTexture, drawTail, handlePointerMove };

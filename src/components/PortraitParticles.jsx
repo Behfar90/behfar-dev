@@ -92,16 +92,12 @@ const Particles = () => {
 
   return (
     <group>
-      <mesh
-        ref={hitPlaneRef}
-        scale={[meshScale, meshScale, 1]}
-        onPointerMove={(e) => handlePointerMove(e, meshRef)}
-      >
+      <mesh ref={hitPlaneRef} scale={[meshScale, meshScale, 1]} onPointerMove={handlePointerMove}>
         <planeGeometry args={[gridW, gridH]} />
         <meshBasicMaterial colorWrite={false} depthWrite={false} />
       </mesh>
 
-      <mesh ref={meshRef} scale={[meshScale, meshScale, 1]}>
+      <mesh ref={meshRef} rotation={[0, 0.125, 0]} scale={[meshScale, meshScale, 1]}>
         <instancedBufferGeometry instanceCount={visiblePoints}>
           <bufferAttribute
             attach="attributes-position"
