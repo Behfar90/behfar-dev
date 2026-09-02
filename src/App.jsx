@@ -24,6 +24,7 @@ function App() {
   } = useScrollJourney();
   const [suppressIdleHint, setSuppressIdleHint] = useState(false);
   const [closeLensToken, setCloseLensToken] = useState(0);
+  const [lensOpen, setLensOpen] = useState(false);
   const { overlayVisible, navigateTo } = useSceneTransition({
     activeSection,
     universeWrapperRef,
@@ -49,7 +50,7 @@ function App() {
   return (
     <div className={styles.app}>
       <SceneNav
-        visible={showOverlays && audiowideReady}
+        visible={showOverlays && audiowideReady && !lensOpen}
         activeSection={activeSection}
         onNavigate={navigateTo}
       />
@@ -62,7 +63,11 @@ function App() {
       />
       <PlungeAtmosphere universeWrapperRef={universeWrapperRef} />
       <div ref={projectsWrapperRef}>
-        <Projects onHintActiveChange={setSuppressIdleHint} closeLensToken={closeLensToken} />
+        <Projects
+          onHintActiveChange={setSuppressIdleHint}
+          onLensOpenChange={setLensOpen}
+          closeLensToken={closeLensToken}
+        />
       </div>
       <div ref={contactWrapperRef}>
         <ContactMe />

@@ -11,7 +11,11 @@ import useProjectsSceneAnimation from '../hooks/useProjectsSceneAnimation';
 import { getProjectById } from '../utils/scenes/projects';
 import styles from './Projects.module.css';
 
-export default function Projects({ onHintActiveChange = () => {}, closeLensToken = 0 }) {
+export default function Projects({
+  onHintActiveChange = () => {},
+  onLensOpenChange = () => {},
+  closeLensToken = 0,
+}) {
   const wrapperRef = useProjectsSceneAnimation();
   const figureRef = useRef(null);
   const moonRef = useRef(null);
@@ -46,6 +50,10 @@ export default function Projects({ onHintActiveChange = () => {}, closeLensToken
   useEffect(() => {
     onHintActiveChange(inHintRange);
   }, [inHintRange, onHintActiveChange]);
+
+  useEffect(() => {
+    onLensOpenChange(Boolean(openProjectId));
+  }, [openProjectId, onLensOpenChange]);
 
   useEffect(() => {
     setOpenProjectId(null);
