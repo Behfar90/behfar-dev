@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { CircleX } from 'lucide-react';
 import ConstellationGlyph from './ConstellationGlyph';
 import { CONSTELLATIONS } from '../utils/scenes/constellations';
+import { trackEvent } from '../utils/analytics';
 import styles from './ProjectLens.module.css';
 
 const starsViewBox = (stars) => {
@@ -138,6 +139,12 @@ export default function ProjectLens({ project, origin, onClose, returnFocusRef }
                 target="_blank"
                 rel="noreferrer"
                 className={styles.descriptionLink}
+                onClick={() =>
+                  trackEvent('project_link_click', {
+                    project_id: displayedProject.id,
+                    url: link.url,
+                  })
+                }
               >
                 {' '}
                 {link.label}
@@ -162,6 +169,12 @@ export default function ProjectLens({ project, origin, onClose, returnFocusRef }
             rel="noreferrer"
             className={styles.logoLink}
             aria-label={displayedProject.company}
+            onClick={() =>
+              trackEvent('company_logo_click', {
+                project_id: displayedProject.id,
+                company: displayedProject.company,
+              })
+            }
           >
             <img
               src={displayedProject.logo}
