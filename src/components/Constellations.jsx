@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import ConstellationGlyph from './ConstellationGlyph';
 import { CONSTELLATIONS } from '../utils/scenes/constellations';
+import { trackEvent } from '../utils/analytics';
 import styles from './Constellations.module.css';
 
 export default function Constellations({ onSelect }) {
@@ -14,8 +15,9 @@ export default function Constellations({ onSelect }) {
     return () => window.removeEventListener('resize', updateOrientation);
   }, []);
 
-  const select = (event, id) => {
+  const select = (event, id, name) => {
     const rect = event.currentTarget.getBoundingClientRect();
+    trackEvent('select_project', { project_id: id, project_name: name });
     onSelect(
       id,
       { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 },
@@ -23,10 +25,10 @@ export default function Constellations({ onSelect }) {
     );
   };
 
-  const handleKeyDown = (event, id) => {
+  const handleKeyDown = (event, id, name) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      select(event, id);
+      select(event, id, name);
     }
   };
 
@@ -63,8 +65,8 @@ export default function Constellations({ onSelect }) {
               role="button"
               tabIndex={0}
               aria-label={c.name}
-              onClick={(event) => select(event, c.id)}
-              onKeyDown={(event) => handleKeyDown(event, c.id)}
+              onClick={(event) => select(event, c.id, c.name)}
+              onKeyDown={(event) => handleKeyDown(event, c.id, c.name)}
             >
               <g className={c.rotation ? styles.tilt : undefined}>
                 <rect

@@ -3,6 +3,7 @@ import { FileDown, Mail } from 'lucide-react';
 import useInView from '../hooks/useInView';
 import PortraitParticles from '../components/PortraitParticles';
 import { GithubIcon, LinkedinIcon } from '../components/BrandIcons';
+import { trackEvent } from '../utils/analytics';
 import styles from './ContactMe.module.css';
 
 const EMAIL = 'behfar.behzad@gmail.com';
@@ -20,6 +21,7 @@ export default function ContactMe() {
     try {
       await navigator.clipboard.writeText(EMAIL);
       setCopied(true);
+      trackEvent('email_copy');
       clearTimeout(copyTimeoutRef.current);
       copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
     } catch {}
@@ -57,6 +59,7 @@ export default function ContactMe() {
             rel="noreferrer"
             title="GitHub"
             aria-label="GitHub"
+            onClick={() => trackEvent('social_click', { platform: 'github' })}
           >
             <GithubIcon size={20} />
           </a>
@@ -67,6 +70,7 @@ export default function ContactMe() {
             rel="noreferrer"
             title="LinkedIn"
             aria-label="LinkedIn"
+            onClick={() => trackEvent('social_click', { platform: 'linkedin' })}
           >
             <LinkedinIcon size={20} />
           </a>
@@ -76,6 +80,7 @@ export default function ContactMe() {
             download
             title="Download Résumé"
             aria-label="Download Résumé"
+            onClick={() => trackEvent('resume_download', { placement: 'rail_icon' })}
           >
             <FileDown size={20} strokeWidth={1.5} />
           </a>
@@ -83,7 +88,12 @@ export default function ContactMe() {
       </div>
 
       <div className={styles.resumeRail}>
-        <a className={styles.resumeLink} href="/resume.pdf" download>
+        <a
+          className={styles.resumeLink}
+          href="/resume.pdf"
+          download
+          onClick={() => trackEvent('resume_download', { placement: 'side_rail' })}
+        >
           <FileDown size={18} strokeWidth={1.5} />
           Download Résumé
         </a>
