@@ -12,9 +12,18 @@
       }
       window.scrollTo(0, 0);
     </script>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C9J7V5YG8S"></script>
-    <script>
+    <!-- Google tag (gtag.js) - held inert (type="text/plain") until the visitor
+         accepts analytics via the cookie-consent banner (src/cookieConsent.js),
+         which finds these by data-category/data-service and switches them to
+         real, executing scripts. Never fires on page load by itself. -->
+    <script
+      type="text/plain"
+      data-category="analytics"
+      data-service="ga"
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-C9J7V5YG8S"
+    ></script>
+    <script type="text/plain" data-category="analytics" data-service="ga">
       window.dataLayer = window.dataLayer || [];
       function gtag() {
         dataLayer.push(arguments);
