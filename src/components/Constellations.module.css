@@ -1,0 +1,104 @@
+.constellationRoot {
+  position: absolute;
+  z-index: 2;
+  width: calc(var(--c-width) * var(--scene-scale, 1));
+  height: calc(var(--c-height) * var(--scene-scale, 1));
+  will-change: transform;
+  overflow: visible;
+}
+
+.constellation {
+  cursor: pointer;
+  outline: none;
+}
+
+.constellation:focus-visible .hitArea {
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-width: 1;
+  fill: rgba(255, 255, 255, 0.04);
+}
+
+.tilt {
+  transform: rotate(12deg);
+  transform-box: view-box;
+  transform-origin: center;
+}
+
+.hitArea {
+  fill: transparent;
+  pointer-events: all;
+}
+
+.mythImage {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.line {
+  stroke: #fff;
+  stroke-width: 1.5;
+  fill: none;
+  opacity: 0;
+  transition:
+    opacity 0.35s ease,
+    filter 0.3s ease;
+}
+
+.star {
+  fill: #fff;
+  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.72));
+  transition: filter 0.3s ease;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: constellationTwinkle 4s ease-in-out infinite;
+}
+
+@keyframes constellationTwinkle {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star {
+    animation: none;
+    opacity: 0.85;
+  }
+}
+
+.constellation:hover .line {
+  opacity: 0.7;
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.6));
+}
+
+.constellation:hover .star,
+.revealed .star {
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 1)) drop-shadow(0 0 9px rgba(150, 180, 255, 0.9));
+}
+
+.constellation:hover .mythImage {
+  opacity: 0.45;
+}
+
+.label {
+  fill: #fff;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.9))
+    drop-shadow(0 0 10px rgba(150, 180, 255, 0.7));
+  pointer-events: none;
+}
+
+.constellation:hover .label,
+.constellation:focus-visible .label {
+  opacity: 1;
+}

@@ -1,54 +1,96 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <!-- Google tag (gtag.js) -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-KBC5VR1B2F"
-    ></script>
+    <!-- Every load of this site is meant to play like a fresh intro (shooting
+         star + name reveal), so the browser's native scroll-position
+         restoration on reload is turned off in favor of always starting at
+         the top. Runs as early as possible, before the browser's own
+         restoration logic. -->
     <script>
+      if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'manual';
+      }
+      window.scrollTo(0, 0);
+    </script>
+    <!-- Google tag (gtag.js) - held inert (type="text/plain") until the visitor
+         accepts analytics via the cookie-consent banner (src/cookieConsent.js),
+         which finds these by data-category/data-service and switches them to
+         real, executing scripts. Never fires on page load by itself. -->
+    <script
+      type="text/plain"
+      data-category="analytics"
+      data-service="ga"
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-C9J7V5YG8S"
+    ></script>
+    <script type="text/plain" data-category="analytics" data-service="ga">
       window.dataLayer = window.dataLayer || [];
       function gtag() {
         dataLayer.push(arguments);
       }
-      gtag("js", new Date());
+      gtag('js', new Date());
 
-      gtag("config", "G-KBC5VR1B2F");
+      gtag('config', 'G-C9J7V5YG8S');
     </script>
     <meta charset="utf-8" />
+    <!-- Starts fetching these the instant the browser sees this <head>,
+         well before the app's CSS/JS bundle is even fetched - by the time
+         any text actually needs to render in these fonts, they're already
+         loaded, so @font-face's `swap` below rarely if ever has to fall
+         back and visibly swap later. Audiowide in particular is on screen
+         (SceneNav) from the very first frame, so this is what actually
+         prevents that flash - font-display alone can't, since it only
+         controls what happens *after* a font starts loading, not when that
+         starts. Must exactly match the @font-face src hrefs below - the
+         browser only treats a preload as satisfying a later font request
+         if the URLs match byte for byte. -->
+    <link
+      rel="preload"
+      href="%PUBLIC_URL%/fonts/Audiowide-Regular.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="%PUBLIC_URL%/fonts/Monoton-Regular.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin="anonymous"
+    />
+    <!-- Declared here rather than in src/index.css on purpose: this file is
+         copied as-is (only %PUBLIC_URL% gets substituted), while anything
+         src/index.css references via url() gets pulled into webpack's
+         asset pipeline and re-emitted under a content-hashed
+         static/media/ filename - which would silently stop matching the
+         preload hrefs above (those can only point at this stable,
+         unprocessed public/ path), making the preload pointless. -->
+    <style>
+      @font-face {
+        font-family: 'Monoton';
+        src: url('%PUBLIC_URL%/fonts/Monoton-Regular.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: 'Audiowide';
+        src: url('%PUBLIC_URL%/fonts/Audiowide-Regular.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+    </style>
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="Behfar Behzad personal  dev web site" />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
-
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
     <title>BeHFaR | FE Dev</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
-
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
   </body>
 </html>
