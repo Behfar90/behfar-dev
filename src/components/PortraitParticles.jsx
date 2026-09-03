@@ -9,7 +9,7 @@ import usePortraitTailInteraction from '../hooks/usePortraitTailInteraction';
 import styles from './PortraitParticles.module.css';
 
 const Particles = () => {
-  const texture = useTexture('/png/myPic.png');
+  const texture = useTexture('/png/MyPic.png');
   const meshRef = useRef();
   const materialRef = useRef();
   const hitPlaneRef = useRef();
