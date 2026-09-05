@@ -7,6 +7,7 @@
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100svh;
   overflow: hidden;
   background: #000;
 }
