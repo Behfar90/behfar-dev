@@ -104,17 +104,15 @@ export default function useProjectsSceneAnimation() {
     const wrapper = wrapperRef.current;
     if (!wrapper) return undefined;
 
-    const root = document.documentElement;
-
     const applyLayerPositions = (values) => {
       LAYER_NAMES.forEach((name) => {
-        root.style.setProperty(`--ns-${name}-y`, `${values[name]}px`);
+        wrapper.style.setProperty(`--ns-${name}-y`, `${values[name]}px`);
       });
     };
 
     const applySceneScale = () => {
-      root.style.setProperty('--scene-scale', computeSceneScale());
-      root.style.setProperty('--ground-scale', computeGroundScale());
+      wrapper.style.setProperty('--scene-scale', computeSceneScale());
+      wrapper.style.setProperty('--ground-scale', computeGroundScale());
     };
     applySceneScale();
     window.addEventListener('resize', applySceneScale, { passive: true });
