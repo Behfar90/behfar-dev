@@ -110,7 +110,7 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
     window.addEventListener('resize', handleResize);
 
     const timer = new THREE.Timer();
-    let animFrame;
+    let animFrame = null;
     let renderStartTime = null;
 
     const tick = (timestamp) => {
@@ -156,9 +156,26 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
     };
     tick();
 
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          if (animFrame === null) {
+            timer.reset();
+            animFrame = window.requestAnimationFrame(tick);
+          }
+        } else if (animFrame !== null) {
+          cancelAnimationFrame(animFrame);
+          animFrame = null;
+        }
+      },
+      { rootMargin: '200px' },
+    );
+    if (wrapperRef.current) visibilityObserver.observe(wrapperRef.current);
+
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', handleResize);
+      visibilityObserver.disconnect();
       cancelAnimationFrame(animFrame);
       renderer.dispose();
     };

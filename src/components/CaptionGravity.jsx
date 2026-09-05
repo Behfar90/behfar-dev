@@ -135,6 +135,8 @@ function Scene({ orbitProgress, captions, fontFamily }) {
 
 export default function CaptionGravity({ orbitProgress, captions }) {
   const [fontFamily, setFontFamily] = useState('Georgia, serif');
+  const overlayRef = useRef(null);
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     document.fonts
@@ -143,11 +145,22 @@ export default function CaptionGravity({ orbitProgress, captions }) {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    const el = overlayRef.current;
+    if (!el) return undefined;
+    const observer = new IntersectionObserver(([entry]) => setIsVisible(entry.isIntersecting), {
+      rootMargin: '200px',
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const calculateFov = () => Math.atan(window.innerHeight / 2 / CAMERA_Z) * (180 / Math.PI) * 2;
 
   return (
-    <div className={styles.overlay}>
+    <div ref={overlayRef} className={styles.overlay}>
       <Canvas
+        frameloop={isVisible ? 'always' : 'never'}
         camera={{ position: [0, 0, CAMERA_Z], far: CAMERA_Z + 100, fov: calculateFov() }}
         dpr={Math.min(window.devicePixelRatio, 2)}
         gl={{ alpha: true }}

@@ -711,6 +711,19 @@ const Scene = ({ orbitProgress = 0, storyEnd = SUBTITLE_STORY_END }) => {
 };
 
 export default function ShootingStarIntro({ orbitProgress, storyEnd = SUBTITLE_STORY_END }) {
+  const overlayRef = useRef(null);
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const el = overlayRef.current;
+    if (!el) return undefined;
+    const observer = new IntersectionObserver(([entry]) => setIsVisible(entry.isIntersecting), {
+      rootMargin: '200px',
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const calculateFov = () => {
     const height = window.innerHeight;
     return Math.atan(height / 2 / CAMERA_Z) * (180 / Math.PI) * 2;
@@ -722,8 +735,9 @@ export default function ShootingStarIntro({ orbitProgress, storyEnd = SUBTITLE_S
     : Math.max(window.devicePixelRatio, 2);
 
   return (
-    <div className={styles.overlay}>
+    <div ref={overlayRef} className={styles.overlay}>
       <Canvas
+        frameloop={isVisible ? 'always' : 'never'}
         camera={{
           position: [0, 0, CAMERA_Z],
           far: CAMERA_Z,

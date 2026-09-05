@@ -143,7 +143,7 @@ export default function MilkywayGalaxy() {
       ? Math.min(window.devicePixelRatio || 1, 2)
       : window.devicePixelRatio || 1;
 
-    let animationFrameId;
+    let animationFrameId = null;
     let resizeTimeout;
     let width;
     let height;
@@ -257,12 +257,31 @@ export default function MilkywayGalaxy() {
     };
 
     resizeAndInit();
-    if (ssCtx) animationFrameId = window.requestAnimationFrame(animate);
+
+    const visibilityObserver = ssCtx
+      ? new IntersectionObserver(
+          ([entry]) => {
+            if (entry.isIntersecting) {
+              if (animationFrameId === null) {
+                lastTime = null;
+                animationFrameId = window.requestAnimationFrame(animate);
+              }
+            } else if (animationFrameId !== null) {
+              window.cancelAnimationFrame(animationFrameId);
+              animationFrameId = null;
+            }
+          },
+          { rootMargin: '200px' },
+        )
+      : null;
+    if (visibilityObserver) visibilityObserver.observe(container);
+
     window.addEventListener('resize', handleResize);
 
     return () => {
       window.clearTimeout(resizeTimeout);
       window.removeEventListener('resize', handleResize);
+      if (visibilityObserver) visibilityObserver.disconnect();
       window.cancelAnimationFrame(animationFrameId);
     };
   }, [isMobile]);

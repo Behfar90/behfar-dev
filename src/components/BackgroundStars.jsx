@@ -48,7 +48,7 @@ export default function BackgroundStars() {
 
     let lastScrollY = window.scrollY;
     let lastTime = performance.now();
-    let animFrame;
+    let animFrame = null;
 
     const tick = (time) => {
       const scrollY = window.scrollY;
@@ -71,9 +71,25 @@ export default function BackgroundStars() {
 
       animFrame = window.requestAnimationFrame(tick);
     };
-    animFrame = window.requestAnimationFrame(tick);
+
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          if (animFrame === null) {
+            lastTime = performance.now();
+            animFrame = window.requestAnimationFrame(tick);
+          }
+        } else if (animFrame !== null) {
+          window.cancelAnimationFrame(animFrame);
+          animFrame = null;
+        }
+      },
+      { rootMargin: '200px' },
+    );
+    visibilityObserver.observe(container);
 
     return () => {
+      visibilityObserver.disconnect();
       window.cancelAnimationFrame(animFrame);
       container.innerHTML = '';
     };

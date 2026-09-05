@@ -140,7 +140,7 @@ export default function useProjectsSceneAnimation() {
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
 
-    let animFrame;
+    let animFrame = null;
     const tick = () => {
       const scrollableHeight = wrapper.offsetHeight - window.innerHeight;
       const overallProgress =
@@ -163,11 +163,24 @@ export default function useProjectsSceneAnimation() {
       applyLayerPositions(values);
       animFrame = window.requestAnimationFrame(tick);
     };
-    animFrame = window.requestAnimationFrame(tick);
+
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          if (animFrame === null) animFrame = window.requestAnimationFrame(tick);
+        } else if (animFrame !== null) {
+          cancelAnimationFrame(animFrame);
+          animFrame = null;
+        }
+      },
+      { rootMargin: '200px' },
+    );
+    visibilityObserver.observe(wrapper);
 
     return () => {
       window.removeEventListener('resize', applySceneScale);
       window.removeEventListener('scroll', handleScroll);
+      visibilityObserver.disconnect();
       cancelAnimationFrame(animFrame);
     };
   }, []);
