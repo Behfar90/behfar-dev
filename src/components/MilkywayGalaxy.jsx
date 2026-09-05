@@ -139,7 +139,9 @@ export default function MilkywayGalaxy() {
 
     const mwCtx = mwCanvas.getContext('2d', { alpha: true });
     const ssCtx = !isMobile && ssCanvas ? ssCanvas.getContext('2d', { alpha: true }) : null;
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = isMobile
+      ? Math.min(window.devicePixelRatio || 1, 2)
+      : window.devicePixelRatio || 1;
 
     let animationFrameId;
     let resizeTimeout;

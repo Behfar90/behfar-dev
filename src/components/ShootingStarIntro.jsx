@@ -216,7 +216,7 @@ const SubtitleChapter = forwardRef(({ text, fontFamily, size, gl, y, hasOutgoing
     puffDirs,
     puffRandoms,
   } = useMemo(() => {
-    const pixelRatio = window.devicePixelRatio;
+    const pixelRatio = gl.getPixelRatio();
     const subtitleColor = '#eeba7b';
     const maxContentWidth = size.width * 0.9 * pixelRatio;
     const maxSubtitleFontSize = 27;
@@ -285,7 +285,7 @@ const SubtitleChapter = forwardRef(({ text, fontFamily, size, gl, y, hasOutgoing
       puffDirs: new Float32Array(pDirs),
       puffRandoms: new Float32Array(pRandoms),
     };
-  }, [text, fontFamily, size.width, hasOutgoing]);
+  }, [text, fontFamily, size.width, hasOutgoing, gl]);
 
   const textUniforms = useMemo(
     () => ({
@@ -420,7 +420,7 @@ const TextReveal = forwardRef((_, ref) => {
     const subtitleColor = '#eeba7b';
     const isMobile = size.width < 768;
     const letterSpacing = isMobile ? 0.1 : 0.18;
-    const pixelRatio = window.devicePixelRatio;
+    const pixelRatio = gl.getPixelRatio();
 
     const maxContentWidth = size.width * 0.9 * pixelRatio;
     const maxFontSize = 50;
@@ -489,7 +489,7 @@ const TextReveal = forwardRef((_, ref) => {
       puffRandoms: new Float32Array(randoms),
       secondSubtitleY: -(nameHeight / pixelRatio) / 2,
     };
-  }, [size.width, fontFamily, subtitleFontFamily]);
+  }, [size.width, fontFamily, subtitleFontFamily, gl]);
 
   const uniforms = useMemo(
     () => ({
@@ -716,6 +716,11 @@ export default function ShootingStarIntro({ orbitProgress, storyEnd = SUBTITLE_S
     return Math.atan(height / 2 / CAMERA_Z) * (180 / Math.PI) * 2;
   };
 
+  const isMobile = window.innerWidth < 768;
+  const canvasDpr = isMobile
+    ? Math.min(window.devicePixelRatio, 2)
+    : Math.max(window.devicePixelRatio, 2);
+
   return (
     <div className={styles.overlay}>
       <Canvas
@@ -724,7 +729,7 @@ export default function ShootingStarIntro({ orbitProgress, storyEnd = SUBTITLE_S
           far: CAMERA_Z,
           fov: calculateFov(),
         }}
-        dpr={Math.max(window.devicePixelRatio, 2)}
+        dpr={canvasDpr}
         gl={{
           antialias: window.devicePixelRatio === 1,
           alpha: true,
