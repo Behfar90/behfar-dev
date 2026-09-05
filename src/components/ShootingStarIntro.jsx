@@ -584,8 +584,6 @@ const TextReveal = forwardRef((_, ref) => {
   );
 });
 
-let hasPlayed = false;
-
 const TEXT_FADE_RATIO = 1 / 4;
 const HOLD_RATIO = 0.35;
 
@@ -598,76 +596,75 @@ const Scene = ({ orbitProgress = 0, storyEnd = SUBTITLE_STORY_END }) => {
   const starRef = useRef();
   const textRef = useRef();
   const wasAwayFromTopRef = useRef(false);
+  const sizeRef = useRef(size);
+  const [hasPlayed, setHasPlayed] = useState(false);
+
+  useEffect(() => {
+    sizeRef.current = size;
+  }, [size]);
 
   useLayoutEffect(() => {
     camera.fov = Math.atan(size.height / 2 / CAMERA_Z) * (180 / Math.PI) * 2;
     camera.updateProjectionMatrix();
   }, [camera, size.height]);
 
-  const playSweep = useCallback(
-    (revealText) => {
-      const clientHalfWidth = size.width / 2;
-      const clientHalfHeight = size.height / 2;
-      const period = Math.PI * 3;
-      const amplitude = Math.min(Math.max(size.width * 0.1, 100), 180);
+  const playSweep = useCallback((revealText) => {
+    const { width, height } = sizeRef.current;
+    const clientHalfWidth = width / 2;
+    const clientHalfHeight = height / 2;
+    const period = Math.PI * 3;
+    const amplitude = Math.min(Math.max(width * 0.1, 100), 180);
 
-      const tl = gsap.timeline();
+    const tl = gsap.timeline();
 
-      const waveTarget = { progress: 0 };
-      tl.to(waveTarget, {
-        progress: 1,
-        duration: 1.08,
-        ease: 'power2.inOut',
-        onUpdate: () => {
-          const p = waveTarget.progress;
-          starRef.current?.draw(
-            Math.cos(p * period) * amplitude,
-            (p * size.height - clientHalfHeight) * 1.3,
-          );
-        },
-        onComplete: () => {
-          starRef.current?.draw(-clientHalfWidth, size.height - clientHalfHeight);
-          starRef.current?.draw(-clientHalfWidth * 1.1, 0);
-          starRef.current?.resetPosition();
-        },
-      });
+    const waveTarget = { progress: 0 };
+    tl.to(waveTarget, {
+      progress: 1,
+      duration: 1.08,
+      ease: 'power2.inOut',
+      onUpdate: () => {
+        const p = waveTarget.progress;
+        starRef.current?.draw(Math.cos(p * period) * amplitude, (p * height - clientHalfHeight) * 1.3);
+      },
+      onComplete: () => {
+        starRef.current?.draw(-clientHalfWidth, height - clientHalfHeight);
+        starRef.current?.draw(-clientHalfWidth * 1.1, 0);
+        starRef.current?.resetPosition();
+      },
+    });
 
-      const revealTarget = { progress: -clientHalfWidth * 1.1 };
-      tl.to(revealTarget, {
-        progress: clientHalfWidth * 1.1,
-        duration: 1.08,
-        ease: 'power3.out',
-        delay: 0.3,
-        onUpdate: () => {
-          const p = revealTarget.progress;
-          starRef.current?.draw(p, 0);
-          if (revealText) {
-            textRef.current?.updateProgress(p - size.width * 0.08);
-          }
-        },
-        onComplete: () => {
-          starRef.current?.resetPosition();
-          if (revealText) {
-            hasPlayed = true;
-          }
-        },
-      });
+    const revealTarget = { progress: -clientHalfWidth * 1.1 };
+    tl.to(revealTarget, {
+      progress: clientHalfWidth * 1.1,
+      duration: 1.08,
+      ease: 'power3.out',
+      delay: 0.3,
+      onUpdate: () => {
+        const p = revealTarget.progress;
+        starRef.current?.draw(p, 0);
+        if (revealText) {
+          textRef.current?.updateProgress(p - width * 0.08);
+        }
+      },
+      onComplete: () => {
+        starRef.current?.resetPosition();
+        if (revealText) {
+          setHasPlayed(true);
+        }
+      },
+    });
 
-      return tl;
-    },
-    [size],
-  );
+    return tl;
+  }, []);
 
   useEffect(() => {
-    if (hasPlayed) {
-      const clientHalfWidth = size.width / 2;
-      textRef.current?.updateProgress(clientHalfWidth * 1.1 - size.width * 0.08);
-      return undefined;
-    }
-
     const tl = playSweep(true);
     return () => tl.kill();
-  }, [size, playSweep]);
+    // Runs once on mount only - playSweep has a stable identity so a mid-scroll
+    // container resize can't kill and restart the intro reveal (see conversation
+    // history: this used to depend on `size`, which retriggered on every resize).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playSweep]);
 
   useEffect(() => {
     if (orbitProgress > 0) {
@@ -680,12 +677,17 @@ const Scene = ({ orbitProgress = 0, storyEnd = SUBTITLE_STORY_END }) => {
 
     const tl = playSweep(false);
     return () => tl.kill();
-  }, [orbitProgress, playSweep]);
+  }, [orbitProgress, playSweep, hasPlayed]);
 
   useEffect(() => {
+    // Hold the scroll-driven subtitle timeline at its start until the name-reveal
+    // sweep has actually finished, so fast scrolling can't show a subtitle before
+    // "Behfar Behzad" has appeared. Once it finishes, this jumps straight to the
+    // caller's current scroll position.
+    const effectiveProgress = hasPlayed ? orbitProgress : 0;
     const beatCount = 2 * SUBTITLE_CHAPTERS.length;
     const beatWidth = storyEnd / beatCount;
-    const beatT = (k) => clamp01((orbitProgress - k * beatWidth) / beatWidth);
+    const beatT = (k) => clamp01((effectiveProgress - k * beatWidth) / beatWidth);
     const textFadeT = (motionT) => clamp01(motionT / TEXT_FADE_RATIO);
 
     const dissolveMotionT = withHold(beatT(0), HOLD_RATIO, true);
@@ -700,7 +702,7 @@ const Scene = ({ orbitProgress = 0, storyEnd = SUBTITLE_STORY_END }) => {
       const textT = hasOutgoing ? textFadeT(outMotionT) : 0;
       textRef.current?.updateChapter(i, gatherT, textT, outMotionT);
     });
-  }, [orbitProgress, size, storyEnd]);
+  }, [orbitProgress, storyEnd, hasPlayed]);
 
   return (
     <>
