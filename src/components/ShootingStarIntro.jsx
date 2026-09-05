@@ -660,9 +660,6 @@ const Scene = ({ orbitProgress = 0, storyEnd = SUBTITLE_STORY_END }) => {
   useEffect(() => {
     const tl = playSweep(true);
     return () => tl.kill();
-    // Runs once on mount only - playSweep has a stable identity so a mid-scroll
-    // container resize can't kill and restart the intro reveal (see conversation
-    // history: this used to depend on `size`, which retriggered on every resize).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playSweep]);
 
@@ -680,10 +677,6 @@ const Scene = ({ orbitProgress = 0, storyEnd = SUBTITLE_STORY_END }) => {
   }, [orbitProgress, playSweep, hasPlayed]);
 
   useEffect(() => {
-    // Hold the scroll-driven subtitle timeline at its start until the name-reveal
-    // sweep has actually finished, so fast scrolling can't show a subtitle before
-    // "Behfar Behzad" has appeared. Once it finishes, this jumps straight to the
-    // caller's current scroll position.
     const effectiveProgress = hasPlayed ? orbitProgress : 0;
     const beatCount = 2 * SUBTITLE_CHAPTERS.length;
     const beatWidth = storyEnd / beatCount;
