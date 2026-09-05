@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useEffect } from 'react';
+import React, { useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
@@ -136,6 +136,8 @@ const Particles = () => {
 
 export default function ParticleScene() {
   const quoteRef = useRef();
+  const wrapperRef = useRef(null);
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     gsap.fromTo(
@@ -145,10 +147,23 @@ export default function ParticleScene() {
     );
   }, []);
 
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return undefined;
+    const observer = new IntersectionObserver(([entry]) => setIsVisible(entry.isIntersecting), {
+      rootMargin: '200px',
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className={styles.wrapper}>
+    <div ref={wrapperRef} className={styles.wrapper}>
       <div className={styles.canvasContainer}>
-        <Canvas camera={{ position: [0, 0, 180], fov: 50, near: 0.1, far: 10000 }}>
+        <Canvas
+          frameloop={isVisible ? 'always' : 'never'}
+          camera={{ position: [0, 0, 180], fov: 50, near: 0.1, far: 10000 }}
+        >
           <React.Suspense fallback={null}>
             <Particles />
           </React.Suspense>

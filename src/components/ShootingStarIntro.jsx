@@ -216,7 +216,7 @@ const SubtitleChapter = forwardRef(({ text, fontFamily, size, gl, y, hasOutgoing
     puffDirs,
     puffRandoms,
   } = useMemo(() => {
-    const pixelRatio = window.devicePixelRatio;
+    const pixelRatio = gl.getPixelRatio();
     const subtitleColor = '#eeba7b';
     const maxContentWidth = size.width * 0.9 * pixelRatio;
     const maxSubtitleFontSize = 27;
@@ -285,7 +285,7 @@ const SubtitleChapter = forwardRef(({ text, fontFamily, size, gl, y, hasOutgoing
       puffDirs: new Float32Array(pDirs),
       puffRandoms: new Float32Array(pRandoms),
     };
-  }, [text, fontFamily, size.width, hasOutgoing]);
+  }, [text, fontFamily, size.width, hasOutgoing, gl]);
 
   const textUniforms = useMemo(
     () => ({
@@ -420,7 +420,7 @@ const TextReveal = forwardRef((_, ref) => {
     const subtitleColor = '#eeba7b';
     const isMobile = size.width < 768;
     const letterSpacing = isMobile ? 0.1 : 0.18;
-    const pixelRatio = window.devicePixelRatio;
+    const pixelRatio = gl.getPixelRatio();
 
     const maxContentWidth = size.width * 0.9 * pixelRatio;
     const maxFontSize = 50;
@@ -489,7 +489,7 @@ const TextReveal = forwardRef((_, ref) => {
       puffRandoms: new Float32Array(randoms),
       secondSubtitleY: -(nameHeight / pixelRatio) / 2,
     };
-  }, [size.width, fontFamily, subtitleFontFamily]);
+  }, [size.width, fontFamily, subtitleFontFamily, gl]);
 
   const uniforms = useMemo(
     () => ({
@@ -584,8 +584,6 @@ const TextReveal = forwardRef((_, ref) => {
   );
 });
 
-let hasPlayed = false;
-
 const TEXT_FADE_RATIO = 1 / 4;
 const HOLD_RATIO = 0.35;
 
@@ -598,76 +596,72 @@ const Scene = ({ orbitProgress = 0, storyEnd = SUBTITLE_STORY_END }) => {
   const starRef = useRef();
   const textRef = useRef();
   const wasAwayFromTopRef = useRef(false);
+  const sizeRef = useRef(size);
+  const [hasPlayed, setHasPlayed] = useState(false);
+
+  useEffect(() => {
+    sizeRef.current = size;
+  }, [size]);
 
   useLayoutEffect(() => {
     camera.fov = Math.atan(size.height / 2 / CAMERA_Z) * (180 / Math.PI) * 2;
     camera.updateProjectionMatrix();
   }, [camera, size.height]);
 
-  const playSweep = useCallback(
-    (revealText) => {
-      const clientHalfWidth = size.width / 2;
-      const clientHalfHeight = size.height / 2;
-      const period = Math.PI * 3;
-      const amplitude = Math.min(Math.max(size.width * 0.1, 100), 180);
+  const playSweep = useCallback((revealText) => {
+    const { width, height } = sizeRef.current;
+    const clientHalfWidth = width / 2;
+    const clientHalfHeight = height / 2;
+    const period = Math.PI * 3;
+    const amplitude = Math.min(Math.max(width * 0.1, 100), 180);
 
-      const tl = gsap.timeline();
+    const tl = gsap.timeline();
 
-      const waveTarget = { progress: 0 };
-      tl.to(waveTarget, {
-        progress: 1,
-        duration: 1.08,
-        ease: 'power2.inOut',
-        onUpdate: () => {
-          const p = waveTarget.progress;
-          starRef.current?.draw(
-            Math.cos(p * period) * amplitude,
-            (p * size.height - clientHalfHeight) * 1.3,
-          );
-        },
-        onComplete: () => {
-          starRef.current?.draw(-clientHalfWidth, size.height - clientHalfHeight);
-          starRef.current?.draw(-clientHalfWidth * 1.1, 0);
-          starRef.current?.resetPosition();
-        },
-      });
+    const waveTarget = { progress: 0 };
+    tl.to(waveTarget, {
+      progress: 1,
+      duration: 1.08,
+      ease: 'power2.inOut',
+      onUpdate: () => {
+        const p = waveTarget.progress;
+        starRef.current?.draw(Math.cos(p * period) * amplitude, (p * height - clientHalfHeight) * 1.3);
+      },
+      onComplete: () => {
+        starRef.current?.draw(-clientHalfWidth, height - clientHalfHeight);
+        starRef.current?.draw(-clientHalfWidth * 1.1, 0);
+        starRef.current?.resetPosition();
+      },
+    });
 
-      const revealTarget = { progress: -clientHalfWidth * 1.1 };
-      tl.to(revealTarget, {
-        progress: clientHalfWidth * 1.1,
-        duration: 1.08,
-        ease: 'power3.out',
-        delay: 0.3,
-        onUpdate: () => {
-          const p = revealTarget.progress;
-          starRef.current?.draw(p, 0);
-          if (revealText) {
-            textRef.current?.updateProgress(p - size.width * 0.08);
-          }
-        },
-        onComplete: () => {
-          starRef.current?.resetPosition();
-          if (revealText) {
-            hasPlayed = true;
-          }
-        },
-      });
+    const revealTarget = { progress: -clientHalfWidth * 1.1 };
+    tl.to(revealTarget, {
+      progress: clientHalfWidth * 1.1,
+      duration: 1.08,
+      ease: 'power3.out',
+      delay: 0.3,
+      onUpdate: () => {
+        const p = revealTarget.progress;
+        starRef.current?.draw(p, 0);
+        if (revealText) {
+          textRef.current?.updateProgress(p - width * 0.08);
+        }
+      },
+      onComplete: () => {
+        starRef.current?.resetPosition();
+        if (revealText) {
+          setHasPlayed(true);
+        }
+      },
+    });
 
-      return tl;
-    },
-    [size],
-  );
+    return tl;
+  }, []);
 
   useEffect(() => {
-    if (hasPlayed) {
-      const clientHalfWidth = size.width / 2;
-      textRef.current?.updateProgress(clientHalfWidth * 1.1 - size.width * 0.08);
-      return undefined;
-    }
-
     const tl = playSweep(true);
     return () => tl.kill();
-  }, [size, playSweep]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playSweep]);
 
   useEffect(() => {
     if (orbitProgress > 0) {
@@ -680,12 +674,13 @@ const Scene = ({ orbitProgress = 0, storyEnd = SUBTITLE_STORY_END }) => {
 
     const tl = playSweep(false);
     return () => tl.kill();
-  }, [orbitProgress, playSweep]);
+  }, [orbitProgress, playSweep, hasPlayed]);
 
   useEffect(() => {
+    const effectiveProgress = hasPlayed ? orbitProgress : 0;
     const beatCount = 2 * SUBTITLE_CHAPTERS.length;
     const beatWidth = storyEnd / beatCount;
-    const beatT = (k) => clamp01((orbitProgress - k * beatWidth) / beatWidth);
+    const beatT = (k) => clamp01((effectiveProgress - k * beatWidth) / beatWidth);
     const textFadeT = (motionT) => clamp01(motionT / TEXT_FADE_RATIO);
 
     const dissolveMotionT = withHold(beatT(0), HOLD_RATIO, true);
@@ -700,7 +695,7 @@ const Scene = ({ orbitProgress = 0, storyEnd = SUBTITLE_STORY_END }) => {
       const textT = hasOutgoing ? textFadeT(outMotionT) : 0;
       textRef.current?.updateChapter(i, gatherT, textT, outMotionT);
     });
-  }, [orbitProgress, size, storyEnd]);
+  }, [orbitProgress, storyEnd, hasPlayed]);
 
   return (
     <>
@@ -711,20 +706,39 @@ const Scene = ({ orbitProgress = 0, storyEnd = SUBTITLE_STORY_END }) => {
 };
 
 export default function ShootingStarIntro({ orbitProgress, storyEnd = SUBTITLE_STORY_END }) {
+  const overlayRef = useRef(null);
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const el = overlayRef.current;
+    if (!el) return undefined;
+    const observer = new IntersectionObserver(([entry]) => setIsVisible(entry.isIntersecting), {
+      rootMargin: '200px',
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const calculateFov = () => {
     const height = window.innerHeight;
     return Math.atan(height / 2 / CAMERA_Z) * (180 / Math.PI) * 2;
   };
 
+  const isMobile = window.innerWidth < 768;
+  const canvasDpr = isMobile
+    ? Math.min(window.devicePixelRatio, 2)
+    : Math.max(window.devicePixelRatio, 2);
+
   return (
-    <div className={styles.overlay}>
+    <div ref={overlayRef} className={styles.overlay}>
       <Canvas
+        frameloop={isVisible ? 'always' : 'never'}
         camera={{
           position: [0, 0, CAMERA_Z],
           far: CAMERA_Z,
           fov: calculateFov(),
         }}
-        dpr={Math.max(window.devicePixelRatio, 2)}
+        dpr={canvasDpr}
         gl={{
           antialias: window.devicePixelRatio === 1,
           alpha: true,

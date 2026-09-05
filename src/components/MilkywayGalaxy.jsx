@@ -1,10 +1,15 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styles from './MilkywayGalaxy.module.css';
 
+const MOBILE_BREAKPOINT = 768;
+
 const mwStarCount = 20000;
+const mwStarCountMobile = 5000;
 const mwRandomStarProp = 0.2;
 const mwClusterCount = 150;
+const mwClusterCountMobile = 40;
 const mwClusterStarCount = 400;
+const mwClusterStarCountMobile = 200;
 const mwClusterSize = 120;
 const mwClusterSizeR = 80;
 const mwClusterLayers = 5;
@@ -69,17 +74,18 @@ class ShootingStar {
 }
 
 class MwStarCluster {
-  constructor(x, y, size, hue, baseWhiteProportion, brightnessModifier) {
+  constructor(x, y, size, hue, baseWhiteProportion, brightnessModifier, clusterStarCount) {
     this.x = x;
     this.y = y;
     this.size = size;
     this.hue = hue;
     this.baseWhiteProportion = baseWhiteProportion;
     this.brightnessModifier = brightnessModifier;
+    this.clusterStarCount = clusterStarCount;
   }
 
   draw(ctx) {
-    const starsPerLayer = Math.floor(mwClusterStarCount / mwClusterLayers);
+    const starsPerLayer = Math.floor(this.clusterStarCount / mwClusterLayers);
     for (let layer = 1; layer < mwClusterLayers; layer++) {
       const layerRadius = (this.size * layer) / mwClusterLayers;
       for (let i = 1; i < starsPerLayer; i++) {
@@ -119,18 +125,25 @@ export default function MilkywayGalaxy() {
   const containerRef = useRef(null);
   const milkyWayRef = useRef(null);
   const shootingStarsRef = useRef(null);
+  const [isMobile] = useState(() => window.innerWidth < MOBILE_BREAKPOINT);
 
   useEffect(() => {
     const container = containerRef.current;
     const mwCanvas = milkyWayRef.current;
     const ssCanvas = shootingStarsRef.current;
-    if (!container || !mwCanvas || !ssCanvas) return undefined;
+    if (!container || !mwCanvas || (!isMobile && !ssCanvas)) return undefined;
+
+    const starCount = isMobile ? mwStarCountMobile : mwStarCount;
+    const clusterCount = isMobile ? mwClusterCountMobile : mwClusterCount;
+    const clusterStarCount = isMobile ? mwClusterStarCountMobile : mwClusterStarCount;
 
     const mwCtx = mwCanvas.getContext('2d', { alpha: true });
-    const ssCtx = ssCanvas.getContext('2d', { alpha: true });
-    const dpr = window.devicePixelRatio || 1;
+    const ssCtx = !isMobile && ssCanvas ? ssCanvas.getContext('2d', { alpha: true }) : null;
+    const dpr = isMobile
+      ? Math.min(window.devicePixelRatio || 1, 2)
+      : window.devicePixelRatio || 1;
 
-    let animationFrameId;
+    let animationFrameId = null;
     let resizeTimeout;
     let width;
     let height;
@@ -160,7 +173,7 @@ export default function MilkywayGalaxy() {
     const drawStaticMilkyWay = () => {
       mwCtx.clearRect(0, 0, width, height);
       mwCtx.globalCompositeOperation = 'lighter';
-      for (let i = 0; i < mwStarCount; i++) {
+      for (let i = 0; i < starCount; i++) {
         mwCtx.beginPath();
         const xPos = milkyWayX();
         const yPos =
@@ -171,7 +184,7 @@ export default function MilkywayGalaxy() {
         mwCtx.fillStyle = `hsla(0,100%,100%,${0.4 + Math.random() * 0.6})`;
         mwCtx.fill();
       }
-      for (let i = 0; i < mwClusterCount; i++) {
+      for (let i = 0; i < clusterCount; i++) {
         const xPos = milkyWayX();
         const yPos = milkyWayYFromX(xPos, 'cluster');
         const distToCenter =
@@ -187,6 +200,7 @@ export default function MilkywayGalaxy() {
           hue,
           mwWhiteProportionMin + Math.random() * (mwWhiteProportionMax - mwWhiteProportionMin),
           distToCenter,
+          clusterStarCount,
         ).draw(mwCtx);
       }
       mwCtx.globalCompositeOperation = 'source-over';
@@ -227,12 +241,12 @@ export default function MilkywayGalaxy() {
     const resizeAndInit = () => {
       width = container.clientWidth;
       height = container.clientHeight;
-      [mwCanvas, ssCanvas].forEach((canvas) => {
+      [mwCanvas, ssCanvas].filter(Boolean).forEach((canvas) => {
         canvas.width = width * dpr;
         canvas.height = height * dpr;
       });
       mwCtx.scale(dpr, dpr);
-      ssCtx.scale(dpr, dpr);
+      if (ssCtx) ssCtx.scale(dpr, dpr);
       drawStaticMilkyWay();
       shootingStars = [];
     };
@@ -243,20 +257,39 @@ export default function MilkywayGalaxy() {
     };
 
     resizeAndInit();
-    animationFrameId = window.requestAnimationFrame(animate);
+
+    const visibilityObserver = ssCtx
+      ? new IntersectionObserver(
+          ([entry]) => {
+            if (entry.isIntersecting) {
+              if (animationFrameId === null) {
+                lastTime = null;
+                animationFrameId = window.requestAnimationFrame(animate);
+              }
+            } else if (animationFrameId !== null) {
+              window.cancelAnimationFrame(animationFrameId);
+              animationFrameId = null;
+            }
+          },
+          { rootMargin: '200px' },
+        )
+      : null;
+    if (visibilityObserver) visibilityObserver.observe(container);
+
     window.addEventListener('resize', handleResize);
 
     return () => {
       window.clearTimeout(resizeTimeout);
       window.removeEventListener('resize', handleResize);
+      if (visibilityObserver) visibilityObserver.disconnect();
       window.cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [isMobile]);
 
   return (
     <div ref={containerRef} className={styles.container} aria-hidden="true">
       <canvas ref={milkyWayRef} className={styles.canvas} />
-      <canvas ref={shootingStarsRef} className={styles.canvas} />
+      {!isMobile && <canvas ref={shootingStarsRef} className={styles.canvas} />}
     </div>
   );
 }
