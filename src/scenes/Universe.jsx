@@ -30,6 +30,9 @@ const PLUNGE_RADIUS_SCALE = 0.08;
 const FACE_ON_RADIUS = 6;
 const FACE_ON_HEIGHT = 16;
 const FACE_ON_THETA_OFFSET = -Math.PI / 3;
+// Slow, barely-perceptible rotation while the face-on shot is held, so it reads
+// as a deliberate cinematic shot rather than a paused screenshot.
+const FACE_ON_DRIFT_RAD_PER_S = 0.15;
 
 const easeInCubic = (t) => t * t * t;
 
@@ -116,7 +119,9 @@ export default function Universe({
     // prefers-reduced-motion - the camera just starts at its normal position.
     let introActive = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let swoopStartMs = null;
+    let swoopStartTheta = null;
     const faceOnTheta = initialTarget.theta + FACE_ON_THETA_OFFSET;
+    let holdTheta = faceOnTheta;
 
     const mouse = { x: 0, y: 0 };
     const lookTarget = new THREE.Vector3(0, 0, 0);
@@ -167,16 +172,23 @@ export default function Universe({
       updateSmoke(smoke, elapsedTime, smokeOpacity);
 
       if (introActive && !introRevealingRef.current) {
-        // Hold the face-on framing steady while the preloader's ring plays.
-        camera.position.x = Math.sin(faceOnTheta) * FACE_ON_RADIUS;
-        camera.position.z = Math.cos(faceOnTheta) * FACE_ON_RADIUS;
+        // Hold the face-on framing while the preloader's ring plays, drifting
+        // slowly so it reads as a deliberate shot rather than a paused frame.
+        holdTheta = faceOnTheta + elapsedTime * FACE_ON_DRIFT_RAD_PER_S;
+        camera.position.x = Math.sin(holdTheta) * FACE_ON_RADIUS;
+        camera.position.z = Math.cos(holdTheta) * FACE_ON_RADIUS;
         camera.position.y = FACE_ON_HEIGHT;
       } else if (introActive) {
-        if (swoopStartMs === null) swoopStartMs = elapsedTime * 1000;
+        if (swoopStartMs === null) {
+          swoopStartMs = elapsedTime * 1000;
+          // Continue from wherever the drift actually left off, not the original
+          // static angle, so the swoop starts without a visible pop.
+          swoopStartTheta = holdTheta;
+        }
         const swoopT = clamp01((elapsedTime * 1000 - swoopStartMs) / PRELOADER_REVEAL_MS);
         const eased = 1 - (1 - swoopT) ** 3;
         const swoopRadius = lerp(FACE_ON_RADIUS, initialTarget.radius, eased);
-        const swoopTheta = lerp(faceOnTheta, initialTarget.theta, eased);
+        const swoopTheta = lerp(swoopStartTheta, initialTarget.theta, eased);
         const swoopHeight = lerp(FACE_ON_HEIGHT, height, eased);
         camera.position.x = Math.sin(swoopTheta) * swoopRadius;
         camera.position.z = Math.cos(swoopTheta) * swoopRadius;
