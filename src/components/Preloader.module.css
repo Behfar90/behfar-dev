@@ -21,7 +21,9 @@
   border-radius: 50%;
   background: transparent;
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 0 100vmax #000;
+  /* Blurred (not just spread) so the boundary fades like a vignette instead of a
+     hard geometric cutout - reads as a porthole rather than a cut circle. */
+  box-shadow: 0 0 40px 100vmax #000;
   transition:
     width 1100ms cubic-bezier(0.61, 1, 0.88, 1),
     height 1100ms cubic-bezier(0.61, 1, 0.88, 1);
