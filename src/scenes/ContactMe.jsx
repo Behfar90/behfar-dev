@@ -75,8 +75,8 @@ export default function ContactMe() {
             <LinkedinIcon size={20} />
           </a>
           <a
-            className={`${styles.railLink} ${styles.resumeRowIcon}`}
-            href="/resume.pdf"
+            className={styles.railLink}
+            href="/resume-BehfarBehzad.pdf"
             download
             title="Download Résumé"
             aria-label="Download Résumé"
@@ -85,18 +85,6 @@ export default function ContactMe() {
             <FileDown size={20} strokeWidth={1.5} />
           </a>
         </div>
-      </div>
-
-      <div className={styles.resumeRail}>
-        <a
-          className={styles.resumeLink}
-          href="/resume.pdf"
-          download
-          onClick={() => trackEvent('resume_download', { placement: 'side_rail' })}
-        >
-          <FileDown size={18} strokeWidth={1.5} />
-          Download Résumé
-        </a>
       </div>
 
       <p className={styles.dateline}>Oslo, 2026</p>

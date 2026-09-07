@@ -7,12 +7,15 @@ import ScrollIdleHint from './components/ScrollIdleHint';
 import SceneNav from './components/SceneNav';
 import SceneTransitionOverlay from './components/SceneTransitionOverlay';
 import PlungeAtmosphere from './components/PlungeAtmosphere';
+import Preloader from './components/Preloader';
 import useScrollJourney from './hooks/useScrollJourney';
 import useSceneTransition from './hooks/useSceneTransition';
 
-const OVERLAY_REVEAL_DELAY_MS = 1500;
+const OVERLAY_REVEAL_DELAY_MS = 150;
 
 function App() {
+  const [preloaderDone, setPreloaderDone] = useState(false);
+  const [introRevealing, setIntroRevealing] = useState(false);
   const [showOverlays, setShowOverlays] = useState(false);
   const [audiowideReady, setAudiowideReady] = useState(!('fonts' in document));
   const {
@@ -43,12 +46,20 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (!preloaderDone) return undefined;
     const timer = setTimeout(() => setShowOverlays(true), OVERLAY_REVEAL_DELAY_MS);
     return () => clearTimeout(timer);
-  }, []);
+  }, [preloaderDone]);
 
   return (
     <div className={styles.app}>
+      {!preloaderDone && (
+        <Preloader
+          onReveal={() => setIntroRevealing(true)}
+          onComplete={() => setPreloaderDone(true)}
+        />
+      )}
+
       <SceneNav
         visible={showOverlays && audiowideReady && !lensOpen}
         activeSection={activeSection}
@@ -60,6 +71,7 @@ function App() {
         orbitProgress={orbitProgress}
         rendering
         showOverlays={showOverlays}
+        introRevealing={introRevealing}
       />
       <PlungeAtmosphere universeWrapperRef={universeWrapperRef} />
       <div ref={projectsWrapperRef}>
@@ -72,7 +84,9 @@ function App() {
       <div ref={contactWrapperRef}>
         <ContactMe />
       </div>
-      <ScrollIdleHint key={String(suppressIdleHint)} suppressed={suppressIdleHint} />
+      {preloaderDone && (
+        <ScrollIdleHint key={String(suppressIdleHint)} suppressed={suppressIdleHint} />
+      )}
 
       <SceneTransitionOverlay visible={overlayVisible} />
     </div>
