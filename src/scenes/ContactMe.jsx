@@ -76,7 +76,7 @@ export default function ContactMe() {
           </a>
           <a
             className={styles.railLink}
-            href="/resume.pdf"
+            href="/resume-BehfarBehzad.pdf"
             download
             title="Download Résumé"
             aria-label="Download Résumé"
