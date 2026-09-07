@@ -8,7 +8,6 @@
   background: #000;
   color: #fff;
   padding: 2rem;
-  flex-wrap: wrap;
 }
 
 .portrait {
@@ -68,46 +67,6 @@
   justify-content: center;
   gap: 1.5rem;
   margin-top: 1.5rem;
-}
-
-.railLink.resumeRowIcon {
-  display: none;
-}
-
-.resumeRail {
-  position: absolute;
-  right: 1.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 2.5rem;
-  gap: 1.5rem;
-}
-
-.resumeLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.55rem 1.1rem;
-  border: 1px solid rgba(238, 186, 123, 0.4);
-  border-radius: 999px;
-  color: #eeba7b;
-  font-size: 0.9rem;
-  letter-spacing: 0.03em;
-  text-decoration: none;
-  white-space: nowrap;
-  transform: rotate(90deg);
-  transition:
-    border-color 0.2s ease,
-    background 0.2s ease;
-}
-
-.resumeLink:hover,
-.resumeLink:focus-visible {
-  border-color: rgba(238, 186, 123, 0.85);
-  background: rgba(238, 186, 123, 0.08);
 }
 
 .railLink {
@@ -170,12 +129,3 @@
   transform: translateX(-50%) translateY(0);
 }
 
-@media (max-width: 700px) {
-  .resumeRail {
-    display: none;
-  }
-
-  .railLink.resumeRowIcon {
-    display: flex;
-  }
-}
