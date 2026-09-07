@@ -21,17 +21,9 @@ const INTRO_THETA_OFFSET = -Math.PI / 6;
 
 const PLUNGE_RADIUS_SCALE = 0.08;
 
-// Preloader "crazy idea": while its comet ring plays, hold the camera above the
-// origin galaxy looking straight down at its face instead of the normal edge-on
-// view, then swoop back to the normal starting position in sync with the iris
-// reveal. Swoop is a simultaneous radius/theta/height blend (reusing the same
-// spherical position formula the normal orbit already uses below) rather than a
-// straight cartesian lerp, so it traces a curved crane-shot arc, not a straight cut.
 const FACE_ON_RADIUS = 6;
 const FACE_ON_HEIGHT = 16;
 const FACE_ON_THETA_OFFSET = -Math.PI / 3;
-// Slow, barely-perceptible rotation while the face-on shot is held, so it reads
-// as a deliberate cinematic shot rather than a paused screenshot.
 const FACE_ON_DRIFT_RAD_PER_S = 0.15;
 
 const easeInCubic = (t) => t * t * t;
@@ -115,8 +107,6 @@ export default function Universe({
     let currentRadius = initialTarget.radius;
     let currentTheta = initialTarget.theta;
 
-    // See the FACE_ON_* constants above for why this exists. Skipped entirely for
-    // prefers-reduced-motion - the camera just starts at its normal position.
     let introActive = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let swoopStartMs = null;
     let swoopStartTheta = null;
@@ -172,8 +162,6 @@ export default function Universe({
       updateSmoke(smoke, elapsedTime, smokeOpacity);
 
       if (introActive && !introRevealingRef.current) {
-        // Hold the face-on framing while the preloader's ring plays, drifting
-        // slowly so it reads as a deliberate shot rather than a paused frame.
         holdTheta = faceOnTheta + elapsedTime * FACE_ON_DRIFT_RAD_PER_S;
         camera.position.x = Math.sin(holdTheta) * FACE_ON_RADIUS;
         camera.position.z = Math.cos(holdTheta) * FACE_ON_RADIUS;
@@ -181,8 +169,6 @@ export default function Universe({
       } else if (introActive) {
         if (swoopStartMs === null) {
           swoopStartMs = elapsedTime * 1000;
-          // Continue from wherever the drift actually left off, not the original
-          // static angle, so the swoop starts without a visible pop.
           swoopStartTheta = holdTheta;
         }
         const swoopT = clamp01((elapsedTime * 1000 - swoopStartMs) / PRELOADER_REVEAL_MS);

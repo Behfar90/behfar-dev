@@ -3,8 +3,6 @@ import styles from './Preloader.module.css';
 
 const RING_DURATION_MS = 1700;
 const HOLD_MS = 250;
-// Exported so other components (Universe.jsx's intro camera swoop) can sync their
-// own timing to the iris reveal without duplicating the number and risking drift.
 export const REVEAL_MS = 1100;
 const REDUCED_HOLD_MS = 250;
 const REDUCED_FADE_MS = 400;
@@ -20,8 +18,6 @@ const ROCKET_SIZE_PX = 20;
 const GOLD_RGB = '238, 186, 123';
 const GOLD_HEX = '#eeba7b';
 
-// lucide-react's "rocket" icon path data (see node_modules/lucide-react/dist/esm/icons/rocket.mjs),
-// rasterized to a data URI so it can be drawn/rotated on the canvas per comet.
 const ROCKET_SVG =
   `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" ` +
   `fill="none" stroke="${GOLD_HEX}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">` +
@@ -55,7 +51,6 @@ export default function Preloader({ onComplete, onReveal }) {
     };
   }, []);
 
-  // Reduced motion: skip the particle ring entirely, just hold briefly then fade.
   useEffect(() => {
     if (!reducedMotion) return undefined;
     const timer = setTimeout(() => {
@@ -71,8 +66,6 @@ export default function Preloader({ onComplete, onReveal }) {
     return () => clearTimeout(timer);
   }, [reducedMotion, phase, onComplete]);
 
-  // The iris starts as a "peephole" already showing the live Universe scene
-  // underneath, sized/kept in sync with the viewport while the ring plays.
   useLayoutEffect(() => {
     if (reducedMotion || phase !== 'active') return undefined;
     const iris = irisRef.current;
@@ -86,7 +79,6 @@ export default function Preloader({ onComplete, onReveal }) {
     return () => window.removeEventListener('resize', applyPeepholeSize);
   }, [reducedMotion, phase]);
 
-  // Full motion: comets sweep a circle, dropping embers that build up a complete ring.
   useEffect(() => {
     if (reducedMotion) return undefined;
     const canvas = canvasRef.current;
@@ -117,10 +109,6 @@ export default function Preloader({ onComplete, onReveal }) {
     const rocketImg = new Image();
     rocketImg.src = ROCKET_DATA_URI;
 
-    // Comet head is lucide's rocket icon, rotated to face its direction of
-    // travel. dirAngle is the travel direction in canvas angle terms (0 =
-    // pointing right/+x); the icon's art points up-right (~-45deg by design,
-    // its nose at the SVG's top-right corner), hence the +PI/4 correction.
     const drawRocket = (x, y, dirAngle, alpha) => {
       if (!rocketImg.complete || rocketImg.naturalWidth === 0) return;
       ctx.save();
@@ -141,7 +129,6 @@ export default function Preloader({ onComplete, onReveal }) {
       ctx.clearRect(0, 0, width, height);
 
       if (explodeStartAt === null) {
-        // Phase 1: comets sweep the ring, dropping embers that trace it out.
         for (let i = 0; i < COMET_COUNT; i++) {
           const offset = (i / COMET_COUNT) * Math.PI * 2;
           const angle = -Math.PI / 2 + p * Math.PI * 2 + offset;
@@ -188,8 +175,6 @@ export default function Preloader({ onComplete, onReveal }) {
           }
         }
       } else {
-        // Phase 2: the whole ring flies outward past the edges as the iris opens,
-        // simulating the universe expanding outward along with it.
         const explodeT = clamp01((t - explodeStartAt) / REVEAL_MS);
         const eased = 1 - (1 - explodeT) ** 3;
         const maxR = Math.hypot(width, height) / 2 + 80;
@@ -240,15 +225,10 @@ export default function Preloader({ onComplete, onReveal }) {
     };
   }, [reducedMotion]);
 
-  // Ring complete: the peephole expands from its current size to cover the
-  // whole screen, revealing the already-live Universe scene.
   useLayoutEffect(() => {
     if (reducedMotion || phase !== 'opening') return undefined;
     const iris = irisRef.current;
     if (!iris) return undefined;
-    // Force a reflow so the width/height transition animates from the peephole's
-    // current size instead of jumping straight to its end state (see
-    // ProjectLens.jsx for the same pattern).
     // eslint-disable-next-line no-unused-expressions
     iris.offsetHeight;
     iris.classList.add(styles.irisOpen);
@@ -268,8 +248,6 @@ export default function Preloader({ onComplete, onReveal }) {
 
   return (
     <div className={styles.wrapper} aria-hidden="true">
-      {/* The iris's box-shadow fills the viewport outside its own circle black, so it
-          must sit behind the canvas or it hides the comets completely. */}
       <div ref={irisRef} className={styles.iris} />
       <canvas ref={canvasRef} className={styles.canvas} />
     </div>
