@@ -3,7 +3,9 @@ import styles from './Preloader.module.css';
 
 const RING_DURATION_MS = 1700;
 const HOLD_MS = 250;
-const REVEAL_MS = 1100;
+// Exported so other components (Universe.jsx's intro camera swoop) can sync their
+// own timing to the iris reveal without duplicating the number and risking drift.
+export const REVEAL_MS = 1100;
 const REDUCED_HOLD_MS = 250;
 const REDUCED_FADE_MS = 400;
 
@@ -33,13 +35,18 @@ const ROCKET_DATA_URI = `data:image/svg+xml,${encodeURIComponent(ROCKET_SVG)}`;
 const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
 const ringRadiusFor = (ratio) => Math.min(window.innerWidth, window.innerHeight) * ratio;
 
-export default function Preloader({ onComplete }) {
+export default function Preloader({ onComplete, onReveal }) {
   const [reducedMotion] = useState(
     () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
   const [phase, setPhase] = useState('active');
   const canvasRef = useRef(null);
   const irisRef = useRef(null);
+  const onRevealRef = useRef(onReveal);
+
+  useEffect(() => {
+    onRevealRef.current = onReveal;
+  }, [onReveal]);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -51,7 +58,10 @@ export default function Preloader({ onComplete }) {
   // Reduced motion: skip the particle ring entirely, just hold briefly then fade.
   useEffect(() => {
     if (!reducedMotion) return undefined;
-    const timer = setTimeout(() => setPhase('opening'), REDUCED_HOLD_MS);
+    const timer = setTimeout(() => {
+      onRevealRef.current?.();
+      setPhase('opening');
+    }, REDUCED_HOLD_MS);
     return () => clearTimeout(timer);
   }, [reducedMotion]);
 
@@ -173,6 +183,7 @@ export default function Preloader({ onComplete }) {
           if (ringDoneAt === null) ringDoneAt = t;
           if (t - ringDoneAt >= HOLD_MS) {
             explodeStartAt = t;
+            onRevealRef.current?.();
             setPhase('opening');
           }
         }

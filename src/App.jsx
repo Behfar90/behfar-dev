@@ -15,6 +15,7 @@ const OVERLAY_REVEAL_DELAY_MS = 150;
 
 function App() {
   const [preloaderDone, setPreloaderDone] = useState(false);
+  const [introRevealing, setIntroRevealing] = useState(false);
   const [showOverlays, setShowOverlays] = useState(false);
   const [audiowideReady, setAudiowideReady] = useState(!('fonts' in document));
   const {
@@ -52,7 +53,12 @@ function App() {
 
   return (
     <div className={styles.app}>
-      {!preloaderDone && <Preloader onComplete={() => setPreloaderDone(true)} />}
+      {!preloaderDone && (
+        <Preloader
+          onReveal={() => setIntroRevealing(true)}
+          onComplete={() => setPreloaderDone(true)}
+        />
+      )}
 
       <SceneNav
         visible={showOverlays && audiowideReady && !lensOpen}
@@ -65,6 +71,7 @@ function App() {
         orbitProgress={orbitProgress}
         rendering
         showOverlays={showOverlays}
+        introRevealing={introRevealing}
       />
       <PlungeAtmosphere universeWrapperRef={universeWrapperRef} />
       <div ref={projectsWrapperRef}>

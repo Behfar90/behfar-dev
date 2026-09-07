@@ -8,6 +8,7 @@ import { SUBTITLE_STORY_END, PLUNGE_START } from '../utils/scenes/universeTiming
 import { lerp, smoothstep, clamp01 } from '../utils/math';
 import ShootingStarIntro from '../components/ShootingStarIntro';
 import CaptionGravity from '../components/CaptionGravity';
+import { REVEAL_MS as PRELOADER_REVEAL_MS } from '../components/Preloader';
 import styles from './Universe.module.css';
 
 const ORBIT_EASE = 0.05;
@@ -20,6 +21,16 @@ const INTRO_THETA_OFFSET = -Math.PI / 6;
 
 const PLUNGE_RADIUS_SCALE = 0.08;
 
+// Preloader "crazy idea": while its comet ring plays, hold the camera above the
+// origin galaxy looking straight down at its face instead of the normal edge-on
+// view, then swoop back to the normal starting position in sync with the iris
+// reveal. Swoop is a simultaneous radius/theta/height blend (reusing the same
+// spherical position formula the normal orbit already uses below) rather than a
+// straight cartesian lerp, so it traces a curved crane-shot arc, not a straight cut.
+const FACE_ON_RADIUS = 6;
+const FACE_ON_HEIGHT = 16;
+const FACE_ON_THETA_OFFSET = -Math.PI / 3;
+
 const easeInCubic = (t) => t * t * t;
 
 const ORBIT_CAPTIONS = [
@@ -29,7 +40,13 @@ const ORBIT_CAPTIONS = [
   'Scroll for some of my highlighted works ↓',
 ];
 
-export default function Universe({ wrapperRef, rendering, showOverlays, orbitProgress = 0 }) {
+export default function Universe({
+  wrapperRef,
+  rendering,
+  showOverlays,
+  orbitProgress = 0,
+  introRevealing = false,
+}) {
   const canvasRef = useRef(null);
 
   const orbitProgressRef = useRef(orbitProgress);
@@ -41,6 +58,11 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
   useEffect(() => {
     renderingRef.current = rendering;
   }, [rendering]);
+
+  const introRevealingRef = useRef(introRevealing);
+  useEffect(() => {
+    introRevealingRef.current = introRevealing;
+  }, [introRevealing]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -90,6 +112,12 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
     let currentRadius = initialTarget.radius;
     let currentTheta = initialTarget.theta;
 
+    // See the FACE_ON_* constants above for why this exists. Skipped entirely for
+    // prefers-reduced-motion - the camera just starts at its normal position.
+    let introActive = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let swoopStartMs = null;
+    const faceOnTheta = initialTarget.theta + FACE_ON_THETA_OFFSET;
+
     const mouse = { x: 0, y: 0 };
     const lookTarget = new THREE.Vector3(0, 0, 0);
 
@@ -138,12 +166,30 @@ export default function Universe({ wrapperRef, rendering, showOverlays, orbitPro
       const smokeOpacity = plungeT * (1 - smoothstep(0, 0.3, fallT));
       updateSmoke(smoke, elapsedTime, smokeOpacity);
 
-      const target = orbitTarget(orbitProgressRef.current);
-      currentRadius += (target.radius - currentRadius) * ORBIT_EASE;
-      currentTheta += (target.theta - currentTheta) * ORBIT_EASE;
-      camera.position.x = Math.sin(currentTheta) * currentRadius;
-      camera.position.z = Math.cos(currentTheta) * currentRadius;
-      camera.position.y = height;
+      if (introActive && !introRevealingRef.current) {
+        // Hold the face-on framing steady while the preloader's ring plays.
+        camera.position.x = Math.sin(faceOnTheta) * FACE_ON_RADIUS;
+        camera.position.z = Math.cos(faceOnTheta) * FACE_ON_RADIUS;
+        camera.position.y = FACE_ON_HEIGHT;
+      } else if (introActive) {
+        if (swoopStartMs === null) swoopStartMs = elapsedTime * 1000;
+        const swoopT = clamp01((elapsedTime * 1000 - swoopStartMs) / PRELOADER_REVEAL_MS);
+        const eased = 1 - (1 - swoopT) ** 3;
+        const swoopRadius = lerp(FACE_ON_RADIUS, initialTarget.radius, eased);
+        const swoopTheta = lerp(faceOnTheta, initialTarget.theta, eased);
+        const swoopHeight = lerp(FACE_ON_HEIGHT, height, eased);
+        camera.position.x = Math.sin(swoopTheta) * swoopRadius;
+        camera.position.z = Math.cos(swoopTheta) * swoopRadius;
+        camera.position.y = swoopHeight;
+        if (swoopT >= 1) introActive = false;
+      } else {
+        const target = orbitTarget(orbitProgressRef.current);
+        currentRadius += (target.radius - currentRadius) * ORBIT_EASE;
+        currentTheta += (target.theta - currentTheta) * ORBIT_EASE;
+        camera.position.x = Math.sin(currentTheta) * currentRadius;
+        camera.position.z = Math.cos(currentTheta) * currentRadius;
+        camera.position.y = height;
+      }
 
       lookTarget.x += (mouse.x * LOOK_RANGE - lookTarget.x) * LOOK_EASE;
       lookTarget.y += (mouse.y * LOOK_RANGE - lookTarget.y) * LOOK_EASE;
